@@ -1,10 +1,4 @@
 # simpful
-
-  ____  __  _  _  ____  ____  _  _  __   
- / ___)(  )( \/ )(  _ \(  __)/ )( \(  ) 
- \___ \ )( / \/ \ ) __/ ) _) ) \/ (/ (_/\
-(____/(__)\_)(_/(__)  (__)  \____/\____/
-
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
 
 ## Usage
