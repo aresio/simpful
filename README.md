@@ -1,5 +1,5 @@
 # simpful
-A Python library for fuzzy logic reasoning, designed to provide the simplest interface possible to modelers and fuzzy logic practitioners.
+A Python library for fuzzy logic reasoning, designed to provide a simple API, as close as possible to natural language.
 
 ## Usage
 
