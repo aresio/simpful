@@ -96,7 +96,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0 "
+		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.1 "
 		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
 		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
 		print 
@@ -116,6 +116,14 @@ class FuzzyReasoner(object):
 			print " * Added rule IF", parsed_antecedent, "THEN", parsed_consequent
 		print " * %d rules successfully added" % len(rules)
 
+
+	def add_membership_function(self, name, MF):
+		self._mfs[name]=MF
+		print " * Membership function for '%s' successfully added" % name
+
+	def set_crisp_output_value(self, name, value):
+		self._crispvalues[name]=value
+		print " * Crisp output value for '%s' set to %f" % (name, value)
 
 	def mediate(self, outputs, antecedent, results):
 
@@ -256,9 +264,8 @@ def postparse(STRINGA):
 	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
 
-
-
 def find_index_operator(string):
+	#print string
 	pos = 0
 	par = 1
 	while(par>0):
@@ -275,7 +282,8 @@ def find_index_operator(string):
 
 def curparse(STRINGA):
 	import re
-	regex = re.compile("^\([a-z,_,A-Z]* IS [a-z,_,A-Z]*\)$")
+	#regex = re.compile("^\([a-z,_,A-Z]* IS [a-z,_,A-Z]*\)$")
+	regex = re.compile("^\([a-z,_,A-Z]*\s*IS\s*[a-z,_,A-Z]*\)$")
 	if regex.match(STRINGA):
 		
 		# base case
@@ -287,6 +295,7 @@ def curparse(STRINGA):
 
 		# recursion
 		removed_parentheses = STRINGA[STRINGA.find("(")+1:STRINGA.rfind(")")].strip()
+		#beginindop, endindop = find_index_operator(removed_parentheses)
 		try:
 			beginindop, endindop = find_index_operator(removed_parentheses)
 		except:
