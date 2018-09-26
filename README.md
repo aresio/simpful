@@ -10,9 +10,9 @@ from simpful import *
 
 FR = FuzzyReasoner()
 
-RULE1 = " IF (OXI IS low) THEN (POWER IS LOW_POWER)"
-RULE2 = " IF (OXI IS medium) THEN (POWER IS MEDIUM_POWER)"
-RULE3 = " IF (OXI IS high) THEN (POWER IS HIGH_POWER)"
+RULE1 = "IF (OXI IS low) THEN (POWER IS LOW_POWER)"
+RULE2 = "IF (OXI IS medium) THEN (POWER IS MEDIUM_POWER)"
+RULE3 = "IF (OXI IS high) THEN (POWER IS HIGH_POWER)"
 
 FR.set_crisp_output_value("LOW_POWER", 0)
 FR.set_crisp_output_value("MEDIUM_POWER", 25)
