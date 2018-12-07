@@ -10,9 +10,9 @@ from simpful import *
 
 FR = FuzzyReasoner()
 
-RULE1 = "IF (OXI IS low) THEN (POWER IS LOW_POWER)"
-RULE2 = "IF (OXI IS medium) THEN (POWER IS MEDIUM_POWER)"
-RULE3 = "IF (OXI IS high) THEN (POWER IS HIGH_POWER)"
+RULE1 = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
+RULE2 = "IF (OXI IS medium_flow) THEN (POWER IS MEDIUM_POWER)"
+RULE3 = "IF (OXI IS high_flow) THEN (POWER IS HIGH_POWER)"
 
 FR.set_crisp_output_value("LOW_POWER", 0)
 FR.set_crisp_output_value("MEDIUM_POWER", 25)
@@ -27,7 +27,7 @@ FR.add_rules([RULE1, RULE2, RULE3])
 
 # set antecedents values, perform Sugeno inference and print output values
 FR.set_variable("OXI", .4)
-print FR.Sugeno_inference()
+print FR.Sugeno_inference(['POWER'])
 ```
 
 ## Installation

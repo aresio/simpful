@@ -166,9 +166,9 @@ class FuzzyReasoner(object):
 		return final_result
 
 
-	def Sugeno_inference(self):
+	def Sugeno_inference(self, terms):
 		array_rules = array(self._rules)
-		return self.mediate( ["POWER"], array_rules.T[0], array_rules.T[1] )
+		return self.mediate( terms, array_rules.T[0], array_rules.T[1] )
 
 
 	def plot_surface(self, variables, output, ax, steps=100):
