@@ -96,7 +96,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.1 "
+		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.7 "
 		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
 		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
 		print 
@@ -170,7 +170,7 @@ class FuzzyReasoner(object):
 		array_rules = array(self._rules)
 		return self.mediate( terms, array_rules.T[0], array_rules.T[1] )
 
-
+	"""
 	def plot_surface(self, variables, output, ax, steps=100):
 
 		from mpl_toolkits.mplot3d import Axes3D
@@ -207,6 +207,7 @@ class FuzzyReasoner(object):
 			ax.set_ylabel(variables[1]._concept)
 			ax.set_zlabel(output)
 			ax.view_init(-90, 0)  # vertical, horizontal
+	"""
 		
 
 class Clause(object):
