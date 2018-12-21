@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'simpful',
   packages = ['simpful'], # this must be the same as the name above
-  version = '1.0.7',
+  version = '1.0.9',
   description = 'A simple Fuzzy Logic library',
   author = 'Marco S. Nobile',
   author_email = 'nobile@disco.unimib.it',
@@ -14,4 +14,7 @@ setup(
         "scipy >= 1.0.0"
     ],
   classifiers = ['Programming Language :: Python :: 2.7'],
+  long_description='simpful is a Python library for fuzzy logic reasoning, \
+  designed to provide a simple and lightweight API, as close as possible \
+  to natural language.',
 )

@@ -96,7 +96,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.7 "
+		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.8 "
 		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
 		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
 		print 
@@ -125,7 +125,7 @@ class FuzzyReasoner(object):
 		self._crispvalues[name]=value
 		print " * Crisp output value for '%s' set to %f" % (name, value)
 
-	def mediate(self, outputs, antecedent, results):
+	def mediate(self, outputs, antecedent, results, ignore_errors=False):
 
 		final_result = {}
 
@@ -162,13 +162,21 @@ class FuzzyReasoner(object):
 					num += temp
 					den += value
 
-			final_result[output] = num / den
+			try:
+				final_result[output] = num / den
+			except:
+				if ignore_errors==True:
+					print "WARNING: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output
+				else:
+					print "ERROR: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output
+					exit()
 		return final_result
 
 
-	def Sugeno_inference(self, terms):
+	def Sugeno_inference(self, terms, ignore_errors=False):
 		array_rules = array(self._rules)
-		return self.mediate( terms, array_rules.T[0], array_rules.T[1] )
+		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
+		return result
 
 	"""
 	def plot_surface(self, variables, output, ax, steps=100):
@@ -284,7 +292,7 @@ def find_index_operator(string):
 def curparse(STRINGA):
 	import re
 	#regex = re.compile("^\([a-z,_,A-Z]* IS [a-z,_,A-Z]*\)$")
-	regex = re.compile("^\([a-z,_,A-Z]*\s*IS\s*[a-z,_,A-Z]*\)$")
+	regex = re.compile("^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
 	if regex.match(STRINGA):
 		
 		# base case
