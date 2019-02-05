@@ -87,12 +87,12 @@ class FuzzySet(object):
 
 class FuzzyReasoner(object):
 
-	def __init__(self):
+	def __init__(self, show_banner=True):
 		self._rules = []
 		self._mfs = {}
 		self._variables = {}
 		self._crispvalues = {}
-		self._banner()
+		if show_banner: self._banner()
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
@@ -104,9 +104,9 @@ class FuzzyReasoner(object):
 		print " and Simone Spolaor (simone.spolaor@disco.unimib.it)"
 		print 
 
-	def set_variable(self, name, value):
+	def set_variable(self, name, value, verbose=False):
 		self._variables[name] = value
-		print  " * Variable %s set to %f" % (name, value)
+		if verbose: print  " * Variable %s set to %f" % (name, value)
 
 	def add_rules(self, rules):
 		for rule in rules:
@@ -253,7 +253,7 @@ class Functional(object):
 	def evaluate(self, FuzzySystem):
 		A = self._A.evaluate(FuzzySystem)
 		B = self._B.evaluate(FuzzySystem)
-		return eval(self._fun+"(%s, %s)" % (A,B))
+		return array(eval(self._fun+"(%s, %s)" % (A,B)))
 		
 	def __repr__(self):
 		return "f.(" + str(self._A) + " " + self._fun + " " + str(self._B) + ")"
