@@ -96,7 +96,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.12 "
+		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.14 "
 		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
 		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
 		print 
@@ -177,7 +177,13 @@ class FuzzyReasoner(object):
 		return final_result
 
 
-	def Sugeno_inference(self, terms, ignore_errors=False):
+	def Sugeno_inference(self, terms=None, ignore_errors=False):
+
+		# default: inference on ALL rules/terms
+		if terms == None:
+			temp = [rule[1][0] for rule in self._rules] 
+			terms= list(set(temp))
+
 		array_rules = array(self._rules)
 		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
 		return result
