@@ -80,7 +80,7 @@ class FuzzySet(object):
 
 	def get_value(self, v):		
 		f = interp1d(self._points.T[0], self._points.T[1], 
-			bounds_error=False, fill_value=(self._points.T[1][0], self._points.T[1][1]))
+			bounds_error=False, fill_value=(self._points.T[1][0], self._points.T[1][-1]))
 		result = f(v)
 		return(result)
 
@@ -96,7 +96,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.8 "
+		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.12 "
 		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
 		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
 		print 
@@ -105,8 +105,12 @@ class FuzzyReasoner(object):
 		print 
 
 	def set_variable(self, name, value, verbose=False):
-		self._variables[name] = value
-		if verbose: print  " * Variable %s set to %f" % (name, value)
+		if type(value) == int or type(value) == float:
+			self._variables[name] = value
+			if verbose: print  " * Variable %s set to %f" % (name, value)
+		else:
+			print "ERROR: specified value for", name, "is not an integer or float"
+			exit()
 
 	def add_rules(self, rules):
 		for rule in rules:
