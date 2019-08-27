@@ -1,18 +1,18 @@
+from __future__ import print_function
 from numpy import array, argmin, argmax
 from scipy.interpolate import interp1d
 from collections import defaultdict
-
-
-
+from math import *
+import re
 
 class MembershipFunction(object):
 
 	def __init__(self, FS_list=[], concept=""):
 		if FS_list==[]:
-			print "ERROR: please specify at least one fuzzy set"
+			print ("ERROR: please specify at least one fuzzy set")
 			exit(-2)
 		if concept=="":
-			print "ERROR: please specify a concept connected to the MF"
+			print ("ERROR: please specify a concept connected to the MF")
 			exit(-3)
 
 		self._FSlist = FS_list
@@ -20,12 +20,11 @@ class MembershipFunction(object):
 
 
 	def get_values(self, v):
-		#print "Getting MF(%f).." % (v)
 		result = {}
 		for fs in self._FSlist:
 			result[fs._term] = fs.get_value(v)
-		#print "Results in get_values:", result
 		return result
+
 
 	def get_universe_of_discourse(self):
 		mins = []
@@ -34,6 +33,7 @@ class MembershipFunction(object):
 			mins.append(min(fs._points.T[0]))
 			maxs.append(max(fs._points.T[0]))
 		return min(mins), max(maxs)
+
 
 	def draw(self, TGT):	
 		import seaborn as sns
@@ -56,23 +56,23 @@ class FuzzySet(object):
 
 	def __init__(self, points=None, term="", verbose=False):
 		if len(points)<2: 
-			print "ERROR: more than one point required"
+			print ("ERROR: more than one point required")
 			exit(-1)
 		if term=="":
-			print "ERROR: please specify a linguistic term"
+			print ("ERROR: please specify a linguistic term")
 			exit(-3)
 
 		if verbose:
 			if len(points)==2: # singleton
 				pass
 			elif len(points)==3: # triangle
-				print "Triangle fuzzy set required:", points
+				print ("Triangle fuzzy set required:", points)
 				self._type = "TRIANGLE"
 			elif len(points)==4: # trapezoid
-				print "Trapezoid fuzzy set required:", points
+				print ("Trapezoid fuzzy set required:", points)
 				self._type = "TRAPEZOID"
 			else:
-				print "Polygon set required:", points
+				print ("Polygon set required:", points)
 				self._type = "POLYGON"
 
 		self._points = array(points)
@@ -92,47 +92,57 @@ class FuzzyReasoner(object):
 		self._mfs = {}
 		self._variables = {}
 		self._crispvalues = {}
+		self._outputfunctions = {}
 		if show_banner: self._banner()
 
 	def _banner(self):
-		print "  ____  __  _  _  ____  ____  _  _  __   "
-		print " / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.0.15 "
-		print " \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ "
-		print " (____/(__)\\_)(_/(__)  (__)  \\____/\\____/"
-		print 
-		print " Created by Marco S. Nobile (nobile@disco.unimib.it)"
-		print " and Simone Spolaor (simone.spolaor@disco.unimib.it)"
-		print 
+		print ("  ____  __  _  _  ____  ____  _  _  __   ")
+		print (" / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.1.0 ")
+		print (" \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ ")
+		print (" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
+		print ()
+		print (" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
+		print (" and Simone Spolaor (simone.spolaor@disco.unimib.it)")
+		print ()
 
 	def set_variable(self, name, value, verbose=False):
 		try: 
 			value = float(value)
 			self._variables[name] = value
-			if verbose: print  " * Variable %s set to %f" % (name, value)
+			if verbose: print  (" * Variable %s set to %f" % (name, value))
 		except:
-			print "ERROR: specified value for", name, "is not an integer or float:", value
+			print ("ERROR: specified value for", name, "is not an integer or float:", value)
 			exit()
 
-	def add_rules(self, rules):
+	def add_rules(self, rules, verbose=False):
 		for rule in rules:
-			parsed_antecedent = curparse(preparse(rule))
-			parsed_consequent = postparse(rule)
+			parsed_antecedent = curparse(preparse(rule), verbose=verbose)
+			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
-			print " * Added rule IF", parsed_antecedent, "THEN", parsed_consequent
-		print " * %d rules successfully added" % len(rules)
+			print (" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
+		print (" * %d rules successfully added" % len(rules))
 
 
 	def add_membership_function(self, name, MF):
 		self._mfs[name]=MF
-		print " * Membership function for '%s' successfully added" % name
+		print (" * Membership function for '%s' successfully added" % name)
 
 	def set_crisp_output_value(self, name, value):
 		self._crispvalues[name]=value
-		print " * Crisp output value for '%s' set to %f" % (name, value)
+		print (" * Crisp output value for '%s' set to %f" % (name, value))
+
+
+	def set_output_function(self, name, function):
+		self._outputfunctions[name]=function
+		print (" * Output function for '%s' set to '%s'" % (name, function))
+
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
 
 		final_result = {}
+
+		list_crisp_values = [x[0] for x in self._crispvalues.items()]
+		list_output_funs  = [x[0] for x in self._outputfunctions.items()]
 
 		for output in outputs:
 			num = 0
@@ -141,25 +151,37 @@ class FuzzyReasoner(object):
 			for (ant, res) in zip(antecedent, results):
 				outname = res[0]
 				outterm = res[1]
+				crisp = True
 				if outname==output:
-					try:
+					if outterm not in list_crisp_values:
+						crisp = False
+						if outterm not in list_output_funs:
+							print ("ERROR: one rule calculates an output named '%s', but I cannot find it among the output crisp terms or funtions. Aborting." % outterm)
+							print (" --- PROBLEMATIC RULE:")
+							print ("IF", ant, "THEN", res)
+							print (" --- CRISP OUTPUTS:")
+							for k,v in self._crispvalues.items():
+								print (k, v)
+							print
+							for k,v in self._outputfunctions.items():
+								print (k,v)
+							raise Exception("Mistake in output names")
+							exit()
+					if crisp:
 						crispvalue = self._crispvalues[outterm]
-					except KeyError:
-						print "ERROR: one rule calculates an output named '%s', but I cannot find it among the output crisp terms. Aborting." % outterm
-						print " --- PROBLEMATIC RULE:"
-						print "IF", ant, "THEN", res
-						print " --- CRISP OUTPUTS:"
-						for k,v in self._crispvalues.items():
-							print k, v
-						print
-						raise Exception("Mistake in crisp output names")
+					else:
+						string_to_evaluate = self._outputfunctions[outterm]
+						for k,v in self._variables.items():
+							string_to_evaluate = string_to_evaluate.replace(k,str(v))
+						#print (" * About to evaluate: %s" % string_to_evaluate)
+						crispvalue = eval(string_to_evaluate)						
 
 					try:
 						value = ant.evaluate(self) 
 					except: 
-						print "ERROR: one rule cannot be evaluated properly because of a problematic clause"
-						print " --- PROBLEMATIC RULE:"
-						print "IF", ant, "THEN", res, "\n"
+						print ("ERROR: one rule cannot be evaluated properly because of a problematic clause")
+						print (" --- PROBLEMATIC RULE:")
+						print ("IF", ant, "THEN", res, "\n")
 						exit()
 						#raise Exception("Mistake in fuzzy rule")
 
@@ -171,9 +193,9 @@ class FuzzyReasoner(object):
 				final_result[output] = num / den
 			except:
 				if ignore_errors==True:
-					print "WARNING: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output
+					print ("WARNING: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output)
 				else:
-					print "ERROR: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output
+					print ("ERROR: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output)
 					exit()
 		return final_result
 
@@ -189,65 +211,26 @@ class FuzzyReasoner(object):
 		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
 		return result
 
-	"""
-	def plot_surface(self, variables, output, ax, steps=100):
-
-		from mpl_toolkits.mplot3d import Axes3D
-		import matplotlib.pyplot as plt
-		from matplotlib import cm
-		from matplotlib.ticker import LinearLocator, FormatStrFormatter
-	
-		if len(variables)>2: 
-			print "Unable to plot more than 3 dimensions, aborting."
-			exit(-10)
-		
-		if len(variables)==2:
-
-			ud1 = variables[0].get_universe_of_discourse()
-			ud2 = variables[1].get_universe_of_discourse()
-			inter1 = linspace(ud1[0], ud1[1], steps) 
-			inter2 = linspace(ud2[0], ud2[1], steps) 
-
-			X, Y = meshgrid(inter1, inter2)
-
-			def wrapper(x,y):
-				print x,y
-				self.set_variable(variables[0]._concept, x)
-				self.set_variable(variables[1]._concept, y)
-				res = self.evaluate_rules()
-				print res
-				return res[output]
-			
-			zs = array([wrapper(x,y) for x,y in zip(ravel(X), ravel(Y))])
-			Z = zs.reshape(X.shape)
-
-			ax.plot_surface(array(X),array(Y),array(Z), cmap= "CMRmap")
-			ax.set_xlabel(variables[0]._concept)
-			ax.set_ylabel(variables[1]._concept)
-			ax.set_zlabel(output)
-			ax.view_init(-90, 0)  # vertical, horizontal
-	"""
-		
 
 class Clause(object):
 
-	def __init__(self, variable, term):
+	def __init__(self, variable, term, verbose=False):
 		self._variable = variable
 		self._term = term
 
 	def evaluate(self, FuzzySystem, verbose=False):
 		ans = FuzzySystem._mfs[self._variable].get_values(FuzzySystem._variables[self._variable])
 		if verbose: 
-			print "Checking if", self._variable, 
-			print "whose value is", FuzzySystem._variables[self._variable],
-			print "is actually", self._term
-			print "answer:", ans[self._term]
+			print ("Checking if", self._variable,)
+			print ("whose value is", FuzzySystem._variables[self._variable],)
+			print ("is actually", self._term)
+			print ("answer:", ans[self._term])
 		try:
 			return ans[self._term]
 		except KeyError:
-			print "ERROR: cannot find term '%s' in fuzzy rules, aborting." % self._term
-			print " ---- PROBLEMATIC CLAUSE:"
-			print self
+			print ("ERROR: cannot find term '%s' in fuzzy rules, aborting." % self._term)
+			print (" ---- PROBLEMATIC CLAUSE:")
+			print (self)
 			raise Exception("Name error in some clause of some rule")
 
 	def __repr__(self):
@@ -262,9 +245,15 @@ class Functional(object):
 		self._fun = fun
 
 	def evaluate(self, FuzzySystem):
-		A = self._A.evaluate(FuzzySystem)
-		B = self._B.evaluate(FuzzySystem)
-		return array(eval(self._fun+"(%s, %s)" % (A,B)))
+		if self._A=="":
+			# support for unary operators
+			# print ("Unary detected")
+			B = self._B.evaluate(FuzzySystem)
+			return array(eval(self._fun+"(%s)" % B))
+		else:
+			A = self._A.evaluate(FuzzySystem)
+			B = self._B.evaluate(FuzzySystem)
+			return array(eval(self._fun+"(%s, %s)" % (A,B)))
 		
 	def __repr__(self):
 		return "f.(" + str(self._A) + " " + self._fun + " " + str(self._B) + ")"
@@ -279,7 +268,7 @@ def preparse(STRINGA):
 	# extract the antecedent
 	return STRINGA[STRINGA.find("IF")+2:STRINGA.find("THEN")].strip()
 
-def postparse(STRINGA):
+def postparse(STRINGA, verbose=False):
 	# extract the consequent
 	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
@@ -300,8 +289,11 @@ def find_index_operator(string):
 	return pos+1, pos2
 
 
-def curparse(STRINGA):
-	import re
+def curparse(STRINGA, verbose=False):
+
+	# base case
+	if STRINGA=="": return "" 
+	
 	#regex = re.compile("^\([a-z,_,A-Z]* IS [a-z,_,A-Z]*\)$")
 	regex = re.compile("^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
 	if regex.match(STRINGA):
@@ -309,27 +301,59 @@ def curparse(STRINGA):
 		# base case
 		variable = STRINGA[1:STRINGA.find("IS")].strip()
 		term     = STRINGA[STRINGA.find("IS")+3:-1].strip()
-		return Clause(variable, term)
+		ret_clause = Clause(variable, term, verbose=verbose)
+		if verbose: 
+			print (ret_clause)
+		return ret_clause
 
 	else:
 
 		# recursion
 		removed_parentheses = STRINGA[STRINGA.find("(")+1:STRINGA.rfind(")")].strip()
-		#beginindop, endindop = find_index_operator(removed_parentheses)
-		try:
-			beginindop, endindop = find_index_operator(removed_parentheses)
-		except:
-			print "ERROR: badly formatted rule (wrong capitalization?). Aborting."
-			print " ---- PROBLEMATIC RULE:"
-			print STRINGA
-			exit()
+		if removed_parentheses[:3]=="NOT":
+			beginindop = 0
+			endindop = 3
+		else:
+			try:
+				beginindop, endindop = find_index_operator(removed_parentheses)
+			except:
+				print ("ERROR: badly formatted rule (wrong capitalization perhaps?). Aborting.")
+				print (" ---- PROBLEMATIC RULE:")
+				print (STRINGA)
+				exit()
 
 		firsthalf = removed_parentheses[:beginindop].strip()
 		secondhalf = removed_parentheses[endindop:].strip()
 		operator = removed_parentheses[beginindop:endindop].strip()
+
+		
 		return Functional(operator, curparse(firsthalf), curparse(secondhalf))
 
 
 if __name__ == '__main__':
+	
 
-	pass
+	# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
+
+	FR = FuzzyReasoner()
+
+	RULE1 = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
+	RULE2 = "IF (OXI IS medium_flow) THEN (POWER IS MEDIUM_POWER)"
+	# RULE3 = "IF (OXI IS high_flow) THEN (POWER IS HIGH_POWER)"
+	RULE3 = "IF (NOT (OXI IS low_flow)) THEN (POWER IS HIGH_POWER)"
+
+	FR.set_crisp_output_value("LOW_POWER", 0)
+	FR.set_crisp_output_value("MEDIUM_POWER", 25)
+	FR.set_crisp_output_value("HIGH_POWER", 100)
+	# FR.set_output_function("HIGH_FUN", "sin(OXI)")
+
+	FS_1 = FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
+	FS_2 = FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
+	FS_3 = FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
+	FR.add_membership_function("OXI", MembershipFunction( [FS_1, FS_2, FS_3], 	concept="OXI" ))
+
+	FR.add_rules([RULE1, RULE2, RULE3], verbose=True)
+
+	# set antecedents values, perform Sugeno inference and print output values
+	FR.set_variable("OXI", .51)
+	print (FR.Sugeno_inference(['POWER']))
