@@ -97,7 +97,7 @@ class FuzzyReasoner(object):
 
 	def _banner(self):
 		print ("  ____  __  _  _  ____  ____  _  _  __   ")
-		print (" / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.1.0 ")
+		print (" / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.2.0 ")
 		print (" \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ ")
 		print (" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
 		print ()
@@ -332,28 +332,4 @@ def curparse(STRINGA, verbose=False):
 
 if __name__ == '__main__':
 	
-
-	# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
-
-	FR = FuzzyReasoner()
-
-	RULE1 = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
-	RULE2 = "IF (OXI IS medium_flow) THEN (POWER IS MEDIUM_POWER)"
-	# RULE3 = "IF (OXI IS high_flow) THEN (POWER IS HIGH_POWER)"
-	RULE3 = "IF (NOT (OXI IS low_flow)) THEN (POWER IS HIGH_POWER)"
-
-	FR.set_crisp_output_value("LOW_POWER", 0)
-	FR.set_crisp_output_value("MEDIUM_POWER", 25)
-	FR.set_crisp_output_value("HIGH_POWER", 100)
-	# FR.set_output_function("HIGH_FUN", "sin(OXI)")
-
-	FS_1 = FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
-	FS_2 = FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
-	FS_3 = FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-	FR.add_membership_function("OXI", MembershipFunction( [FS_1, FS_2, FS_3], 	concept="OXI" ))
-
-	FR.add_rules([RULE1, RULE2, RULE3], verbose=True)
-
-	# set antecedents values, perform Sugeno inference and print output values
-	FR.set_variable("OXI", .51)
-	print (FR.Sugeno_inference(['POWER']))
+	pass
