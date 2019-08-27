@@ -35,6 +35,6 @@ print FR.Sugeno_inference(['POWER'])
 `pip install simpful`
 
 ## Further info
-Created by Marco S. Nobile and Simone Spolaor at the University of Milano-Bicocca, Italy. 
+Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
 
-If you need further information, please drop a line at: nobile@disco.unimib.it. 
+If you need further information, please write an e-mail at: m.s.nobile@tue.nl.
