@@ -5,6 +5,51 @@ from collections import defaultdict
 from math import *
 import re
 
+class MF_object(object):
+
+	def __init__(self):
+		pass
+
+	def __call__(self, x):
+		ret = self._execute(x)
+		return min(1, max(0, ret))
+		
+
+###############################
+# USEFUL PRE-BAKED FUZZY SETS #
+###############################
+
+class Gaussian_MF(MF_object):
+
+	def __init__(self, mu, sigma):
+		self._mu = mu
+		self._sigma = sigma
+
+	def _execute(self, x):
+		from scipy.stats import norm
+		return norm.pdf(x, self._mu, self._sigma)
+
+class DoubleGaussian_MF(MF_object):
+
+	def __init__(self, mu1, sigma1, mu2, sigma2):
+		self._mu1 = mu1
+		self._sigma1 = sigma1
+		self._mu2 = mu2
+		self._sigma2 = sigma2
+
+	def _execute(self, x):
+		from scipy.stats import norm
+		first = norm.pdf(x, self._mu1, self._sigma1)
+		second = norm.pdf(x, self._mu2, self._sigma2)
+		return first*second
+
+
+###############################
+# USEFUL PRE-BAKED FUZZY SETS #
+###############################
+
+
+
 class MembershipFunction(object):
 
 	def __init__(self, FS_list=[], concept=""):
@@ -52,37 +97,76 @@ class MembershipFunction(object):
 		return self._concept
 
 
+
 class FuzzySet(object):
 
-	def __init__(self, points=None, term="", verbose=False):
+	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
+
+		self._term = term
+
+		if points is None and function is not None:
+			self._type = "function"
+			self._funpointer = function
+			#self._funargs    = function['args']
+			return
+
+
 		if len(points)<2: 
 			print ("ERROR: more than one point required")
 			exit(-1)
 		if term=="":
 			print ("ERROR: please specify a linguistic term")
 			exit(-3)
+		self._type = "pointbased"
+		self._high_quality_interpolate = high_quality_interpolate
 
+		"""
 		if verbose:
-			if len(points)==2: # singleton
+			if len(points)==1: # singleton
 				pass
-			elif len(points)==3: # triangle
-				print ("Triangle fuzzy set required:", points)
+			elif len(points)==2: # triangle
+				print (" * Triangle fuzzy set required for term '%s':" % term, points)
 				self._type = "TRIANGLE"
-			elif len(points)==4: # trapezoid
-				print ("Trapezoid fuzzy set required:", points)
+			elif len(points)==3: # trapezoid
+				print (" * Trapezoid fuzzy set required for term '%s':" % term, points)
 				self._type = "TRAPEZOID"
 			else:
-				print ("Polygon set required:", points)
+				print (" * Polygon set required for term '%s':" % term, points)
 				self._type = "POLYGON"
+		"""
 
 		self._points = array(points)
-		self._term = term
+		
 
-	def get_value(self, v):		
+	def get_value(self, v):
+
+		if self._type == "function":
+			return self._funpointer(v)
+
+		if self._high_quality_interpolate:
+			return self.get_value_slow(v)
+		else:
+			return self.get_value_fast(v)
+
+	def get_value_slow(self, v):		
 		f = interp1d(self._points.T[0], self._points.T[1], 
 			bounds_error=False, fill_value=(self._points.T[1][0], self._points.T[1][-1]))
 		result = f(v)
 		return(result)
+
+	def get_value_fast(self, v):
+		x = self._points.T[0]
+		y = self._points.T[1]
+		N = len(x)
+		if v<x[0]: return self._points.T[1][0] 
+		for i in range(N-1):
+			if (x[i]<= v) and (v <= x[i+1]):
+				return self._fast_interpolate(x[i], y[i], x[i+1], y[i+1], v)
+		return self._points.T[1][-1] # fallback for values outside the Universe of the discourse
+
+	def _fast_interpolate(self, x0, y0, x1, y1, x):
+		#print (x0, y0, x1, y1, x); exit()
+		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
 
 
 class FuzzyReasoner(object):

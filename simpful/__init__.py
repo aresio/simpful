@@ -1,1 +1,1 @@
-from simpful import *
+from .simpful import *
