@@ -1,9 +1,17 @@
 from __future__ import print_function
-from numpy import array, argmin, argmax
+from numpy import array, argmin, argmax, linspace, exp
 from scipy.interpolate import interp1d
 from collections import defaultdict
 from math import *
+from matplotlib.pyplot import plot, show, title, subplots, legend
 import re
+import numpy as np
+
+class UndefinedUniverseOfDiscourseError(Exception):
+
+	def __init__(self, message):
+		self.message = message
+
 
 class MF_object(object):
 
@@ -19,6 +27,25 @@ class MF_object(object):
 # USEFUL PRE-BAKED FUZZY SETS #
 ###############################
 
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+
+class Sigmoid_MF(MF_object):
+
+	def __init__(self, x):
+		self._x = x
+		
+	def _execute(self, x, c=0, a=1):
+		return 1.0/(1.0 + exp(-a*(x-c))) 
+
+class InvSigmoid_MF(MF_object):
+
+	def __init__(self, x):
+		self._x = x
+		
+	def _execute(self, x, c=0, a=1):
+		return 1.0 - 1.0/(1.0 + exp(-a*(x-c))) 
+
 class Gaussian_MF(MF_object):
 
 	def __init__(self, mu, sigma):
@@ -26,8 +53,16 @@ class Gaussian_MF(MF_object):
 		self._sigma = sigma
 
 	def _execute(self, x):
-		from scipy.stats import norm
-		return norm.pdf(x, self._mu, self._sigma)
+		return gaussian(x, self._mu, self._sigma)
+
+class InvGaussian_MF(MF_object):
+
+	def __init__(self, mu, sigma):
+		self._mu = mu
+		self._sigma = sigma
+
+	def _execute(self, x):
+		return 1.-gaussian(x, self._mu, self._sigma)
 
 class DoubleGaussian_MF(MF_object):
 
@@ -38,9 +73,8 @@ class DoubleGaussian_MF(MF_object):
 		self._sigma2 = sigma2
 
 	def _execute(self, x):
-		from scipy.stats import norm
-		first = norm.pdf(x, self._mu1, self._sigma1)
-		second = norm.pdf(x, self._mu2, self._sigma2)
+		first = gaussian(x, self._mu1, self._sigma1)
+		second = gaussian(x, self._mu2, self._sigma2)
 		return first*second
 
 
@@ -52,13 +86,14 @@ class DoubleGaussian_MF(MF_object):
 
 class MembershipFunction(object):
 
-	def __init__(self, FS_list=[], concept=""):
+	def __init__(self, FS_list=[], concept="", universe_of_discourse=None):
 		if FS_list==[]:
 			print ("ERROR: please specify at least one fuzzy set")
 			exit(-2)
 		if concept=="":
 			print ("ERROR: please specify a concept connected to the MF")
 			exit(-3)
+		self._universe_of_discourse = universe_of_discourse
 
 		self._FSlist = FS_list
 		self._concept = concept
@@ -72,26 +107,39 @@ class MembershipFunction(object):
 
 
 	def get_universe_of_discourse(self):
+		if self._universe_of_discourse is not None:
+			return self._universe_of_discourse
 		mins = []
 		maxs = []
-		for fs in self._FSlist:
-			mins.append(min(fs._points.T[0]))
-			maxs.append(max(fs._points.T[0]))
+		try:
+			for fs in self._FSlist:
+				mins.append(min(fs._points.T[0]))
+				maxs.append(max(fs._points.T[0]))
+		except:
+			raise UndefinedUniverseOfDiscourseError ("Cannot get the universe of discourse. Did you use point-based fuzzy sets or explicitly specify a universe of discourse?")
+			exit()
 		return min(mins), max(maxs)
 
 
-	def draw(self, TGT):	
+	def draw(self, TGT=None):	
 		import seaborn as sns
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 1e4)
+		fig, ax = subplots(1,1)
 		for fs in self._FSlist:
-			sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", fit_reg=False)
-			f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
-			plot(x, f(x), "--", label=fs._term)
-			plot(TGT, f(TGT), "*", ms=10)
+			if fs._type == "function":
+				y = [fs.get_value(xx) for xx in x]
+				plot(x,y, "--", label=fs._term)
+			else:
+				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", fit_reg=False)
+				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
+				plot(x, f(x), "--", label=fs._term)
+				if TGT is not None:
+					plot(TGT, f(TGT), "*", ms=10, label="x")
 		title(self._concept)
 		legend(loc="best")
 		show()
+		
 
 	def __repr__(self):
 		return self._concept
@@ -107,7 +155,7 @@ class FuzzySet(object):
 		if points is None and function is not None:
 			self._type = "function"
 			self._funpointer = function
-			#self._funargs    = function['args']
+			#self._funargs	= function['args']
 			return
 
 
@@ -180,8 +228,10 @@ class FuzzyReasoner(object):
 		if show_banner: self._banner()
 
 	def _banner(self):
+		import pkg_resources
+		vrs = pkg_resources.get_distribution('simpful').version 
 		print ("  ____  __  _  _  ____  ____  _  _  __   ")
-		print (" / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v1.2.0 ")
+		print (" / ___)(  )( \\/ )(  _ \\(  __)/ )( \\(  ) v%s " % vrs)
 		print (" \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ ")
 		print (" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
 		print ()
@@ -253,6 +303,8 @@ class FuzzyReasoner(object):
 							exit()
 					if crisp:
 						crispvalue = self._crispvalues[outterm]
+					elif isinstance(self._outputfunctions[outterm], MF_object):
+						raise Exception("Mistake in a consequent of rule %s.\nSugeno reasoning does not support output fuzzy sets." % ("IF " + str(ant) + " THEN " + str(res)))
 					else:
 						string_to_evaluate = self._outputfunctions[outterm]
 						for k,v in self._variables.items():
@@ -294,6 +346,10 @@ class FuzzyReasoner(object):
 		array_rules = array(self._rules)
 		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
 		return result
+
+
+	def Mamdani_inference(self, terms=None, ignore_errors=False):
+		raise Exception("Mamdani inference is under development")
 
 
 class Clause(object):
@@ -384,7 +440,7 @@ def curparse(STRINGA, verbose=False):
 		
 		# base case
 		variable = STRINGA[1:STRINGA.find("IS")].strip()
-		term     = STRINGA[STRINGA.find("IS")+3:-1].strip()
+		term	 = STRINGA[STRINGA.find("IS")+3:-1].strip()
 		ret_clause = Clause(variable, term, verbose=verbose)
 		if verbose: 
 			print (ret_clause)
