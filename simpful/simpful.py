@@ -3,7 +3,6 @@ from numpy import array, argmin, argmax, linspace, exp
 from scipy.interpolate import interp1d
 from collections import defaultdict
 from math import *
-from matplotlib.pyplot import plot, show, title, subplots, legend
 import re
 import numpy as np
 try:
@@ -12,6 +11,7 @@ except:
 	pass
 
 linestyles= ["-", "--", ":", "-."]
+
 
 
 class UndefinedUniverseOfDiscourseError(Exception):
@@ -93,14 +93,14 @@ class DoubleGaussian_MF(MF_object):
 
 
 
-class MembershipFunction(object):
+class LinguisticVariable(object):
 
 	def __init__(self, FS_list=[], concept="", universe_of_discourse=None):
 		if FS_list==[]:
 			print ("ERROR: please specify at least one fuzzy set")
 			exit(-2)
 		if concept=="":
-			print ("ERROR: please specify a concept connected to the MF")
+			print ("ERROR: please specify a concept connected to the linguistic variable")
 			exit(-3)
 		self._universe_of_discourse = universe_of_discourse
 
@@ -135,6 +135,7 @@ class MembershipFunction(object):
 		x = linspace(mi, ma, 1e4)
 
 		#pal = sns.color_palette("husl", len(self._FSlist))
+		linestyles= ["-", "--", ":", "-."]
 
 		for nn, fs in enumerate(self._FSlist):
 			if fs._type == "function":
@@ -152,7 +153,16 @@ class MembershipFunction(object):
 		return ax
 
 
-	def plot(self, TGT=None):	
+	def plot(self, TGT=None):
+		try:
+			from matplotlib.pyplot import plot, show, title, subplots, legend
+			try:
+				import seaborn as sns
+			except:
+				pass
+		except:
+			print("ERROR: please, install matplotlib for plotting facilities")
+
 		fig, ax = subplots(1,1)
 		self.draw(ax=ax, TGT=TGT)
 		show()
@@ -235,11 +245,11 @@ class FuzzySet(object):
 		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
 
 
-class FuzzyReasoner(object):
+class FuzzySystem(object):
 
 	def __init__(self, show_banner=True):
 		self._rules = []
-		self._mfs = {}
+		self._lvs = {}
 		self._variables = {}
 		self._crispvalues = {}
 		self._outputfunctions = {}
@@ -276,9 +286,9 @@ class FuzzyReasoner(object):
 		print (" * %d rules successfully added" % len(rules))
 
 
-	def add_membership_function(self, name, MF):
-		self._mfs[name]=MF
-		print (" * Membership function for '%s' successfully added" % name)
+	def add_linguistic_variable(self, name, LV):
+		self._lvs[name]=LV
+		print (" * Linguistic variable '%s' successfully added" % name)
 
 	def set_crisp_output_value(self, name, value):
 		self._crispvalues[name]=value
@@ -378,7 +388,7 @@ class Clause(object):
 		self._term = term
 
 	def evaluate(self, FuzzySystem, verbose=False):
-		ans = FuzzySystem._mfs[self._variable].get_values(FuzzySystem._variables[self._variable])
+		ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
 		if verbose: 
 			print ("Checking if", self._variable,)
 			print ("whose value is", FuzzySystem._variables[self._variable],)
@@ -434,7 +444,7 @@ def postparse(STRINGA, verbose=False):
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
 
 def find_index_operator(string, verbose=True):
-	print (" * Looking for an operator in", string)
+	if verbose: print (" * Looking for an operator in", string)
 	pos = 0
 	par = 1
 	while(par>0):
