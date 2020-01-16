@@ -9,26 +9,28 @@ from simpful import *
 
 # A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
 
-FR = FuzzyReasoner()
+FS = FuzzySystem()
 
+# Define a linguistic variable.
+S_1 = FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
+S_2 = FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
+S_3 = FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
+FS.add_linguistic_variable("OXI", LinguisticVariable( [S_1, S_2, S_3], 	concept="OXI" ))
+
+# Define consequents.
+FS.set_crisp_output_value("LOW_POWER", 0)
+FS.set_crisp_output_value("MEDIUM_POWER", 25)
+FS.set_output_function("HIGH_FUN", "OXI**2")
+
+# Define fuzzy rules.
 RULE1 = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
 RULE2 = "IF (OXI IS medium_flow) THEN (POWER IS MEDIUM_POWER)"
 RULE3 = "IF (NOT (OXI IS low_flow)) THEN (POWER IS HIGH_FUN)"
+FS.add_rules([RULE1, RULE2, RULE3])
 
-FR.set_crisp_output_value("LOW_POWER", 0)
-FR.set_crisp_output_value("MEDIUM_POWER", 25)
-FR.set_output_function("HIGH_FUN", "OXI**2")
-
-FS_1 = FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
-FS_2 = FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
-FS_3 = FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-FR.add_membership_function("OXI", MembershipFunction( [FS_1, FS_2, FS_3], 	concept="OXI" ))
-
-FR.add_rules([RULE1, RULE2, RULE3])
-
-# set antecedents values, perform Sugeno inference and print output values
-FR.set_variable("OXI", .51)
-print (FR.Sugeno_inference(['POWER']))
+# Set antecedents values, perform Sugeno inference and print output values.
+FS.set_variable("OXI", .51)
+print (FS.Sugeno_inference(['POWER']))
 ```
 
 ## Installation
