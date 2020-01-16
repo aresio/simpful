@@ -6,6 +6,13 @@ from math import *
 from matplotlib.pyplot import plot, show, title, subplots, legend
 import re
 import numpy as np
+try:
+	import seaborn as sns
+except:
+	pass
+
+linestyles= ["-", "--", ":", "-."]
+
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -32,19 +39,21 @@ def gaussian(x, mu, sig):
 
 class Sigmoid_MF(MF_object):
 
-	def __init__(self, x):
-		self._x = x
+	def __init__(self, c=0, a=1):
+		self._c = c
+		self._a = a
 		
-	def _execute(self, x, c=0, a=1):
-		return 1.0/(1.0 + exp(-a*(x-c))) 
+	def _execute(self, x):
+		return 1.0/(1.0 + exp(-self._a*(x-self._c))) 
 
 class InvSigmoid_MF(MF_object):
 
-	def __init__(self, x):
-		self._x = x
+	def __init__(self, c=0, a=1):
+		self._c = c
+		self._a = a
 		
-	def _execute(self, x, c=0, a=1):
-		return 1.0 - 1.0/(1.0 + exp(-a*(x-c))) 
+	def _execute(self, x):
+		return 1.0 - 1.0/(1.0 + exp(-self._a*(x-self._c))) 
 
 class Gaussian_MF(MF_object):
 
@@ -121,24 +130,33 @@ class MembershipFunction(object):
 		return min(mins), max(maxs)
 
 
-	def draw(self, TGT=None):	
-		import seaborn as sns
+	def draw(self, ax, TGT=None):
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 1e4)
-		fig, ax = subplots(1,1)
-		for fs in self._FSlist:
+
+		#pal = sns.color_palette("husl", len(self._FSlist))
+
+		for nn, fs in enumerate(self._FSlist):
 			if fs._type == "function":
 				y = [fs.get_value(xx) for xx in x]
-				plot(x,y, "--", label=fs._term)
+				ax.plot(x,y, linestyles[nn%4], label=fs._term, )
 			else:
-				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", fit_reg=False)
+				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
 				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
-				plot(x, f(x), "--", label=fs._term)
+				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
 				if TGT is not None:
-					plot(TGT, f(TGT), "*", ms=10, label="x")
-		title(self._concept)
-		legend(loc="best")
+					ax.plot(TGT, f(TGT), "*", ms=10, label="x")
+		ax.set_xlabel(self._concept)
+		ax.set_ylabel("Membership degree")
+		ax.legend(loc="best")
+		return ax
+
+
+	def plot(self, TGT=None):	
+		fig, ax = subplots(1,1)
+		self.draw(ax=ax, TGT=TGT)
 		show()
+		
 		
 
 	def __repr__(self):
@@ -254,6 +272,7 @@ class FuzzyReasoner(object):
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
 			print (" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
+			print()
 		print (" * %d rules successfully added" % len(rules))
 
 
@@ -336,7 +355,7 @@ class FuzzyReasoner(object):
 		return final_result
 
 
-	def Sugeno_inference(self, terms=None, ignore_errors=False):
+	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 
 		# default: inference on ALL rules/terms
 		if terms == None:
@@ -399,6 +418,7 @@ class Functional(object):
 		return "f.(" + str(self._A) + " " + self._fun + " " + str(self._B) + ")"
 
 
+# basic definitions o f 
 def OR(x,y): return max(x, y)
 def AND(x,y): return min(x, y)
 def NOT(x): return 1.-x
@@ -413,13 +433,15 @@ def postparse(STRINGA, verbose=False):
 	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
 
-def find_index_operator(string):
-	#print string
+def find_index_operator(string, verbose=True):
+	print (" * Looking for an operator in", string)
 	pos = 0
 	par = 1
 	while(par>0):
+		#print(pos)
 		pos+=1
 		if pos>=len(string):
+			#print(pos, pos2)
 			raise Exception("badly formatted rule, terminating")
 		if string[pos]==")": par-=1
 		if string[pos]=="(": par+=1
@@ -433,29 +455,43 @@ def curparse(STRINGA, verbose=False):
 
 	# base case
 	if STRINGA=="": return "" 
+
+	STRINGA = STRINGA.strip()
+	if STRINGA[0]!="(": STRINGA="("+STRINGA
+	if STRINGA[-1]!=")": STRINGA=STRINGA+")"
 	
 	#regex = re.compile("^\([a-z,_,A-Z]* IS [a-z,_,A-Z]*\)$")
 	regex = re.compile("^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
 	if regex.match(STRINGA):
 		
+		if verbose:	print (" * Regular expression is matching with single atomic clause:", STRINGA)
+
 		# base case
 		variable = STRINGA[1:STRINGA.find("IS")].strip()
 		term	 = STRINGA[STRINGA.find("IS")+3:-1].strip()
 		ret_clause = Clause(variable, term, verbose=verbose)
-		if verbose: 
-			print (ret_clause)
+		if verbose:	print (" * Rule:", ret_clause)
 		return ret_clause
 
 	else:
 
-		# recursion
+		# there can be two explanations: missing parentheses, or sub-expression
+		if verbose:	print (" * Regular expression is not matching with single atomic clause:", STRINGA)
+		
+		# try recursion
 		removed_parentheses = STRINGA[STRINGA.find("(")+1:STRINGA.rfind(")")].strip()
+		
+		# if (removed_parentheses.find("(")==-1): return curparse("("+removed_parentheses+")")
+
+		if verbose: print( "  - After parentheses removal:", removed_parentheses)
+
 		if removed_parentheses[:3]=="NOT":
 			beginindop = 0
 			endindop = 3
+			#if verbose: print( " * Detected unary operator NOT")
 		else:
 			try:
-				beginindop, endindop = find_index_operator(removed_parentheses)
+				beginindop, endindop = find_index_operator(removed_parentheses, verbose=verbose)
 			except:
 				print ("ERROR: badly formatted rule (wrong capitalization perhaps?). Aborting.")
 				print (" ---- PROBLEMATIC RULE:")
@@ -465,9 +501,9 @@ def curparse(STRINGA, verbose=False):
 		firsthalf = removed_parentheses[:beginindop].strip()
 		secondhalf = removed_parentheses[endindop:].strip()
 		operator = removed_parentheses[beginindop:endindop].strip()
-
+		if verbose:	print ("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
 		
-		return Functional(operator, curparse(firsthalf), curparse(secondhalf))
+		return Functional(operator, curparse(firsthalf, verbose=verbose), curparse(secondhalf, verbose=verbose))
 
 
 if __name__ == '__main__':
