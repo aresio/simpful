@@ -415,7 +415,8 @@ class Functional(object):
 		if variants is None:
 			self._fun = fun
 		else:
-			if "AND_PRODUCT" in variants: self._fun = "AND2"
+			if ("AND_PRODUCT" in variants) and (fun=="AND"):
+			 	self._fun = "AND2"
 
 
 	def evaluate(self, FuzzySystem):
