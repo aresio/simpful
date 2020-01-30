@@ -247,13 +247,14 @@ class FuzzySet(object):
 
 class FuzzySystem(object):
 
-	def __init__(self, show_banner=True):
+	def __init__(self, variants=None, show_banner=True):
 		self._rules = []
 		self._lvs = {}
 		self._variables = {}
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		if show_banner: self._banner()
+		self._variants = variants
 
 	def _banner(self):
 		import pkg_resources
@@ -278,7 +279,7 @@ class FuzzySystem(object):
 
 	def add_rules(self, rules, verbose=False):
 		for rule in rules:
-			parsed_antecedent = curparse(preparse(rule), verbose=verbose)
+			parsed_antecedent = curparse(preparse(rule), verbose=verbose, variants=self._variants)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
 			print (" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
@@ -338,7 +339,6 @@ class FuzzySystem(object):
 						string_to_evaluate = self._outputfunctions[outterm]
 						for k,v in self._variables.items():
 							string_to_evaluate = string_to_evaluate.replace(k,str(v))
-						#print (" * About to evaluate: %s" % string_to_evaluate)
 						crispvalue = eval(string_to_evaluate)						
 
 					try:
@@ -387,7 +387,7 @@ class Clause(object):
 		self._variable = variable
 		self._term = term
 
-	def evaluate(self, FuzzySystem, verbose=False):
+	def evaluate(self, FuzzySystem, verbose=False, variants=None):
 		ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
 		if verbose: 
 			print ("Checking if", self._variable,)
@@ -408,10 +408,15 @@ class Clause(object):
 
 class Functional(object):
 
-	def __init__(self, fun, A, B):
+	def __init__(self, fun, A, B, variants=None):
 		self._A = A
 		self._B = B
-		self._fun = fun
+		
+		if variants is None:
+			self._fun = fun
+		else:
+			if "AND_PRODUCT" in variants: self._fun = "AND2"
+
 
 	def evaluate(self, FuzzySystem):
 		if self._A=="":
@@ -431,6 +436,7 @@ class Functional(object):
 # basic definitions o f 
 def OR(x,y): return max(x, y)
 def AND(x,y): return min(x, y)
+def AND2(x,y): return x*y
 def NOT(x): return 1.-x
 
 
@@ -461,7 +467,7 @@ def find_index_operator(string, verbose=True):
 	return pos+1, pos2
 
 
-def curparse(STRINGA, verbose=False):
+def curparse(STRINGA, verbose=False, variants=None):
 
 	# base case
 	if STRINGA=="": return "" 
@@ -513,7 +519,7 @@ def curparse(STRINGA, verbose=False):
 		operator = removed_parentheses[beginindop:endindop].strip()
 		if verbose:	print ("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
 		
-		return Functional(operator, curparse(firsthalf, verbose=verbose), curparse(secondhalf, verbose=verbose))
+		return Functional(operator, curparse(firsthalf, verbose=verbose), curparse(secondhalf, verbose=verbose), variants=variants)
 
 
 if __name__ == '__main__':
