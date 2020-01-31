@@ -411,11 +411,17 @@ class Functional(object):
 	def __init__(self, fun, A, B, variants=None):
 		self._A = A
 		self._B = B
-		
-		if ("AND_PRODUCT" in variants) and (fun=="AND"):
-		 	self._fun = "AND2"
-		else:
+
+		if variants is None:
 			self._fun = fun
+		else:
+			if "AND_PRODUCT" in variants: 
+				if fun=="AND":
+					self._fun = "AND_p"
+				else:
+					self._fun = fun
+			else:
+				self._fun = fun
 
 	def evaluate(self, FuzzySystem):
 		if self._A=="":
@@ -435,7 +441,7 @@ class Functional(object):
 # basic definitions o f 
 def OR(x,y): return max(x, y)
 def AND(x,y): return min(x, y)
-def AND2(x,y): return x*y
+def AND_p(x,y): return x*y
 def NOT(x): return 1.-x
 
 
@@ -518,7 +524,7 @@ def curparse(STRINGA, verbose=False, variants=None):
 		operator = removed_parentheses[beginindop:endindop].strip()
 		if verbose:	print ("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
 		
-		return Functional(operator, curparse(firsthalf, verbose=verbose), curparse(secondhalf, verbose=verbose), variants=variants)
+		return Functional(operator, curparse(firsthalf, verbose=verbose, variants=variants), curparse(secondhalf, verbose=verbose, variants=variants), variants=variants)
 
 
 if __name__ == '__main__':
