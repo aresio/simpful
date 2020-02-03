@@ -132,7 +132,7 @@ class LinguisticVariable(object):
 
 	def draw(self, ax, TGT=None):
 		mi, ma = self.get_universe_of_discourse()
-		x = linspace(mi, ma, 1e4)
+		x = linspace(mi, ma, 10000)
 
 		#pal = sns.color_palette("husl", len(self._FSlist))
 		linestyles= ["-", "--", ":", "-."]
