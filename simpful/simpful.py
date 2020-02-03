@@ -132,7 +132,7 @@ class LinguisticVariable(object):
 
 	def draw(self, ax, TGT=None):
 		mi, ma = self.get_universe_of_discourse()
-		x = linspace(mi, ma, 1e4)
+		x = linspace(mi, ma, 10000)
 
 		#pal = sns.color_palette("husl", len(self._FSlist))
 		linestyles= ["-", "--", ":", "-."]
@@ -417,7 +417,7 @@ class Functional(object):
 		else:
 			if "AND_PRODUCT" in variants: 
 				if fun=="AND":
-					self._fun = "AND2"
+					self._fun = "AND_p"
 				else:
 					self._fun = fun
 			else:
@@ -441,7 +441,7 @@ class Functional(object):
 # basic definitions o f 
 def OR(x,y): return max(x, y)
 def AND(x,y): return min(x, y)
-def AND2(x,y): return x*y
+def AND_p(x,y): return x*y
 def NOT(x): return 1.-x
 
 
@@ -524,7 +524,7 @@ def curparse(STRINGA, verbose=False, variants=None):
 		operator = removed_parentheses[beginindop:endindop].strip()
 		if verbose:	print ("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
 		
-		return Functional(operator, curparse(firsthalf, verbose=verbose), curparse(secondhalf, verbose=verbose), variants=variants)
+		return Functional(operator, curparse(firsthalf, verbose=verbose, variants=variants), curparse(secondhalf, verbose=verbose, variants=variants), variants=variants)
 
 
 if __name__ == '__main__':
