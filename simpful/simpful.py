@@ -247,14 +247,14 @@ class FuzzySet(object):
 
 class FuzzySystem(object):
 
-	def __init__(self, variants=None, show_banner=True, verbose=True):
+	def __init__(self, operators=None, show_banner=True, verbose=True):
 		self._rules = []
 		self._lvs = {}
 		self._variables = {}
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		if show_banner: self._banner()
-		self._variants = variants
+		self._operators = operators
 
 	def _banner(self):
 		import pkg_resources
@@ -279,7 +279,7 @@ class FuzzySystem(object):
 
 	def add_rules(self, rules, verbose=False):
 		for rule in rules:
-			parsed_antecedent = curparse(preparse(rule), verbose=verbose, variants=self._variants)
+			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
 			if verbose:
@@ -423,7 +423,7 @@ class Clause(object):
 		self._variable = variable
 		self._term = term
 
-	def evaluate(self, FuzzySystem, verbose=False, variants=None):
+	def evaluate(self, FuzzySystem, verbose=False, operators=None):
 		ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
 		if verbose: 
 			print ("Checking if", self._variable,)
@@ -444,14 +444,14 @@ class Clause(object):
 
 class Functional(object):
 
-	def __init__(self, fun, A, B, variants=None):
+	def __init__(self, fun, A, B, operators=None):
 		self._A = A
 		self._B = B
 
-		if variants is None:
+		if operators is None:
 			self._fun = fun
 		else:
-			if "AND_PRODUCT" in variants: 
+			if "AND_PRODUCT" in operators: 
 				if fun=="AND":
 					self._fun = "AND_p"
 				else:
@@ -508,7 +508,7 @@ def find_index_operator(string, verbose=False):
 	return pos+1, pos2
 
 
-def curparse(STRINGA, verbose=False, variants=None):
+def curparse(STRINGA, verbose=False, operators=None):
 
 	# base case
 	if STRINGA=="": return "" 
@@ -560,7 +560,7 @@ def curparse(STRINGA, verbose=False, variants=None):
 		operator = removed_parentheses[beginindop:endindop].strip()
 		if verbose:	print ("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
 		
-		return Functional(operator, curparse(firsthalf, verbose=verbose, variants=variants), curparse(secondhalf, verbose=verbose, variants=variants), variants=variants)
+		return Functional(operator, curparse(firsthalf, verbose=verbose, operators=operators), curparse(secondhalf, verbose=verbose, operators=operators), operators=operators)
 
 
 if __name__ == '__main__':
