@@ -170,7 +170,7 @@ class LinguisticVariable(object):
 		
 
 	def __repr__(self):
-		return self._concept
+		return "L.V.: "+self._concept
 
 
 
@@ -247,7 +247,7 @@ class FuzzySet(object):
 
 class FuzzySystem(object):
 
-	def __init__(self, variants=None, show_banner=True):
+	def __init__(self, variants=None, show_banner=True, verbose=True):
 		self._rules = []
 		self._lvs = {}
 		self._variables = {}
@@ -282,23 +282,24 @@ class FuzzySystem(object):
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, variants=self._variants)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
-			print (" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
-			print()
-		print (" * %d rules successfully added" % len(rules))
+			if verbose:
+				print (" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
+				print()
+		if verbose: print (" * %d rules successfully added" % len(rules))
 
 
-	def add_linguistic_variable(self, name, LV):
+	def add_linguistic_variable(self, name, LV, verbose=False):
 		self._lvs[name]=LV
-		print (" * Linguistic variable '%s' successfully added" % name)
+		if verbose: print (" * Linguistic variable '%s' successfully added" % name)
 
-	def set_crisp_output_value(self, name, value):
+	def set_crisp_output_value(self, name, value, verbose=False):
 		self._crispvalues[name]=value
-		print (" * Crisp output value for '%s' set to %f" % (name, value))
+		if verbose: print (" * Crisp output value for '%s' set to %f" % (name, value))
 
 
-	def set_output_function(self, name, function):
+	def set_output_function(self, name, function, verbose=False):
 		self._outputfunctions[name]=function
-		print (" * Output function for '%s' set to '%s'" % (name, function))
+		if verbose: print (" * Output function for '%s' set to '%s'" % (name, function))
 
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
@@ -380,6 +381,41 @@ class FuzzySystem(object):
 	def Mamdani_inference(self, terms=None, ignore_errors=False):
 		raise Exception("Mamdani inference is under development")
 
+	def produce_figure(self, outputfile='output.pdf'):
+
+		from matplotlib.pyplot import subplots
+
+		num_ling_variables = len(self._lvs)
+		#print (" * Detected %d linguistic variables" % num_ling_variables)
+		columns = min(num_ling_variables, 4)
+		if num_ling_variables>4:
+			rows    = num_ling_variables//4 + 1
+
+		#print(" * Plotting figure %dx%d" % (columns, rows))
+		#print (self._lvs)
+		fig, ax = subplots(rows, columns, figsize=(columns*5, rows*5))
+
+		if rows==1: ax = [ax]
+		if columns==1: ax= [ax]
+
+		n = 0
+		for k, v in self._lvs.items():
+			#print (k, v)
+			r = n%4
+			c = n//4
+			#print(r,c)
+			v.draw(ax[c][r])
+			#ax[r][c].set_title(k)
+			n+=1
+
+		for m in range(n, columns*rows):
+			r = m%4
+			c = m//4
+			ax[c][r].axis('off')
+
+		fig.tight_layout()
+		fig.savefig(outputfile)
+
 
 class Clause(object):
 
@@ -454,7 +490,7 @@ def postparse(STRINGA, verbose=False):
 	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
 
-def find_index_operator(string, verbose=True):
+def find_index_operator(string, verbose=False):
 	if verbose: print (" * Looking for an operator in", string)
 	pos = 0
 	par = 1
