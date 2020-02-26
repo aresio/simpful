@@ -389,7 +389,9 @@ class FuzzySystem(object):
 		#print (" * Detected %d linguistic variables" % num_ling_variables)
 		columns = min(num_ling_variables, 4)
 		if num_ling_variables>4:
-			rows    = num_ling_variables//4 + 1
+			rows = num_ling_variables//4 + 1
+		else:
+			rows = 1
 
 		#print(" * Plotting figure %dx%d" % (columns, rows))
 		#print (self._lvs)
@@ -405,7 +407,7 @@ class FuzzySystem(object):
 			c = n//4
 			#print(r,c)
 			v.draw(ax[c][r])
-			#ax[r][c].set_title(k)
+			ax[c][r].set_ylim(0,1)
 			n+=1
 
 		for m in range(n, columns*rows):
