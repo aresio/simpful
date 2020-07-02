@@ -5,7 +5,7 @@ import re
 import numpy as np
 try:
 	import seaborn as sns
-except:
+except ImportError:
 	pass
 
 
@@ -122,9 +122,8 @@ class LinguisticVariable(object):
 			for fs in self._FSlist:
 				mins.append(min(fs._points.T[0]))
 				maxs.append(max(fs._points.T[0]))
-		except:
-			raise UndefinedUniverseOfDiscourseError("Cannot get the universe of discourse. Did you use point-based fuzzy sets or explicitly specify a universe of discourse?")
-			exit()
+		except AttributeError:
+			raise UndefinedUniverseOfDiscourseError("Cannot get the universe of discourse. Please, use point-based fuzzy sets or explicitly specify a universe of discourse")
 		return min(mins), max(maxs)
 
 
@@ -156,10 +155,10 @@ class LinguisticVariable(object):
 			from matplotlib.pyplot import plot, show, title, subplots, legend
 			try:
 				import seaborn as sns
-			except:
+			except ImportError:
 				pass
-		except:
-			print("ERROR: please, install matplotlib for plotting facilities")
+		except ImportError:
+			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		fig, ax = subplots(1,1)
 		self.draw(ax=ax, TGT=TGT)
@@ -271,9 +270,8 @@ class FuzzySystem(object):
 			value = float(value)
 			self._variables[name] = value
 			if verbose: print(" * Variable %s set to %f" % (name, value))
-		except:
-			print("ERROR: specified value for", name, "is not an integer or float:", value)
-			exit()
+		except ValueError:
+			raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
 	def add_rules(self, rules, verbose=False):
 		for rule in rules:
@@ -319,21 +317,15 @@ class FuzzySystem(object):
 					if outterm not in list_crisp_values:
 						crisp = False
 						if outterm not in list_output_funs:
-							print("ERROR: one rule calculates an output named '%s', but I cannot find it among the output crisp terms or funtions. Aborting." % outterm)
-							print(" --- PROBLEMATIC RULE:")
-							print("IF", ant, "THEN", res)
-							print(" --- CRISP OUTPUTS:")
-							for k,v in self._crispvalues.items():
-								print(k, v)
-							print
-							for k,v in self._outputfunctions.items():
-								print(k,v)
-							raise Exception("Mistake in output names")
-							exit()
+							raise Exception("ERROR: one rule calculates an output named '"
+								+ outterm
+								+ "', but I cannot find it among the output terms.\n"
+								+ " --- PROBLEMATIC RULE:\n"
+								+ "IF " + str(ant) + " THEN " + str(res))
 					if crisp:
 						crispvalue = self._crispvalues[outterm]
 					elif isinstance(self._outputfunctions[outterm], MF_object):
-						raise Exception("Mistake in a consequent of rule %s.\nSugeno reasoning does not support output fuzzy sets." % ("IF " + str(ant) + " THEN " + str(res)))
+						raise Exception("ERROR in consequent of rule %s.\nSugeno reasoning does not support output fuzzy sets." % ("IF " + str(ant) + " THEN " + str(res)))
 					else:
 						string_to_evaluate = self._outputfunctions[outterm]
 						for k,v in self._variables.items():
@@ -342,12 +334,10 @@ class FuzzySystem(object):
 
 					try:
 						value = ant.evaluate(self) 
-					except: 
-						print("ERROR: one rule cannot be evaluated properly because of a problematic clause")
-						print(" --- PROBLEMATIC RULE:")
-						print("IF", ant, "THEN", res, "\n")
-						exit()
-						#raise Exception("Mistake in fuzzy rule")
+					except RuntimeError: 
+						raise Exception("ERROR: one rule could not be evaluated\n"
+						+ " --- PROBLEMATIC RULE:\n"
+						+ "IF " + str(ant) + " THEN " + str(res) + "\n")
 
 					temp = value*crispvalue
 					num += temp
@@ -355,12 +345,11 @@ class FuzzySystem(object):
 
 			try:
 				final_result[output] = num / den
-			except:
+			except ArithmeticError:
 				if ignore_errors==True:
-					print("WARNING: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output)
+					print("WARNING: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
 				else:
-					print("ERROR: cannot perform Sugeno inference for variable '%s', it does only appear as antecedent in the fuzzy rules" % output)
-					exit()
+					raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
 		return final_result
 
 
@@ -423,7 +412,12 @@ class Clause(object):
 		self._term = term
 
 	def evaluate(self, FuzzySystem, verbose=False, operators=None):
-		ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
+		try:
+			ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
+		except KeyError:
+			raise Exception("ERROR: variable '" + self._variable + "' not defined.\n"
+				+ " ---- PROBLEMATIC CLAUSE:\n"
+				+ str(self))
 		if verbose: 
 			print("Checking if", self._variable,)
 			print("whose value is", FuzzySystem._variables[self._variable],)
@@ -432,10 +426,9 @@ class Clause(object):
 		try:
 			return ans[self._term]
 		except KeyError:
-			print("ERROR: cannot find term '%s' in fuzzy rules, aborting." % self._term)
-			print(" ---- PROBLEMATIC CLAUSE:")
-			print(self)
-			raise Exception("Name error in some clause of some rule")
+			raise Exception("ERROR: term '" + self._term + "'' not defined.\n"
+				+ " ---- PROBLEMATIC CLAUSE:\n"
+				+ str(self))
 
 	def __repr__(self):
 		return "c.(%s IS %s)" % (self._variable, self._term)
@@ -487,6 +480,10 @@ def preparse(STRINGA):
 def postparse(STRINGA, verbose=False):
 	# extract the consequent
 	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
+	if STRINGA.find("THEN") == -1:
+		raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+					+ " ---- PROBLEMATIC RULE:\n"
+					+ STRINGA)
 	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
 
 def find_index_operator(string, verbose=False):
@@ -494,11 +491,10 @@ def find_index_operator(string, verbose=False):
 	pos = 0
 	par = 1
 	while(par>0):
-		#print(pos)
 		pos+=1
-		if pos>=len(string):
+		# if pos>=len(string):
 			#print(pos, pos2)
-			raise Exception("badly formatted rule, terminating")
+			# raise Exception("badly formatted rule, terminating")
 		if string[pos]==")": par-=1
 		if string[pos]=="(": par+=1
 	pos2 = pos
@@ -539,7 +535,7 @@ def curparse(STRINGA, verbose=False, operators=None):
 		
 		# if (removed_parentheses.find("(")==-1): return curparse("("+removed_parentheses+")")
 
-		if verbose: print( "  - After parentheses removal:", removed_parentheses)
+		if verbose: print("  - After parentheses removal:", removed_parentheses)
 
 		if removed_parentheses[:3]=="NOT":
 			beginindop = 0
@@ -548,11 +544,10 @@ def curparse(STRINGA, verbose=False, operators=None):
 		else:
 			try:
 				beginindop, endindop = find_index_operator(removed_parentheses, verbose=verbose)
-			except:
-				print("ERROR: badly formatted rule (wrong capitalization perhaps?). Aborting.")
-				print(" ---- PROBLEMATIC RULE:")
-				print(STRINGA)
-				exit()
+			except IndexError:
+				raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+					+ " ---- PROBLEMATIC RULE:\n"
+					+ STRINGA)
 
 		firsthalf = removed_parentheses[:beginindop].strip()
 		secondhalf = removed_parentheses[endindop:].strip()
