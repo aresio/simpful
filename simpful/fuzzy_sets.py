@@ -22,6 +22,9 @@ def gaussian(x, mu, sig):
 class Sigmoid_MF(MF_object):
 
 	def __init__(self, c=0, a=1):
+		"""
+		Creates a sigmoidal membership function.
+		"""
 		self._c = c
 		self._a = a
 		
@@ -31,6 +34,9 @@ class Sigmoid_MF(MF_object):
 class InvSigmoid_MF(MF_object):
 
 	def __init__(self, c=0, a=1):
+		"""
+		Creates an inversed sigmoid membership function.
+		"""
 		self._c = c
 		self._a = a
 		
@@ -40,6 +46,9 @@ class InvSigmoid_MF(MF_object):
 class Gaussian_MF(MF_object):
 
 	def __init__(self, mu, sigma):
+		"""
+		Creates a gaussian membership function.
+		"""
 		self._mu = mu
 		self._sigma = sigma
 
@@ -49,6 +58,9 @@ class Gaussian_MF(MF_object):
 class InvGaussian_MF(MF_object):
 
 	def __init__(self, mu, sigma):
+		"""
+		Creates an inversed gaussian membership function.
+		"""
 		self._mu = mu
 		self._sigma = sigma
 
@@ -58,6 +70,9 @@ class InvGaussian_MF(MF_object):
 class DoubleGaussian_MF(MF_object):
 
 	def __init__(self, mu1, sigma1, mu2, sigma2):
+		"""
+		Creates a double gaussian membership function.
+		"""
 		self._mu1 = mu1
 		self._sigma1 = sigma1
 		self._mu2 = mu2
@@ -77,6 +92,18 @@ class DoubleGaussian_MF(MF_object):
 class FuzzySet(object):
 
 	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
+		"""
+		Creates a a new fuzzy set.
+		Args:
+			points: list of points to define a polygonal fuzzy sets.
+			Each point is defined  as a list of two coordinates in the universe of discourse/membership degree space.
+			function: function to define a non-polygonal fuzzy set.
+			Supports pre-implemented membership functions Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF,
+			DoubleGaussian_MF or user-defined functions.
+			term: string representing the linguistic term to be associated to the fuzzy set.
+			high_quality_interpolate: True/False, toggles high quality interpolation.
+			verbose: True/False, toggles verbose mode.
+		"""
 
 		self._term = term
 
@@ -143,4 +170,3 @@ class FuzzySet(object):
 	def _fast_interpolate(self, x0, y0, x1, y1, x):
 		#print(x0, y0, x1, y1, x); exit()
 		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
-
