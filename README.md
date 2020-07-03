@@ -5,17 +5,17 @@ Simpful supports Sugeno reasoning of any order, over arbitrarily complex fuzzy r
 ## Usage
 
 ```
-from simpful import *
+import simpful as sf
 
 # A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
 
-FS = FuzzySystem()
+FS = sf.FuzzySystem()
 
 # Define a linguistic variable.
-S_1 = FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
-S_2 = FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
-S_3 = FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-FS.add_linguistic_variable("OXI", LinguisticVariable( [S_1, S_2, S_3], 	concept="OXI" ))
+S_1 = sf.FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
+S_2 = sf.FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
+S_3 = sf.FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
+FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3], 	concept="OXI" ))
 
 # Define consequents.
 FS.set_crisp_output_value("LOW_POWER", 0)
