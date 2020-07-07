@@ -71,11 +71,11 @@ def NOT(x): return 1.-x
 
 def preparse(STRINGA):
 	# extract the antecedent
-	return STRINGA[STRINGA.find("IF")+2:STRINGA.find("THEN")].strip()
+	return STRINGA[STRINGA.find("IF")+2:STRINGA.find(" THEN")].strip()
 
 def postparse(STRINGA, verbose=False):
 	# extract the consequent
-	stripped = STRINGA[STRINGA.find("THEN")+4:].strip("() ")
+	stripped = STRINGA[STRINGA.find(" THEN")+5:].strip("() ")
 	if STRINGA.find("THEN") == -1:
 		raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
 					+ " ---- PROBLEMATIC RULE:\n"
