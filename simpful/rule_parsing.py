@@ -80,7 +80,7 @@ def postparse(STRINGA, verbose=False):
 		raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
 					+ " ---- PROBLEMATIC RULE:\n"
 					+ STRINGA)
-	return stripped[:stripped.find("IS")].strip(), stripped[stripped.find("IS")+2:].strip()
+	return stripped[:stripped.find(" IS")].strip(), stripped[stripped.find(" IS")+3:].strip()
 
 def find_index_operator(string, verbose=False):
 	if verbose: print(" * Looking for an operator in", string)
@@ -113,8 +113,8 @@ def curparse(STRINGA, verbose=False, operators=None):
 		if verbose:	print(" * Regular expression is matching with single atomic clause:", STRINGA)
 
 		# base case
-		variable = STRINGA[1:STRINGA.find("IS")].strip()
-		term	 = STRINGA[STRINGA.find("IS")+3:-1].strip()
+		variable = STRINGA[1:STRINGA.find(" IS")].strip()
+		term	 = STRINGA[STRINGA.find(" IS")+3:-1].strip()
 		ret_clause = Clause(variable, term, verbose=verbose)
 		if verbose:	print(" * Rule:", ret_clause)
 		return ret_clause
