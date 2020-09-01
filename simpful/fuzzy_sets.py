@@ -142,6 +142,7 @@ class FuzzySet(object):
 		
 
 	def get_value(self, v):
+		""" Return the membership value of v to this Fuzzy Set. """
 
 		if self._type == "function":
 			return self._funpointer(v)
@@ -150,6 +151,13 @@ class FuzzySet(object):
 			return self.get_value_slow(v)
 		else:
 			return self.get_value_fast(v)
+
+
+	def get_value_cut(self, v, cut):
+		""" Return the membership value of v to this Fuzzy Set, capped to the cut value. """
+
+		return min(cut, self.get_value(v))
+		
 
 	def get_value_slow(self, v):		
 		f = interp1d(self._points.T[0], self._points.T[1], 
@@ -170,3 +178,9 @@ class FuzzySet(object):
 	def _fast_interpolate(self, x0, y0, x1, y1, x):
 		#print(x0, y0, x1, y1, x); exit()
 		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
+
+
+	def integrate(self, x0, x1, cut=1):
+		import scipy.integrate as integrate
+		result = integrate.quad(self.get_value_cut, x0, x1, args=(cut))
+		return result[0]

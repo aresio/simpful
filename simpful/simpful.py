@@ -1,3 +1,4 @@
+from pylab import *
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF
 from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
@@ -125,6 +126,7 @@ class FuzzySystem(object):
 		self._variables = {}
 		self._crispvalues = {}
 		self._outputfunctions = {}
+		self._outputfuzzysets = {}
 		if show_banner: self._banner()
 		self._operators = operators
 
@@ -207,6 +209,17 @@ class FuzzySystem(object):
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 
+	def set_output_FS(self, name, fuzzyset, verbose=False):
+		"""
+		Adds a new output function as a Fuzzy Set object.
+		Args: 
+			name: string containing the identifying name of the output function.
+			fuzzyset: FuzzySet object used as output (in a Mamdani FIS).
+			verbose: True/False, toggles verbose mode.
+		"""
+		self._outputfuzzysets[name]=fuzzyset
+		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
+
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
 
@@ -263,6 +276,60 @@ class FuzzySystem(object):
 		return final_result
 
 
+	def mediate_Mamdani(self, outputs, antecedent, results, ignore_errors=False, verbose=False, subdivisions=1000):
+
+		final_result = {}
+
+		list_crisp_values = [x[0] for x in self._crispvalues.items()]
+		list_output_funs  = [x[0] for x in self._outputfunctions.items()]
+
+		#print (self._variables)
+
+		for output in outputs:
+
+			if verbose:
+				print (" * Processing output for variable %s" %  output)
+				print ("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
+			cuts_list = defaultdict()
+
+			x0, x1 = self._lvs[output].get_universe_of_discourse()
+
+			for (ant, res) in zip(antecedent, results):
+
+				outname = res[0]
+				outterm = res[1]
+
+				if verbose:
+					print(ant,res,outname,outterm)			
+
+				if outname==output:
+
+					try:
+						value = ant.evaluate(self) 
+					except RuntimeError: 
+						raise Exception("ERROR: one rule could not be evaluated\n"
+						+ " --- PROBLEMATIC RULE:\n"
+						+ "IF " + str(ant) + " THEN " + str(res) + "\n")
+
+					cuts_list[outterm] = value
+
+			values = []
+			integration_points = linspace(x0, x1, subdivisions)
+			for u in integration_points:
+				#print ("x=%.1f" % u)
+				comp_values = []
+				for k,v in cuts_list.items():
+					result = float(self._outputfuzzysets[k].get_value_cut(u, cut=v))
+					comp_values.append(result)
+				keep = max(comp_values)
+				values.append(keep)
+
+			cog = sum(values)/subdivisions
+			final_result[output] = cog
+
+		return final_result
+
+
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
 		Performs Sugeno fuzzy inference.
@@ -285,8 +352,30 @@ class FuzzySystem(object):
 		return result
 
 
-	def Mamdani_inference(self, terms=None, ignore_errors=False):
-		raise Exception("Mamdani inference is under development")
+	def Mamdani_inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+		# raise Exception("Mamdani inference is under development")
+		"""
+		Performs Mamdani fuzzy inference.
+		Args:
+			terms: list of the names of the variables on which inference must be performed.
+			subdivisions: the number of integration steps to be performed (default: 1000).
+			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+			ignore_errors: True/False, toggles the raising of errors during the inference.
+			verbose: True/False, toggles verbose mode.
+
+		Returns:
+			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
+		"""
+		# default: inference on ALL rules/terms
+		if terms == None:
+			temp = [rule[1][0] for rule in self._rules] 
+			terms= list(set(temp))
+
+		array_rules = array(self._rules)
+		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+		return result
+
+
 
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
