@@ -13,6 +13,13 @@ except ImportError:
 linestyles= ["-", "--", ":", "-."]
 
 
+def centeroidnp(arr):
+    length = arr.shape[0]
+    sum_x = np.sum(arr[:, 0])
+    sum_y = np.sum(arr[:, 1])
+    return sum_x/length, sum_y/length
+
+
 class UndefinedUniverseOfDiscourseError(Exception):
 
 	def __init__(self, message):
@@ -299,8 +306,7 @@ class FuzzySystem(object):
 				outname = res[0]
 				outterm = res[1]
 
-				if verbose:
-					print(ant,res,outname,outterm)			
+				if verbose:	print(ant,res,outname,outterm)			
 
 				if outname==output:
 
@@ -314,7 +320,9 @@ class FuzzySystem(object):
 					cuts_list[outterm] = value
 
 			values = []
+			weightedvalues = []
 			integration_points = linspace(x0, x1, subdivisions)
+
 			for u in integration_points:
 				#print ("x=%.1f" % u)
 				comp_values = []
@@ -323,9 +331,12 @@ class FuzzySystem(object):
 					comp_values.append(result)
 				keep = max(comp_values)
 				values.append(keep)
+				weightedvalues.append(keep*u)
 
-			cog = sum(values)/subdivisions
-			final_result[output] = cog
+			CoG = sum(weightedvalues)/sum(values)
+			if verbose: print (" * CoG:", CoG)
+			
+			final_result[output] = CoG 
 
 		return final_result
 
