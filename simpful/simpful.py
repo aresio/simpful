@@ -28,7 +28,7 @@ class UndefinedUniverseOfDiscourseError(Exception):
 
 class LinguisticVariable(object):
 
-	def __init__(self, FS_list=[], concept="", universe_of_discourse=None):
+	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
 		"""
 		Creates a new linguistic variable.
 		Args:
@@ -41,9 +41,9 @@ class LinguisticVariable(object):
 		if FS_list==[]:
 			print("ERROR: please specify at least one fuzzy set")
 			exit(-2)
-		if concept=="":
-			print("ERROR: please specify a concept connected to the linguistic variable")
-			exit(-3)
+		#if concept is None:
+		#	print("ERROR: please specify a concept connected to the linguistic variable")
+		#	exit(-3)
 		self._universe_of_discourse = universe_of_discourse
 
 		self._FSlist = FS_list
@@ -189,6 +189,8 @@ class FuzzySystem(object):
 			LV: linguistic variable object to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if LV._concept is None: 
+			LV._concept = name
 		self._lvs[name]=LV
 		if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
@@ -385,7 +387,6 @@ class FuzzySystem(object):
 		array_rules = array(self._rules)
 		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
 		return result
-
 
 
 	def produce_figure(self, outputfile='output.pdf'):
