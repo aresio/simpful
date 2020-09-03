@@ -153,6 +153,10 @@ class FuzzySet(object):
 			return self.get_value_fast(v)
 
 
+	def get_term(self):
+		return self._term
+
+
 	def get_value_cut(self, v, cut):
 		""" Return the membership value of v to this Fuzzy Set, capped to the cut value. """
 

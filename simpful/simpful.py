@@ -216,7 +216,7 @@ class FuzzySystem(object):
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 
-	def set_output_FS(self, name, fuzzyset, verbose=False):
+	def set_output_FS(self, fuzzyset, verbose=False):
 		"""
 		Adds a new output function as a Fuzzy Set object.
 		Args: 
@@ -224,7 +224,7 @@ class FuzzySystem(object):
 			fuzzyset: FuzzySet object used as output (in a Mamdani FIS).
 			verbose: True/False, toggles verbose mode.
 		"""
-		self._outputfuzzysets[name]=fuzzyset
+		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
 		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
 
 
