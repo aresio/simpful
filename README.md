@@ -15,7 +15,7 @@ FS = sf.FuzzySystem()
 S_1 = sf.FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
 S_2 = sf.FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
 S_3 = sf.FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3], 	concept="OXI" ))
+FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3] ))
 
 # Define consequents.
 FS.set_crisp_output_value("LOW_POWER", 0)
