@@ -1,6 +1,6 @@
 # simpful
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
-Simpful supports Sugeno reasoning of any order, over arbitrarily complex fuzzy rules involving AND, OR, and NOT operators.
+Simpful supports Mamdani and Sugeno reasoning of any order, using complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
 
 ## Usage
 
