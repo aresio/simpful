@@ -1,5 +1,5 @@
 from pylab import *
-from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF
+from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
@@ -34,7 +34,7 @@ class LinguisticVariable(object):
 		Args:
 			FS_list: a list of FuzzySet instances.
 			concept: a brief description of the concept represented by the linguistic variable.
-			universe_of_discourse: A list of two elements, specifying min and max of universe of discourse.
+			universe_of_discourse: a list of two elements, specifying min and max of universe of discourse.
 			It must be specified to exploit plotting facilities.
 		"""
 
@@ -371,8 +371,8 @@ class FuzzySystem(object):
 		Performs Mamdani fuzzy inference.
 		Args:
 			terms: list of the names of the variables on which inference must be performed.
-			subdivisions: the number of integration steps to be performed (default: 1000).
 			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+			subdivisions: the number of integration steps to be performed (default: 1000).
 			ignore_errors: True/False, toggles the raising of errors during the inference.
 			verbose: True/False, toggles verbose mode.
 

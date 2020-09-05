@@ -19,6 +19,55 @@ class MF_object(object):
 def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
+class Triangular_MF(MF_object):
+
+	def __init__(self, a=0, b=0.5, c=1):
+		"""
+		Creates a triangular membership function.
+		Requires a <= b <= c.
+		"""
+		self._a = a
+		self._b = b
+		self._c = c
+		
+	def _execute(self, x):
+		if x < self._b:
+			if self._a != self._b:
+				return (x-self._a) * (1/(self._b-self._a))
+			else:
+				return 1
+		else:
+			if self._b != self._c:
+				return 1 + (x-self._b) * (-1/(self._c-self._b))
+			else:
+				return 1
+
+class Trapezoidal_MF(MF_object):
+
+	def __init__(self, a=0, b=0.25, c=0.75, d=1):
+		"""
+		Creates a trapezoidal membership function.
+		Requires a <= b <= c <= d.
+		"""
+		self._a = a
+		self._b = b
+		self._c = c
+		self._d = d
+		
+	def _execute(self, x):
+		if x < self._b:
+			if self._a != self._b:
+				return (x-self._a) * (1/(self._b-self._a))
+			else:
+				return 1
+		elif x >= self._b and x <= self._c:
+			return 1
+		else:
+			if self._c != self._d:
+				return 1 + (x-self._c) * (-1/(self._d-self._c))
+			else:
+				return 1
+
 class Sigmoid_MF(MF_object):
 
 	def __init__(self, c=0, a=1):
