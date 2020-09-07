@@ -4,6 +4,9 @@ Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex 
 
 ## Usage
 
+This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
+
+
 ```
 import simpful as sf
 
