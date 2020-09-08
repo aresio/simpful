@@ -24,11 +24,23 @@ class Triangular_MF(MF_object):
 	def __init__(self, a=0, b=0.5, c=1):
 		"""
 		Creates a triangular membership function.
-		Requires a <= b <= c.
+		Requires a <= b <= c and the semantics is the following:
+
+		1	|   .
+			|  / \
+			| /   \
+		0	|/     \
+			---------
+	         a  b  c
+
 		"""
 		self._a = a
 		self._b = b
 		self._c = c
+		if (a>b):
+			raise("Error in triangular fuzzy set: a=%.2f should be <= b=%.2f" % (a,b))
+		elif (b>c):
+			raise("Error in triangular fuzzy set: b=%.2f should be <= c=%.2f" % (b,c))
 		
 	def _execute(self, x):
 		if x < self._b:
@@ -133,11 +145,6 @@ class DoubleGaussian_MF(MF_object):
 		return first*second
 
 
-###############################
-# USEFUL PRE-BAKED FUZZY SETS #
-###############################
-
-
 class FuzzySet(object):
 
 	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
@@ -171,22 +178,6 @@ class FuzzySet(object):
 			exit(-3)
 		self._type = "pointbased"
 		self._high_quality_interpolate = high_quality_interpolate
-
-		"""
-		if verbose:
-			if len(points)==1: # singleton
-				pass
-			elif len(points)==2: # triangle
-				print(" * Triangle fuzzy set required for term '%s':" % term, points)
-				self._type = "TRIANGLE"
-			elif len(points)==3: # trapezoid
-				print(" * Trapezoid fuzzy set required for term '%s':" % term, points)
-				self._type = "TRAPEZOID"
-			else:
-				print(" * Polygon set required for term '%s':" % term, points)
-				self._type = "POLYGON"
-		"""
-
 		self._points = array(points)
 		
 
