@@ -1,4 +1,5 @@
-from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF
+from pylab import *
+from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
@@ -20,22 +21,22 @@ class UndefinedUniverseOfDiscourseError(Exception):
 
 class LinguisticVariable(object):
 
-	def __init__(self, FS_list=[], concept="", universe_of_discourse=None):
+	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
 		"""
 		Creates a new linguistic variable.
 		Args:
 			FS_list: a list of FuzzySet instances.
 			concept: a brief description of the concept represented by the linguistic variable.
-			universe_of_discourse: A list of two elements, specifying min and max of universe of discourse.
+			universe_of_discourse: a list of two elements, specifying min and max of universe of discourse.
 			It must be specified to exploit plotting facilities.
 		"""
 
 		if FS_list==[]:
 			print("ERROR: please specify at least one fuzzy set")
 			exit(-2)
-		if concept=="":
-			print("ERROR: please specify a concept connected to the linguistic variable")
-			exit(-3)
+		#if concept is None:
+		#	print("ERROR: please specify a concept connected to the linguistic variable")
+		#	exit(-3)
 		self._universe_of_discourse = universe_of_discourse
 
 		self._FSlist = FS_list
@@ -125,6 +126,7 @@ class FuzzySystem(object):
 		self._variables = {}
 		self._crispvalues = {}
 		self._outputfunctions = {}
+		self._outputfuzzysets = {}
 		if show_banner: self._banner()
 		self._operators = operators
 
@@ -180,6 +182,8 @@ class FuzzySystem(object):
 			LV: linguistic variable object to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if LV._concept is None: 
+			LV._concept = name
 		self._lvs[name]=LV
 		if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
@@ -206,6 +210,17 @@ class FuzzySystem(object):
 		"""
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
+
+	def set_output_FS(self, fuzzyset, verbose=False):
+		"""
+		Adds a new output function as a Fuzzy Set object.
+		Args: 
+			name: string containing the identifying name of the output function.
+			fuzzyset: FuzzySet object used as output (in a Mamdani FIS).
+			verbose: True/False, toggles verbose mode.
+		"""
+		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
+		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
 
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
@@ -263,6 +278,64 @@ class FuzzySystem(object):
 		return final_result
 
 
+	def mediate_Mamdani(self, outputs, antecedent, results, ignore_errors=False, verbose=False, subdivisions=1000):
+
+		final_result = {}
+
+		list_crisp_values = [x[0] for x in self._crispvalues.items()]
+		list_output_funs  = [x[0] for x in self._outputfunctions.items()]
+
+		#print (self._variables)
+
+		for output in outputs:
+
+			if verbose:
+				print (" * Processing output for variable %s" %  output)
+				print ("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
+			cuts_list = defaultdict()
+
+			x0, x1 = self._lvs[output].get_universe_of_discourse()
+
+			for (ant, res) in zip(antecedent, results):
+
+				outname = res[0]
+				outterm = res[1]
+
+				if verbose:	print(ant,res,outname,outterm)			
+
+				if outname==output:
+
+					try:
+						value = ant.evaluate(self) 
+					except RuntimeError: 
+						raise Exception("ERROR: one rule could not be evaluated\n"
+						+ " --- PROBLEMATIC RULE:\n"
+						+ "IF " + str(ant) + " THEN " + str(res) + "\n")
+
+					cuts_list[outterm] = value
+
+			values = []
+			weightedvalues = []
+			integration_points = linspace(x0, x1, subdivisions)
+
+			for u in integration_points:
+				#print ("x=%.1f" % u)
+				comp_values = []
+				for k,v in cuts_list.items():
+					result = float(self._outputfuzzysets[k].get_value_cut(u, cut=v))
+					comp_values.append(result)
+				keep = max(comp_values)
+				values.append(keep)
+				weightedvalues.append(keep*u)
+
+			CoG = sum(weightedvalues)/sum(values)
+			if verbose: print (" * CoG:", CoG)
+			
+			final_result[output] = CoG 
+
+		return final_result
+
+
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
 		Performs Sugeno fuzzy inference.
@@ -285,8 +358,29 @@ class FuzzySystem(object):
 		return result
 
 
-	def Mamdani_inference(self, terms=None, ignore_errors=False):
-		raise Exception("Mamdani inference is under development")
+	def Mamdani_inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+		# raise Exception("Mamdani inference is under development")
+		"""
+		Performs Mamdani fuzzy inference.
+		Args:
+			terms: list of the names of the variables on which inference must be performed.
+			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+			subdivisions: the number of integration steps to be performed (default: 1000).
+			ignore_errors: True/False, toggles the raising of errors during the inference.
+			verbose: True/False, toggles verbose mode.
+
+		Returns:
+			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
+		"""
+		# default: inference on ALL rules/terms
+		if terms == None:
+			temp = [rule[1][0] for rule in self._rules] 
+			terms= list(set(temp))
+
+		array_rules = array(self._rules)
+		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+		return result
+
 
 	def produce_figure(self, outputfile='output.pdf'):
 		"""

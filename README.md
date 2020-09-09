@@ -1,8 +1,11 @@
 # simpful
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
-Simpful supports Sugeno reasoning of any order, over arbitrarily complex fuzzy rules involving AND, OR, and NOT operators.
+Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
 
 ## Usage
+
+This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
+
 
 ```
 import simpful as sf
@@ -15,7 +18,7 @@ FS = sf.FuzzySystem()
 S_1 = sf.FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
 S_2 = sf.FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
 S_3 = sf.FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3], 	concept="OXI" ))
+FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3] ))
 
 # Define consequents.
 FS.set_crisp_output_value("LOW_POWER", 0)

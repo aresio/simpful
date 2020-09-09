@@ -2,12 +2,12 @@ from distutils.core import setup
 setup(
   name = 'simpful',
   packages = ['simpful'], # this must be the same as the name above
-  version = '2.0.12',
+  version = '2.1.5',
   description = 'A user-friendly Python library for fuzzy logic',
   author = 'Marco S. Nobile',
   author_email = 'm.s.nobile@tue.nl',
   url = 'https://github.com/aresio/simpful', # use the URL to the github repo
-  keywords = ['fuzzy logic', 'sugeno', 'reasoner', 'python'], # arbitrary keywords
+  keywords = ['fuzzy logic', 'sugeno', 'mamdani', 'reasoner', 'python', 'modeling'], # arbitrary keywords
   license='LICENSE.txt',
   install_requires=[
         "numpy >= 1.12.0",
