@@ -1,8 +1,8 @@
-thisdict = {
-  "root": "child"
-  }
+# thisdict = {
+#   "root": "child"
+#   }
 
-  x = thisdict["root"]
+#   x = thisdict["root"]
 
 
 class Node:
