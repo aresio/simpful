@@ -54,6 +54,9 @@ class Triangular_MF(MF_object):
 			else:
 				return 1
 
+	def __repr__(self):
+		return "<Triangular MF (%f, %f, %f), term: %s>"% (self._a, self._b, self._c, self._term)
+
 class Trapezoidal_MF(MF_object):
 
 	def __init__(self, a=0, b=0.25, c=0.75, d=1):
