@@ -364,7 +364,7 @@ class FuzzySystem(object):
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
 
-		array_rules = array(self._rules)
+		array_rules = array(self._rules, dtype='object')
 		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
 		return result
 
@@ -388,7 +388,7 @@ class FuzzySystem(object):
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
 
-		array_rules = array(self._rules)
+		array_rules = array(self._rules, dtype=object)
 		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
 		return result
 
