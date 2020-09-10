@@ -224,7 +224,7 @@ class FuzzySystem(object):
 
 
 
-	def get_firing_strenghts_Sugeno(self):
+	def get_firing_strenghts(self):
 		"""
 			Returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
