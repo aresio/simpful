@@ -223,6 +223,17 @@ class FuzzySystem(object):
 		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
 
 
+
+	def get_firing_strenghts_Sugeno(self):
+		"""
+			Returns a list of the firing strengths of the the rules, 
+			given the current state of input variables.
+		"""
+		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
+		return results
+
+
+
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
 
 		final_result = {}
