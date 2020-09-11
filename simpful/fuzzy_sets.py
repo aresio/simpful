@@ -38,9 +38,9 @@ class Triangular_MF(MF_object):
 		self._b = b
 		self._c = c
 		if (a>b):
-			raise("Error in triangular fuzzy set: a=%.2f should be <= b=%.2f" % (a,b))
+			raise Exception("Error in triangular fuzzy set: a=%.2f should be <= b=%.2f" % (a,b))
 		elif (b>c):
-			raise("Error in triangular fuzzy set: b=%.2f should be <= c=%.2f" % (b,c))
+			raise Exception("Error in triangular fuzzy set: b=%.2f should be <= c=%.2f" % (b,c))
 		
 	def _execute(self, x):
 		if x < self._b:
