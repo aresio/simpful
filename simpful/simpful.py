@@ -121,10 +121,10 @@ class AutoTriangle(LinguisticVariable):
 		if n_sets<2:
 			raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
 
-		control_points = array([x*1/(n_sets-1) for x in range(n_sets)])
+		control_points = [x*1/(n_sets-1) for x in range(n_sets)]
 		low = universe_of_discourse[0]
 		high = universe_of_discourse[1]
-		control_points = low + (high-low)*control_points
+		control_points = [low + (high-low)*x for x in control_points]
 		
 		if terms is None:
 			terms = ['case %d' % (i+1) for i in range(n_sets)]
@@ -259,6 +259,7 @@ class FuzzySystem(object):
 		"""
 		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
 		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
+		return fuzzyset
 
 
 
