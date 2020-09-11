@@ -3,6 +3,7 @@ from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian
 from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
+from copy import deepcopy
 from collections import defaultdict
 try:
 	import seaborn as sns
@@ -48,6 +49,12 @@ class LinguisticVariable(object):
 		for fs in self._FSlist:
 			result[fs._term] = fs.get_value(v)
 		return result
+
+
+	def get_index(self, term):
+		for n, fs in enumerate(self._FSlist):
+			if fs._term == term: return n
+		return -1
 
 
 	def get_universe_of_discourse(self):
@@ -226,7 +233,7 @@ class FuzzySystem(object):
 		"""
 		if LV._concept is None: 
 			LV._concept = name
-		self._lvs[name]=LV
+		self._lvs[name]=deepcopy(LV)
 		if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
 
@@ -255,20 +262,14 @@ class FuzzySystem(object):
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 
-
+	"""
 	def set_output_FS(self, fuzzyset, verbose=False):
-		"""
-		Adds a new output function as a Fuzzy Set object.
-		Args: 
-			name: string containing the identifying name of the output function.
-			fuzzyset: FuzzySet object used as output (in a Mamdani FIS).
-			verbose: True/False, toggles verbose mode.
-		"""
 		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
 		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
 		self._set_model_type("Mamdani")
 		return fuzzyset
-
+	"""
+	
 
 	def _set_model_type(self, model_type):
 		if self._detected_type == "inconsistent": return
@@ -348,16 +349,12 @@ class FuzzySystem(object):
 
 		final_result = {}
 
-		list_crisp_values = [x[0] for x in self._crispvalues.items()]
-		list_output_funs  = [x[0] for x in self._outputfunctions.items()]
-
-		#print (self._variables)
-
 		for output in outputs:
 
 			if verbose:
-				print (" * Processing output for variable %s" %  output)
-				print ("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
+				print(" * Processing output for variable '%s'" %  output)
+				print("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
+				print("   contains the following fuzzy sets:", self._lvs[output]._FSlist )
 			cuts_list = defaultdict()
 
 			x0, x1 = self._lvs[output].get_universe_of_discourse()
@@ -367,7 +364,8 @@ class FuzzySystem(object):
 				outname = res[0]
 				outterm = res[1]
 
-				if verbose:	print(ant,res,outname,outterm)			
+				if verbose:	
+					print(" ** Rule composition:", ant, "->", res, ", output variable: '%s'" % outname, "with term: '%s'" % outterm)			
 
 				if outname==output:
 
@@ -384,18 +382,27 @@ class FuzzySystem(object):
 			weightedvalues = []
 			integration_points = linspace(x0, x1, subdivisions)
 
+			convenience_dict = {}
+			for k in cuts_list.keys():
+				convenience_dict[k] = self._lvs[output].get_index(k)
+			if verbose: print ( " * Indices:", convenience_dict)
+
 			for u in integration_points:
 				#print ("x=%.1f" % u)
 				comp_values = []
 				for k,v in cuts_list.items():
-					result = float(self._outputfuzzysets[k].get_value_cut(u, cut=v))
+					# result = float(self._outputfuzzysets[k].get_value_cut(u, cut=v))
+					n = convenience_dict[k]					
+					fs_term = self._lvs[output]._FSlist[n]
+					result = float(fs_term.get_value_cut(u, cut=v))
 					comp_values.append(result)
 				keep = max(comp_values)
 				values.append(keep)
 				weightedvalues.append(keep*u)
 
-			CoG = sum(weightedvalues)/sum(values)
-			if verbose: print (" * CoG:", CoG)
+			sumwv = sum(weightedvalues); sumv = sum(values)
+			CoG = sumwv/sumv
+			if verbose: print (" * Weighted values: %.2f\tValues: %.2f\tCoG: %.2f"% (sumwv, sumv, CoG))
 			
 			final_result[output] = CoG 
 

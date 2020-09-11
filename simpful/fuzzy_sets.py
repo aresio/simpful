@@ -184,6 +184,10 @@ class FuzzySet(object):
 		self._points = array(points)
 		
 
+	def __repr__(self):
+		return "<Fuzzy set (%s), term='%s'>" % (self._type, self._term)
+
+
 	def get_value(self, v):
 		""" Return the membership value of v to this Fuzzy Set. """
 
