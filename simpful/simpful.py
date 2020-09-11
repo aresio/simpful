@@ -9,7 +9,7 @@ try:
 except ImportError:
 	pass
 
-
+# constant values
 linestyles= ["-", "--", ":", "-."]
 
 
@@ -168,6 +168,9 @@ class FuzzySystem(object):
 		if show_banner: self._banner()
 		self._operators = operators
 
+		self._detected_type = None
+
+
 	def _banner(self):
 		import pkg_resources
 		vrs = pkg_resources.get_distribution('simpful').version 
@@ -179,6 +182,7 @@ class FuzzySystem(object):
 		print(" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
 		print(" and Simone Spolaor (simone.spolaor@disco.unimib.it)")
 		print()
+
 
 	def set_variable(self, name, value, verbose=False):
 		"""
@@ -225,6 +229,7 @@ class FuzzySystem(object):
 		self._lvs[name]=LV
 		if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
+
 	def set_crisp_output_value(self, name, value, verbose=False):
 		"""
 		Adds a new crisp output value to the fuzzy system.
@@ -235,6 +240,7 @@ class FuzzySystem(object):
 		"""
 		self._crispvalues[name]=value
 		if verbose: print(" * Crisp output value for '%s' set to %f" % (name, value))
+		self._set_model_type("Sugeno")
 
 
 	def set_output_function(self, name, function, verbose=False):
@@ -249,6 +255,7 @@ class FuzzySystem(object):
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 
+
 	def set_output_FS(self, fuzzyset, verbose=False):
 		"""
 		Adds a new output function as a Fuzzy Set object.
@@ -259,9 +266,18 @@ class FuzzySystem(object):
 		"""
 		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
 		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
+		self._set_model_type("Mamdani")
 		return fuzzyset
 
 
+	def _set_model_type(self, model_type):
+		if self._detected_type == "inconsistent": return
+		if self._detected_type is  None:
+			self._detected_type = model_type
+			print (" * Detected %s model type" % model_type )
+		elif self._detected_type != model_type:
+			print("WARNING: model type is unclear (simpful detected %s, but I received a %s output)" % (self._detected_type, model_type))
+			self._detected_type = 'inconsistent'
 
 	def get_firing_strenghts(self):
 		"""
@@ -409,7 +425,6 @@ class FuzzySystem(object):
 
 
 	def Mamdani_inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
-		# raise Exception("Mamdani inference is under development")
 		"""
 		Performs Mamdani fuzzy inference.
 		Args:
@@ -430,6 +445,24 @@ class FuzzySystem(object):
 		array_rules = array(self._rules, dtype=object)
 		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
 		return result
+
+
+	def probabilistic_inference(self, terms=None, ignore_errors=False, verbose=False):
+		raise NotImplementedError()
+
+	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+		"""
+			Performs the fuzzy inference, trying to automatically choose the correct inference engine.
+		""" 
+		if self._detected_type == "Sugeno":
+			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
+		elif self._detected_type == "Mamdani":
+			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
+		elif self._detected_type == "probabilistic":
+			return self.probabilistic_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
+		else:
+			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
+			
 
 
 	def produce_figure(self, outputfile='output.pdf'):
