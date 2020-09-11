@@ -74,13 +74,15 @@ def preparse(STRINGA):
 	return STRINGA[STRINGA.find("IF")+2:STRINGA.find(" THEN")].strip()
 
 def postparse(STRINGA, verbose=False):
-	# extract the consequent 
-	stripped = STRINGA[STRINGA.find(" THEN")+5:].strip("() ")
-	if STRINGA.find("THEN") == -1:
-		raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
-					+ " ---- PROBLEMATIC RULE:\n"
-					+ STRINGA)
-	return stripped[:stripped.find(" IS")].strip(), stripped[stripped.find(" IS")+3:].strip()
+    stripped = STRINGA[STRINGA.find(" THEN")+5:].strip("() ")
+    if STRINGA.find("THEN") == -1:
+        raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+                        + " ---- PROBLEMATIC RULE:\n"
+                        + STRINGA)
+    if re.match(r"P\(", stripped) is not None:
+        return tuple(re.findall('\w+(?=\sis)|(?<=is\s)\w+|\d\.\d\d', stripped))
+    else:
+        return tuple(re.findall('\w+(?=\sIS)|(?<=IS\s)\w+', stripped))
 
 def find_index_operator(string, verbose=False):
 	if verbose: print(" * Looking for an operator in", string)
