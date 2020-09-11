@@ -116,26 +116,33 @@ class LinguisticVariable(object):
 
 class AutoTriangle(LinguisticVariable):
 
-	def __init__(self, n_sets=3):
+	def __init__(self, n_sets=3, terms=None, verbose=False):
 
 		if n_sets<2:
 			raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
 
 		control_points = [x*1/(n_sets-1) for x in range(n_sets)]
+		
+		if terms is None:
+			terms = ['case %d' % (i+1) for i in range(n_sets)]
 
 		FS_list = []
 
-		FS_list.append( Triangular_MF(0,0,control_points[1]) )
+		FS_list.append(FuzzySet(function=Triangular_MF(0,0,control_points[1]), term=terms[0]))
 
 		for n in range(1, n_sets-1):
-			FS_list.append( Triangular_MF( control_points[n-1], control_points[n], control_points[n+1] ) )
+			FS_list.append(
+				FuzzySet(function=Triangular_MF(control_points[n-1], control_points[n], control_points[n+1]), 
+					term=terms[n])
+			)
 
-		FS_list.append( Triangular_MF(control_points[-2], 1, 1) )
+		FS_list.append( FuzzySet(function=Triangular_MF(control_points[-2], 1, 1), term=terms[-1] ))
 
-		for i, fs in enumerate(FS_list):
-			fs._term = "case %d" % (i+1)
+		super().__init__(FS_list, universe_of_discourse=[0,1])
 
-		super().__init__(FS_list)
+		if verbose:
+			for fs in FS_list:
+				print(fs, fs.get_term())
 
 
 class FuzzySystem(object):

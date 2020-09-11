@@ -12,9 +12,9 @@ class MF_object(object):
 		return min(1, max(0, ret))
 		
 
-###############################
-# USEFUL PRE-BAKED FUZZY SETS #
-###############################
+#########################################
+# USEFUL PRE-BAKED MEMBERSHIP FUNCTIONS #
+#########################################
 
 def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
@@ -231,3 +231,50 @@ class FuzzySet(object):
 		import scipy.integrate as integrate
 		result = integrate.quad(self.get_value_cut, x0, x1, args=(cut))
 		return result[0]
+
+
+###############################
+# USEFUL PRE-BAKED FUZZY SETS #
+###############################
+
+class TriangleFuzzySet(FuzzySet):
+
+	def __init__(self, a, b, c, term):
+		triangle_MF = Triangular_MF(a,b,c)
+		super().__init__(function=triangle_MF, term=term)	
+
+class TrapezoidFuzzySet(FuzzySet):
+
+	def __init__(self, a, b, c, d, term):
+		trapezoid_MF = Trapezoidal_MF(a,b,c,d)
+		super().__init__(function=trapezoid_MF, term=term)	
+
+class SigmoidFuzzySet(FuzzySet):
+
+	def __init__(self, c, a, term):
+		sigmoid_MF = Sigmoid_MF(c,a)
+		super().__init__(function=sigmoid_MF, term=term)	
+
+class InvSigmoidFuzzySet(FuzzySet):
+
+	def __init__(self, c, a, term):
+		invsigmoid_MF = InvSigmoid_MF(c,a)
+		super().__init__(function=invsigmoid_MF, term=term)	
+
+class GaussianFuzzySet(FuzzySet):
+
+	def __init__(self, mu, sigma, term):
+		gaussian_MF = Gaussian_MF(mu,sigma)
+		super().__init__(function=gaussian_MF, term=term)	
+
+class InvGaussianFuzzySet(FuzzySet):
+
+	def __init__(self, mu, sigma, term):
+		invgaussian_MF = InvGaussian_MF(mu,sigma)
+		super().__init__(function=invgaussian_MF, term=term)	
+
+class DoubleGaussianFuzzySet(FuzzySet):
+
+	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
+		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
+		super().__init__(function=doublegaussian_MF, term=term)	
