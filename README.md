@@ -1,3 +1,5 @@
+![Python package](https://github.com/aresio/simpful/workflows/Python%20package/badge.svg?branch=master)
+
 # simpful
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
 Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
