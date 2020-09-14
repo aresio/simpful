@@ -74,13 +74,15 @@ def preparse(STRINGA):
 	return STRINGA[STRINGA.find("IF")+2:STRINGA.find(" THEN")].strip()
 
 def postparse(STRINGA, verbose=False):
-	# extract the consequent 
-	stripped = STRINGA[STRINGA.find(" THEN")+5:].strip("() ")
-	if STRINGA.find("THEN") == -1:
-		raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
-					+ " ---- PROBLEMATIC RULE:\n"
-					+ STRINGA)
-	return stripped[:stripped.find(" IS")].strip(), stripped[stripped.find(" IS")+3:].strip()
+    stripped = STRINGA[STRINGA.find(" THEN")+5:].strip("() ")
+    if STRINGA.find("THEN") == -1:
+        raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+                        + " ---- PROBLEMATIC RULE:\n"
+                        + STRINGA)
+    if re.match(r"P\(", stripped) is not None:
+        return tuple(re.findall(r"\w+(?=\sis)|(?<=is\s)\w+|\d\.\d\d", stripped))
+    else:
+        return tuple(re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+", stripped))
 
 def find_index_operator(string, verbose=False):
 	if verbose: print(" * Looking for an operator in", string)
@@ -107,7 +109,7 @@ def curparse(STRINGA, verbose=False, operators=None):
 	if STRINGA[0]!="(": STRINGA="("+STRINGA
 	if STRINGA[-1]!=")": STRINGA=STRINGA+")"
 	
-	regex = re.compile("^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
+	regex = re.compile(r"^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
 	if regex.match(STRINGA):
 		
 		if verbose:	print(" * Regular expression is matching with single atomic clause:", STRINGA)

@@ -11,7 +11,10 @@ setup(
   license='LICENSE.txt',
   install_requires=[
         "numpy >= 1.12.0",
-        "scipy >= 1.0.0"
+        "scipy >= 1.0.0",
+        "pylab-sdk",
+        "requests"
+
     ],
   classifiers = ['Programming Language :: Python :: 3.7'],
   long_description='simpful is a Python library for fuzzy logic reasoning, \
