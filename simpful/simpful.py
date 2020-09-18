@@ -27,9 +27,9 @@ class LinguisticVariable(object):
 		Creates a new linguistic variable.
 		Args:
 			FS_list: a list of FuzzySet instances.
-			concept: a brief description of the concept represented by the linguistic variable.
-			universe_of_discourse: a list of two elements, specifying min and max of universe of discourse.
-			It must be specified to exploit plotting facilities.
+			concept: a string providing a brief description of the concept represented by the linguistic variable (optional).
+			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
+			Optional, but it must be specified to exploit plotting facilities.
 		"""
 
 		if FS_list==[]:
@@ -59,7 +59,7 @@ class LinguisticVariable(object):
 
 	def get_universe_of_discourse(self):
 		"""
-		Returns the universe of discourse of the linguistic variable.
+		Returns leftmost and rightmost values of the universe of discourse of the linguistic variable.
 		"""
 		if self._universe_of_discourse is not None:
 			return self._universe_of_discourse
@@ -75,6 +75,12 @@ class LinguisticVariable(object):
 
 
 	def draw(self, ax, TGT=None):
+		"""
+		Returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
+		Args:
+			ax:
+			TGT:
+		"""
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
 
@@ -98,6 +104,10 @@ class LinguisticVariable(object):
 
 
 	def plot(self, TGT=None):
+		"""
+		Shows a plot representing all fuzzy sets contained in the liguistic variable.
+		"""
+
 		try:
 			from matplotlib.pyplot import plot, show, title, subplots, legend
 			try:
@@ -124,6 +134,16 @@ class LinguisticVariable(object):
 class AutoTriangle(LinguisticVariable):
 
 	def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
+		"""
+		Creates a new linguistic variable, whose universe of discourse is automatically divided in a given number of fuzzy sets.
+		The sets are all symmetrical, normalized, and for each element of the universe their memberships sum up to 1.
+		Args:
+			n_sets: (integer) number of fuzzy sets in which the universe of discourse must be divided.
+			terms: list of strings containing linguistic terms for the fuzzy sets (must be appropriate to the number of fuzzy sets).
+			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
+			verbose: True/False, toggles verbose mode.
+		"""
+
 
 		if n_sets<2:
 			raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
@@ -460,6 +480,14 @@ class FuzzySystem(object):
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
 			Performs the fuzzy inference, trying to automatically choose the correct inference engine.
+			Args:
+				terms: list of the names of the variables on which inference must be performed.
+				If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+				ignore_errors: True/False, toggles the raising of errors during the inference.
+				verbose: True/False, toggles verbose mode.
+				subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
+		Returns:
+			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		""" 
 		if self._detected_type == "Sugeno":
 			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
