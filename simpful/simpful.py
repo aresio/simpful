@@ -206,6 +206,19 @@ class FuzzySystem(object):
 		except ValueError:
 			raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
+
+	def add_rules_from_file(self, path, verbose=False):
+		"""
+		Imports new fuzzy rules by reading the strings from a text file.
+		"""
+		if path[-3:].lower()!=".xls" and path[-4:].lower()!=".xlsx":
+			with open(path) as fi:
+				rules_strings = fi.readlines()
+			self.add_rules(rules_strings, verbose=verbose)
+		else:
+			raise NotImplementedError("Excel support not available yet.")
+
+
 	def add_rules(self, rules, verbose=False):
 		"""
 		Adds new fuzzy rules to the fuzzy system.
@@ -261,6 +274,7 @@ class FuzzySystem(object):
 		"""
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
+		self._set_model_type("Sugeno")
 
 	"""
 	def set_output_FS(self, fuzzyset, verbose=False):
@@ -269,7 +283,7 @@ class FuzzySystem(object):
 		self._set_model_type("Mamdani")
 		return fuzzyset
 	"""
-	
+
 
 	def _set_model_type(self, model_type):
 		if self._detected_type == "inconsistent": return
@@ -280,7 +294,7 @@ class FuzzySystem(object):
 			print("WARNING: model type is unclear (simpful detected %s, but I received a %s output)" % (self._detected_type, model_type))
 			self._detected_type = 'inconsistent'
 
-	def get_firing_strenghts(self):
+	def get_firing_strengths(self):
 		"""
 			Returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
@@ -463,10 +477,10 @@ class FuzzySystem(object):
 		""" 
 		if self._detected_type == "Sugeno":
 			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
-		elif self._detected_type == "Mamdani":
-			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
 		elif self._detected_type == "probabilistic":
 			return self.probabilistic_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
+		elif self._detected_type is None: # default
+			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
 		else:
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
@@ -489,8 +503,6 @@ class FuzzySystem(object):
 		else:
 			rows = 1
 
-		#print(" * Plotting figure %dx%d" % (columns, rows))
-		#print(self._lvs)
 		fig, ax = subplots(rows, columns, figsize=(columns*5, rows*5))
 
 		if rows==1: ax = [ax]
@@ -498,10 +510,8 @@ class FuzzySystem(object):
 
 		n = 0
 		for k, v in self._lvs.items():
-			#print(k, v)
 			r = n%4
 			c = n//4
-			#print(r,c)
 			v.draw(ax[c][r])
 			ax[c][r].set_ylim(0,1)
 			n+=1
@@ -515,5 +525,4 @@ class FuzzySystem(object):
 		fig.savefig(outputfile)
 
 if __name__ == '__main__':
-	
 	pass
