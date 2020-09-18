@@ -493,13 +493,14 @@ class FuzzySystem(object):
 
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
-			Performs the fuzzy inference, trying to automatically choose the correct inference engine.
-			Args:
-				terms: list of the names of the variables on which inference must be performed.
-				If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
-				ignore_errors: True/False, toggles the raising of errors during the inference.
-				verbose: True/False, toggles verbose mode.
-				subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
+		Performs the fuzzy inference, trying to automatically choose the correct inference engine.
+		Args:
+			terms: list of the names of the variables on which inference must be performed.
+			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+			ignore_errors: True/False, toggles the raising of errors during the inference.
+			verbose: True/False, toggles verbose mode.
+			subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
+			
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		""" 
