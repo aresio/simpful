@@ -22,15 +22,18 @@ class UndefinedUniverseOfDiscourseError(Exception):
 
 class LinguisticVariable(object):
 
-	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
-		"""
+	"""
 		Creates a new linguistic variable.
+		
 		Args:
 			FS_list: a list of FuzzySet instances.
 			concept: a string providing a brief description of the concept represented by the linguistic variable (optional).
 			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
 			Optional, but it must be specified to exploit plotting facilities.
-		"""
+	"""
+
+	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
+		
 
 		if FS_list==[]:
 			print("ERROR: please specify at least one fuzzy set")
@@ -76,10 +79,11 @@ class LinguisticVariable(object):
 
 	def draw(self, ax, TGT=None):
 		"""
-		Returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 		Args:
-			ax:
-			TGT:
+			ax: the axis to plot to.
+			TGT: show the memberships of a specific element of discourse TGT in the figure. 
+		Returns:
+			A matplotlib axis, representing all fuzzy sets contained in the liguistic variable.
 		"""
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
@@ -106,6 +110,9 @@ class LinguisticVariable(object):
 	def plot(self, TGT=None):
 		"""
 		Shows a plot representing all fuzzy sets contained in the liguistic variable.
+
+		Args:
+			TGT: show the memberships of a specific element of discourse TGT in the figure. 
 		"""
 
 		try:
@@ -133,17 +140,19 @@ class LinguisticVariable(object):
 
 class AutoTriangle(LinguisticVariable):
 
-	def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
-		"""
+	"""
 		Creates a new linguistic variable, whose universe of discourse is automatically divided in a given number of fuzzy sets.
 		The sets are all symmetrical, normalized, and for each element of the universe their memberships sum up to 1.
+		
 		Args:
 			n_sets: (integer) number of fuzzy sets in which the universe of discourse must be divided.
 			terms: list of strings containing linguistic terms for the fuzzy sets (must be appropriate to the number of fuzzy sets).
 			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
 			verbose: True/False, toggles verbose mode.
-		"""
+	"""
 
+	def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
+		
 
 		if n_sets<2:
 			raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
@@ -177,15 +186,18 @@ class AutoTriangle(LinguisticVariable):
 
 class FuzzySystem(object):
 
-	def __init__(self, operators=None, show_banner=True, verbose=True):
-		"""
+	"""
 		Creates a new fuzzy system.
+		
 		Args:
 			operators: a list of strings, specifying fuzzy operators to be used instead of defaults.
 			Currently supported operators: 'AND_PRODUCT'.
 			show_banner: True/False, toggles display of banner.
 			verbose: True/False, toggles verbose mode.
-		"""
+	"""
+
+	def __init__(self, operators=None, show_banner=True, verbose=True):
+		
 		self._rules = []
 		self._lvs = {}
 		self._variables = {}
@@ -214,6 +226,7 @@ class FuzzySystem(object):
 	def set_variable(self, name, value, verbose=False):
 		"""
 		Sets the numerical value of a linguistic variable.
+
 		Args:
 			name: name of the linguistic variables to be set.
 			value: numerical value to be set.

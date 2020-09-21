@@ -215,9 +215,12 @@ class FuzzySet(object):
 
 
 	def get_value(self, v):
-		""" Return the membership value of v to this Fuzzy Set.
+		""" 
 			Args:
 				v: element of the universe of discourse.
+
+			Returns: 
+				The membership value of v to this Fuzzy Set.
 		"""
 
 		if self._type == "function":
