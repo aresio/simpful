@@ -21,17 +21,17 @@ class UndefinedUniverseOfDiscourseError(Exception):
 
 
 class LinguisticVariable(object):
-
-	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
-		"""
+	"""
 		Creates a new linguistic variable.
+
 		Args:
 			FS_list: a list of FuzzySet instances.
 			concept: a string providing a brief description of the concept represented by the linguistic variable (optional).
 			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
 			Optional, but it must be specified to exploit plotting facilities.
-		"""
+	"""
 
+	def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
 		if FS_list==[]:
 			print("ERROR: please specify at least one fuzzy set")
 			exit(-2)
@@ -59,7 +59,10 @@ class LinguisticVariable(object):
 
 	def get_universe_of_discourse(self):
 		"""
-		Returns leftmost and rightmost values of the universe of discourse of the linguistic variable.
+		This method provides the leftmost and rightmost values of the universe of discourse of the linguistic variable.
+
+		Returns:
+			the two extreme values of the universe of discourse
 		"""
 		if self._universe_of_discourse is not None:
 			return self._universe_of_discourse
@@ -76,10 +79,14 @@ class LinguisticVariable(object):
 
 	def draw(self, ax, TGT=None):
 		"""
-		Returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
+		This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
+
 		Args:
 			ax:
 			TGT:
+
+		Returns:
+			a matplotlib ax instance
 		"""
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
@@ -106,8 +113,10 @@ class LinguisticVariable(object):
 	def plot(self, TGT=None):
 		"""
 		Shows a plot representing all fuzzy sets contained in the liguistic variable.
-		"""
 
+		Args:
+			TGT:
+		"""
 		try:
 			from matplotlib.pyplot import plot, show, title, subplots, legend
 			try:
@@ -132,19 +141,18 @@ class LinguisticVariable(object):
 
 
 class AutoTriangle(LinguisticVariable):
-
-	def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
-		"""
+	"""
 		Creates a new linguistic variable, whose universe of discourse is automatically divided in a given number of fuzzy sets.
 		The sets are all symmetrical, normalized, and for each element of the universe their memberships sum up to 1.
+
 		Args:
 			n_sets: (integer) number of fuzzy sets in which the universe of discourse must be divided.
 			terms: list of strings containing linguistic terms for the fuzzy sets (must be appropriate to the number of fuzzy sets).
 			universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
 			verbose: True/False, toggles verbose mode.
-		"""
+	"""
 
-
+	def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
 		if n_sets<2:
 			raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
 
@@ -176,16 +184,17 @@ class AutoTriangle(LinguisticVariable):
 
 
 class FuzzySystem(object):
-
-	def __init__(self, operators=None, show_banner=True, verbose=True):
-		"""
+	"""
 		Creates a new fuzzy system.
+
 		Args:
 			operators: a list of strings, specifying fuzzy operators to be used instead of defaults.
 			Currently supported operators: 'AND_PRODUCT'.
 			show_banner: True/False, toggles display of banner.
 			verbose: True/False, toggles verbose mode.
-		"""
+	"""
+
+	def __init__(self, operators=None, show_banner=True, verbose=True):
 		self._rules = []
 		self._lvs = {}
 		self._variables = {}
@@ -214,6 +223,7 @@ class FuzzySystem(object):
 	def set_variable(self, name, value, verbose=False):
 		"""
 		Sets the numerical value of a linguistic variable.
+
 		Args:
 			name: name of the linguistic variables to be set.
 			value: numerical value to be set.
@@ -229,6 +239,7 @@ class FuzzySystem(object):
 	def add_rules(self, rules, verbose=False):
 		"""
 		Adds new fuzzy rules to the fuzzy system.
+
 		Args:
 			rules: list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful's syntax.
 			verbose: True/False, toggles verbose mode.
@@ -246,6 +257,7 @@ class FuzzySystem(object):
 	def add_linguistic_variable(self, name, LV, verbose=False):
 		"""
 		Adds a new linguistic variable to the fuzzy system.
+
 		Args:
 			name: string containing the name of the linguistic variable.
 			LV: linguistic variable object to be added to the fuzzy system.
@@ -260,6 +272,7 @@ class FuzzySystem(object):
 	def set_crisp_output_value(self, name, value, verbose=False):
 		"""
 		Adds a new crisp output value to the fuzzy system.
+
 		Args:
 			name: string containing the identifying name of the crisp output value.
 			value: numerical value of the crisp output value to be added to the fuzzy system.
@@ -273,6 +286,7 @@ class FuzzySystem(object):
 	def set_output_function(self, name, function, verbose=False):
 		"""
 		Adds a new output function to the fuzzy system.
+
 		Args:
 			name: string containing the identifying name of the output function.
 			function: string containing the output function to be added to the fuzzy system.
@@ -302,8 +316,11 @@ class FuzzySystem(object):
 
 	def get_firing_strenghts(self):
 		"""
-			Returns a list of the firing strengths of the the rules, 
+			This method returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
+
+			Returns:
+				a list containing rules' firing strengths
 		"""
 		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
 		return results
@@ -432,6 +449,7 @@ class FuzzySystem(object):
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
 		Performs Sugeno fuzzy inference.
+
 		Args:
 			terms: list of the names of the variables on which inference must be performed.
 			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
@@ -454,6 +472,7 @@ class FuzzySystem(object):
 	def Mamdani_inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
 		Performs Mamdani fuzzy inference.
+
 		Args:
 			terms: list of the names of the variables on which inference must be performed.
 			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
@@ -480,13 +499,14 @@ class FuzzySystem(object):
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
 		Performs the fuzzy inference, trying to automatically choose the correct inference engine.
+
 		Args:
 			terms: list of the names of the variables on which inference must be performed.
 			If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
 			ignore_errors: True/False, toggles the raising of errors during the inference.
 			verbose: True/False, toggles verbose mode.
 			subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
-			
+
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		""" 
@@ -504,6 +524,7 @@ class FuzzySystem(object):
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
 		Plots the membership functions of each linguistic variable contained in the fuzzy system.
+
 		Args:
 			outputfile: path and filename where the plot must be saved.
 		"""

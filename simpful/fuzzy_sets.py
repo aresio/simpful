@@ -20,9 +20,7 @@ def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 class Triangular_MF(MF_object):
-
-	def __init__(self, a=0, b=0.5, c=1):
-		"""
+	"""
 		Creates a normalized triangular membership function.
 		Requires a <= b <= c and the semantics is the following:
 
@@ -32,12 +30,14 @@ class Triangular_MF(MF_object):
 		0	|/     \
 			---------
 	         a  b  c
+
 	    Args:
 			a: universe of discourse coordinate of the leftmost vertex.
 			b: universe of discourse coordinate of the upper vertex.
 			c: universe of discourse coordinate of the rightmost vertex.
+	"""
 
-		"""
+	def __init__(self, a=0, b=0.5, c=1):
 		self._a = a
 		self._b = b
 		self._c = c
@@ -62,17 +62,18 @@ class Triangular_MF(MF_object):
 		return "<Triangular MF (%f, %f, %f), term: %s>"% (self._a, self._b, self._c, self._term)
 
 class Trapezoidal_MF(MF_object):
-
-	def __init__(self, a=0, b=0.25, c=0.75, d=1):
-		"""
+	"""
 		Creates a normalized trapezoidal membership function.
 		Requires a <= b <= c <= d.
+
 		Args:
 			a: universe of discourse coordinate of the leftmost vertex.
 			b: universe of discourse coordinate of the upper left vertex.
 			c: universe of discourse coordinate of the upper right vertex.
 			d: universe of discourse coordinate of the rightmost vertex.
-		"""
+	"""
+
+	def __init__(self, a=0, b=0.25, c=0.75, d=1):
 		self._a = a
 		self._b = b
 		self._c = c
@@ -93,14 +94,15 @@ class Trapezoidal_MF(MF_object):
 				return 1
 
 class Sigmoid_MF(MF_object):
-
-	def __init__(self, c=0, a=1):
-		"""
+	"""
 		Creates a sigmoidal membership function.
+
 		Args:
 			c: universe of discourse coordinate of the inflection point.
 			a: steepness of the curve.
-		"""
+	"""
+
+	def __init__(self, c=0, a=1):
 		self._c = c
 		self._a = a
 		
@@ -108,14 +110,15 @@ class Sigmoid_MF(MF_object):
 		return 1.0/(1.0 + np.exp(-self._a*(x-self._c))) 
 
 class InvSigmoid_MF(MF_object):
-
-	def __init__(self, c=0, a=1):
-		"""
+	"""
 		Creates an inversed sigmoid membership function.
+
 		Args:
 			c: universe of discourse coordinate of inflection point.
 			a: steepness of the curve.
-		"""
+	"""
+	
+	def __init__(self, c=0, a=1):
 		self._c = c
 		self._a = a
 		
@@ -123,14 +126,15 @@ class InvSigmoid_MF(MF_object):
 		return 1.0 - 1.0/(1.0 + np.exp(-self._a*(x-self._c))) 
 
 class Gaussian_MF(MF_object):
-
-	def __init__(self, mu, sigma):
-		"""
+	"""
 		Creates a gaussian membership function.
+
 		Args:
 			mu: mean of the distribution.
 			sigma: standard deviation of the distribution.
-		"""
+	"""
+	
+	def __init__(self, mu, sigma):
 		self._mu = mu
 		self._sigma = sigma
 
@@ -138,14 +142,15 @@ class Gaussian_MF(MF_object):
 		return gaussian(x, self._mu, self._sigma)
 
 class InvGaussian_MF(MF_object):
-
-	def __init__(self, mu, sigma):
-		"""
+	"""
 		Creates an inversed gaussian membership function.
+
 		Args:
 			mu: mean of the distribution.
 			sigma: standard deviation of the distribution.
-		"""
+	"""
+
+	def __init__(self, mu, sigma):
 		self._mu = mu
 		self._sigma = sigma
 
@@ -153,16 +158,17 @@ class InvGaussian_MF(MF_object):
 		return 1.-gaussian(x, self._mu, self._sigma)
 
 class DoubleGaussian_MF(MF_object):
-
-	def __init__(self, mu1, sigma1, mu2, sigma2):
-		"""
+	"""
 		Creates a double gaussian membership function.
+
 		Args:
 			mu1: mean of the first distribution.
 			sigma1: standard deviation of the first distribution.
 			mu2: mean of the second distribution.
 			sigma2: standard deviation of the second distribution.
-		"""
+	"""
+
+	def __init__(self, mu1, sigma1, mu2, sigma2):
 		self._mu1 = mu1
 		self._sigma1 = sigma1
 		self._mu2 = mu2
@@ -175,10 +181,9 @@ class DoubleGaussian_MF(MF_object):
 
 
 class FuzzySet(object):
-
-	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
-		"""
+	"""
 		Creates a new fuzzy set.
+
 		Args:
 			points: list of points to define a polygonal fuzzy sets.
 			Each point is defined  as a list of two coordinates in the universe of discourse/membership degree space.
@@ -188,8 +193,9 @@ class FuzzySet(object):
 			term: string representing the linguistic term to be associated to the fuzzy set.
 			high_quality_interpolate: True/False, toggles high quality interpolation.
 			verbose: True/False, toggles verbose mode.
-		"""
+	"""
 
+	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
 		self._term = term
 
 		if points is None and function is not None:
@@ -216,6 +222,7 @@ class FuzzySet(object):
 
 	def get_value(self, v):
 		""" Return the membership value of v to this Fuzzy Set.
+
 			Args:
 				v: element of the universe of discourse.
 		"""
@@ -235,6 +242,7 @@ class FuzzySet(object):
 
 	def get_value_cut(self, v, cut):
 		""" Return the membership value of v to this Fuzzy Set, capped to the cut value.
+
 			Args:
 				v: element of the universe of discourse.
 				cut: alpha cut of the fuzzy set.
@@ -275,96 +283,103 @@ class FuzzySet(object):
 ###############################
 
 class TriangleFuzzySet(FuzzySet):
-
-	def __init__(self, a, b, c, term):
-		"""
+	"""
 		Creates a new triangular fuzzy set.
+
 		Args:
 			a: universe of discourse coordinate of the leftmost vertex.
 			b: universe of discourse coordinate of the upper vertex.
 			c: universe of discourse coordinate of the rightmost vertex.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+
+	def __init__(self, a, b, c, term):
 		triangle_MF = Triangular_MF(a,b,c)
 		super().__init__(function=triangle_MF, term=term)	
 
 class TrapezoidFuzzySet(FuzzySet):
-
-	def __init__(self, a, b, c, d, term):
-		"""
+	"""
 		Creates a new trapezoidal fuzzy set.
+
 		Args:
 			a: universe of discourse coordinate of the leftmost vertex.
 			b: universe of discourse coordinate of the upper left vertex.
 			c: universe of discourse coordinate of the upper right vertex.
 			d: universe of discourse coordinate of the rightmost vertex.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+
+	def __init__(self, a, b, c, d, term):
 		trapezoid_MF = Trapezoidal_MF(a,b,c,d)
 		super().__init__(function=trapezoid_MF, term=term)	
 
 class SigmoidFuzzySet(FuzzySet):
-
-	def __init__(self, c, a, term):
-		"""
+	"""
 		Creates a new sigmoidal fuzzy set.
+
 		Args:
 			c: universe of discourse coordinate of inflection point.
 			a: steepness of the curve.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+
+	def __init__(self, c, a, term):
 		sigmoid_MF = Sigmoid_MF(c,a)
 		super().__init__(function=sigmoid_MF, term=term)	
 
 class InvSigmoidFuzzySet(FuzzySet):
-
-	def __init__(self, c, a, term):
-		"""
+	"""
 		Creates a new inversed sigmoidal fuzzy set.
+
 		Args:
 			c: universe of discourse coordinate of inflection point.
 			a: steepness of the curve.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+
+	def __init__(self, c, a, term):
 		invsigmoid_MF = InvSigmoid_MF(c,a)
 		super().__init__(function=invsigmoid_MF, term=term)	
 
 class GaussianFuzzySet(FuzzySet):
-
-	def __init__(self, mu, sigma, term):
-		"""
+	"""
 		Creates a new gaussian fuzzy set.
+
 		Args:
 			mu: mean of the distribution.
 			sigma: standard deviation of the distribution.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+	
+	def __init__(self, mu, sigma, term):
 		gaussian_MF = Gaussian_MF(mu,sigma)
 		super().__init__(function=gaussian_MF, term=term)	
 
 class InvGaussianFuzzySet(FuzzySet):
-
-	def __init__(self, mu, sigma, term):
-		"""
+	"""
 		Creates a new inversed gaussian fuzzy set.
+
 		Args:
 			mu: mean of the distribution.
 			sigma: standard deviation of the distribution.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-		"""
+	"""
+	
+	def __init__(self, mu, sigma, term):
 		invgaussian_MF = InvGaussian_MF(mu,sigma)
 		super().__init__(function=invgaussian_MF, term=term)	
 
 class DoubleGaussianFuzzySet(FuzzySet):
-
-	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
-		"""
+	"""
 		Creates a new double gaussian fuzzy set.
+		
 		Args:
 			mu1: mean of the first distribution.
 			sigma1: standard deviation of the first distribution.
 			mu2: mean of the second distribution.
 			sigma2: standard deviation of the second distribution.
-		"""
+	"""
+
+	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
 		super().__init__(function=doublegaussian_MF, term=term)	
