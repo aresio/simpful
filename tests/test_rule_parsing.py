@@ -1,5 +1,4 @@
 import pytest
-
 from simpful import rule_parsing
 
 def test_postparse():

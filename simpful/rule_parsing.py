@@ -2,7 +2,11 @@ import re
 from numpy import array
 
 class Clause(object):
+    """  A clause is a part of the sentence that contains a verb ('IS', in this context). E.g. OXI IS low_flow.
 
+    Args:
+        object (<class 'simpful.rule_parsing.Clause'>): A variable (e.g. OXI) and a term (e.g. low_flow) is needed to form a Clause.
+    """
     def __init__(self, variable, term, verbose=False):
         self._variable = variable
         self._term = term
@@ -31,7 +35,12 @@ class Clause(object):
 
 
 class Functional(object):
+    """ Represents a set of Clauses; see Clause description for more information.
 
+    Args:
+        object (<class 'simpful.rule_parsing.Functional'>): Contains a minimum of 2 Clauses
+        aliased as A and B. These can be joined by a simpful supported operator.
+    """    
     def __init__(self, fun, A, B, operators=None):
         self._A = A
         self._B = B
@@ -62,7 +71,7 @@ class Functional(object):
         return "f.(" + str(self._A) + " " + self._fun + " " + str(self._B) + ")"
 
 
-# basic definitions of 
+# basic definitions of operators
 def OR(x,y): return max(x, y)
 def AND(x,y): return min(x, y)
 def AND_p(x,y): return x*y
@@ -77,6 +86,10 @@ def preparse(STRINGA):
 
     Returns:
         <class 'str'>: Antecendent of parsed rule.
+
+    Examples:
+        >>> normal_rule = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
+        '(OXI IS low_flow)'
     """
     return STRINGA[STRINGA.find("IF")+2:STRINGA.find(" THEN")].strip()
 
@@ -96,7 +109,7 @@ def postparse(STRINGA, verbose=False):
         In the case of probabilistic rules a tuple of size 2 (of type list) is returned 
         with element 1 containing the probabilities and element 2 the output and probabilities.
 
-    Example:
+    Examples:
         >>> normal_rule = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
         >>> print((postparse(rule2)))
         ('POWER', 'LOW_POWER')
@@ -124,6 +137,19 @@ def postparse(STRINGA, verbose=False):
         return tuple(re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+", stripped))
 
 def find_index_operator(string, verbose=False):
+    """Will try to find an operator (e.g. AND, OR, NOT etc)
+
+    Args:
+        string (<class 'str'>): is usually passed from curparse without outer parenthesis.
+        verbose (bool, optional): [description]. Defaults to False.
+
+    Returns:
+        tuple: indexes including whitespaces of operators (AND, AND_p, OR, NOT).
+    
+    Example:
+        >>> removed_parentheses = 'OXI IS low_flow) AND (OXI IS medium_flow'
+        >>> (16, 21)
+    """    
     if verbose: print(" * Looking for an operator in", string)
     pos = 0
     par = 1
@@ -140,7 +166,27 @@ def find_index_operator(string, verbose=False):
     return pos+1, pos2
 
 def curparse(STRINGA, verbose=False, operators=None):
+    """Given a rule the Clauses/Functional Objects are extracted.
 
+    Args:
+        STRINGA (<class 'str'>): A pre-parsed rule.
+        verbose (bool, optional): Will tell user whether a single automic 
+        clause is detected or not. Defaults to False.
+        operators (None): Defaults to None. Is meant for initialization.
+
+    Raises:
+        Exception: An IndexError will be raised when find_index_operator(removed_parentheses, verbose=verbose) 
+        is not possible.
+
+    Returns:
+        Clause OR Functional Object(possibly containing Clauses): After having detected 
+        either a Clause or a Functional Object recursion is used to find new Clauses.
+    
+    Example:
+        >>> STRINGA = '(OXI IS low_flow) AND (OXI IS medium_flow)'
+        >>> curparse(STRINGA)
+        f.(c.(OXI IS low_flow) AND c.(OXI IS medium_flow))
+    """
     # base case
     if STRINGA=="": return "" 
 
@@ -170,7 +216,7 @@ def curparse(STRINGA, verbose=False, operators=None):
         
         # if (removed_parentheses.find("(")==-1): return curparse("("+removed_parentheses+")")
 
-        if verbose: print("  - After parentheses removal:", removed_parentheses)
+        if verbose: print("  - After parentheses removal:", removed_parentheses)    #Get start and end index of operator
 
         if removed_parentheses[:3]=="NOT":
             beginindop = 0
@@ -183,7 +229,7 @@ def curparse(STRINGA, verbose=False, operators=None):
                 raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
                     + " ---- PROBLEMATIC RULE:\n"
                     + STRINGA)
-
+        # remove firsthalf by selecting everything before operator, secondhalf by everything after
         firsthalf = removed_parentheses[:beginindop].strip()
         secondhalf = removed_parentheses[endindop:].strip()
         operator = removed_parentheses[beginindop:endindop].strip()
