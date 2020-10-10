@@ -125,7 +125,7 @@ class InvSigmoid_MF(MF_object):
 	def _execute(self, x):
 		return 1.0 - 1.0/(1.0 + np.exp(-self._a*(x-self._c)))
 
-class norm_PFS_Gaussian_MF(MF_object):    
+class Clustering_Gaussian_MF(MF_object):    
 	"""
 	
 	Allows one to add all mu and sigmas in one go.
