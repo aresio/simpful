@@ -11,7 +11,6 @@ class MF_object(object):
 		ret = self._execute(x)
 		return min(1, max(0, ret))
 		
-
 #########################################
 # USEFUL PRE-BAKED MEMBERSHIP FUNCTIONS #
 #########################################
@@ -124,7 +123,29 @@ class InvSigmoid_MF(MF_object):
 		self._a = a
 		
 	def _execute(self, x):
-		return 1.0 - 1.0/(1.0 + np.exp(-self._a*(x-self._c))) 
+		return 1.0 - 1.0/(1.0 + np.exp(-self._a*(x-self._c)))
+
+class norm_PFS_Gaussian_MF(MF_object):    
+	"""
+	
+	Allows one to add all mu and sigmas in one go.
+
+	Args:
+		mu: mean of the distribution.
+		sigma: standard deviation of the distribution.	
+	
+	
+	"""
+	def __init__(self, mu, sig, all_mus, all_sigs):
+		self._mu = mu
+		self._sig = sig
+		self.all_mus = all_mus
+		self.all_sigs = all_sigs
+
+	def _execute(self, x):
+		act = np.exp(- (x-self._mu)**2 / self._sig**2)
+		sum_acts = sum([np.exp(- (x-mu)**2 / sig**2) for mu, sig in zip(self.all_mus, self.all_sigs)])
+		return act/sum_acts
 
 class Gaussian_MF(MF_object):
 	"""
@@ -385,4 +406,4 @@ class DoubleGaussianFuzzySet(FuzzySet):
 
 	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
-		super().__init__(function=doublegaussian_MF, term=term)	
+		super().__init__(function=doublegaussian_MF, term=term)
