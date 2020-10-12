@@ -1,5 +1,6 @@
 import re
 from numpy import array
+import numpy as np
 
 class Clause(object):
     """  A clause is a part of the sentence that contains a verb ('IS', in this context). E.g. OXI IS low_flow.
@@ -125,8 +126,8 @@ def postparse(STRINGA, verbose=False):
                         + " ---- PROBLEMATIC RULE:\n"
                         + STRINGA)
     if re.match(r"P\(", stripped) is not None:
-        probas = [float(i) for i in (re.findall(r"\d\.\d\d", stripped))]
-        if sum(probas)!=1:
+        probas = [float(i) for i in (re.findall(r"\d\.?\d*", stripped))]
+        if not np.isclose(sum(probas), 1):
             raise Exception ("ERROR: badly formatted rule, sum of probabilities needs to be equal to 1.\n"
                             + " ---- PROBLEMATIC RULE:\n"
                             + STRINGA)

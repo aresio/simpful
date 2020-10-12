@@ -5,6 +5,7 @@ from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict
+import numpy as np
 try:
 	import seaborn as sns
 except ImportError:
@@ -200,7 +201,7 @@ class FuzzySystem(object):
 		self._outputfuzzysets = {}
 		if show_banner: self._banner()
 		self._operators = operators
-
+		self.probs_ = []
 		self._detected_type = None
 
 
@@ -257,12 +258,23 @@ class FuzzySystem(object):
 		for rule in rules:
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			parsed_consequent = postparse(rule, verbose=verbose)
-			self._rules.append( [parsed_antecedent, parsed_consequent] )
+			self._rules.append( [parsed_antecedent, parsed_consequent[0]] )
 			if verbose:
 				print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
 				print()
 		if verbose: print(" * %d rules successfully added" % len(rules))
-
+	
+	def add_proba_rules(self, rules, verbose=False):
+		parsed_probas_convenience_list = []
+		for rule in rules:
+			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
+			parsed_consequent = postparse(rule)
+			self._rules.append( [parsed_antecedent, parsed_consequent] )
+		parsed_probas = np.array(parsed_probas_convenience_list)
+		if verbose:
+			print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent[0], '\n')
+		if verbose: print(" * %d rules successfully added" % len(rules))
+		
 
 	def add_linguistic_variable(self, name, LV, verbose=False):
 		"""
@@ -456,6 +468,11 @@ class FuzzySystem(object):
 
 		return final_result
 
+	def mediate_probabilistic(self, probs):
+		rule_outputs = np.array(self.get_firing_strengths())
+		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+		return np.matmul(normalized_activation_rule, self.probs_)
+
 
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
@@ -503,8 +520,9 @@ class FuzzySystem(object):
 		return result
 
 
-	def probabilistic_inference(self, terms=None, ignore_errors=False, verbose=False):
-		raise NotImplementedError()
+	def probabilistic_inference(self, probs, ignore_errors=False, verbose=False):
+		result = self.mediate_probabilistic(probs)
+		return result
 
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
