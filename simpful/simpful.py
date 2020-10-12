@@ -201,7 +201,6 @@ class FuzzySystem(object):
 		self._outputfuzzysets = {}
 		if show_banner: self._banner()
 		self._operators = operators
-		self.probs_ = []
 		self._detected_type = None
 
 
@@ -269,9 +268,9 @@ class FuzzySystem(object):
 		for rule in rules:
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			consequent = postparse(rule)
-			parsed_consequent = consequent[0]
+			parsed_consequent = np.array(consequent[0])
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
-		parsed_probas = np.array(parsed_probas_convenience_list)
+		#parsed_probas = np.array(parsed_probas_convenience_list)
 		if verbose:
 			print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent, '\n')
 		if verbose: print(" * %d rules successfully added" % len(rules))
