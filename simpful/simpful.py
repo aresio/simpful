@@ -527,7 +527,7 @@ class FuzzySystem(object):
 
 
 	def probabilistic_inference(self, ignore_errors=False, verbose=False):
-		probs = self.get_probas
+		probs = self.get_probas()
 		result = self.mediate_probabilistic(probs)
 		return result
 
