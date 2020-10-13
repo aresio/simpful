@@ -35,7 +35,7 @@ FS.add_rules([RULE1, RULE2, RULE3])
 
 # Set antecedents values, perform Sugeno inference and print output values.
 FS.set_variable("OXI", .51)
-print (FS.Sugeno_inference(['POWER']))
+print(FS.inference(['POWER']))
 ```
 
 
@@ -69,6 +69,7 @@ FS.set_variable("quality", 6.5)
 FS.set_variable("service", 9.8) 
 
 tip = FS.inference()
+print(tip)
 ```
 
 ### Example 3: Probabilistic Classification based on a Takagi Sugeno approach.
@@ -79,7 +80,7 @@ Simpful now supports classification using conditional probabilities. Please keep
 
 import simpful as sf
 
-A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
+# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
 
 # Initialize class
 FS = sf.FuzzySystem()
@@ -98,7 +99,7 @@ FS.add_proba_rules([RULE1, RULE2, RULE3])
 
 # Set Variable, perform probabilistic inference and print output values.
 FS.set_variable("OXI", .51)
-print(FS.probabilistic_inference())
+print(FS.inference())
 
 ```
 
