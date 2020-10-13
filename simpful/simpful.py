@@ -564,7 +564,7 @@ class FuzzySystem(object):
 
 		Returns:
 			<class 'numpy.int64'>: The class as a numpy integer
-			<class 'numpy.ndarray'>: The probabilities for a given system.
+			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""		
 		probs = self.get_probas()
