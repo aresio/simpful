@@ -487,7 +487,7 @@ class FuzzySystem(object):
 
 	def mediate_probabilistic(self, probs):
 		""" Performs probabilistic inference. This method gets the firing strengths of each rule and normalizes these outputs. This way we can see how much
-		more an instance triggers each rule. It will return the probabilities for each class.
+		more an instance triggers each rule. It will return the probabilities for each class. 
 
 		Args:
 			probs: probabilities parsed from the given rules.
@@ -552,7 +552,7 @@ class FuzzySystem(object):
 		its consequent parameters are selected as the conditional expectation of the defuzzified output membership functions. This approach
 		gets the activations of rules given a instance (a sample of data), their corresponding probability and will return either the corresponding
 		probabilities for every class or the class corresponding to the highest probability when return_class is set to True. See the readme file for
-		an example.
+		an example. Exact details are described in the paper by Fialho et al. (2016) in the Applied Soft Computing journal.
 
 
 		Args:
