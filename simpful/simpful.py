@@ -264,12 +264,19 @@ class FuzzySystem(object):
 		if verbose: print(" * %d rules successfully added" % len(rules))
 	
 	def add_proba_rules(self, rules, verbose=False):
+		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
+		In addition to this it will also extract the probabilities of each rule.
+
+		Args:
+			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. For an example please refer to the readme file.
+			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
+		"""		
 		for rule in rules:
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			consequent = postparse(rule)
 			parsed_consequent = np.array(consequent[0])
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
-			self._set_model_type = 'probabilistic'
+		self._set_model_type('probabilistic')
 		if verbose:
 			print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent, '\n')
 		if verbose: print(" * %d rules successfully added" % len(rules))
