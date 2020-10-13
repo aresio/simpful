@@ -573,7 +573,7 @@ class FuzzySystem(object):
 			return np.argmax(result)
 		return result
 
-	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000, return_class = False):
 		"""
 		Performs the fuzzy inference, trying to automatically choose the correct inference engine.
 
@@ -589,7 +589,7 @@ class FuzzySystem(object):
 		if self._detected_type == "Sugeno":
 			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
 		elif self._detected_type == "probabilistic":
-			return self.probabilistic_inference(terms= None, ignore_errors=ignore_errors, verbose=verbose)
+			return self.probabilistic_inference(ignore_errors=ignore_errors, verbose=verbose, return_class = False)
 		elif self._detected_type is None: # default
 			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
 		else:
