@@ -589,7 +589,7 @@ class FuzzySystem(object):
 		if self._detected_type == "Sugeno":
 			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
 		elif self._detected_type == "probabilistic":
-			return self.probabilistic_inference(ignore_errors=ignore_errors, verbose=verbose, return_class = False)
+			return self.probabilistic_inference(ignore_errors=ignore_errors, verbose=verbose, return_class = return_class)
 		elif self._detected_type is None: # default
 			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
 		else:
