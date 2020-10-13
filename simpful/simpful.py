@@ -349,6 +349,11 @@ class FuzzySystem(object):
 
 
 	def get_probas(self):
+		""" Will get the probabilities from a probabilistic rule base.
+
+		Returns:
+			<class 'numpy.ndarray'>: The probabilities of a probabilistic fuzzy rulebase.
+		"""		
 		probas = []
 		for proba in self._rules:
 			probas.append(proba[1])
@@ -474,6 +479,15 @@ class FuzzySystem(object):
 		return final_result
 
 	def mediate_probabilistic(self, probs):
+		""" Performs probabilistic inference. This method gets the firing strengths of each rule and normalizes these outputs. This way we can see how much
+		more an instance triggers each rule. It will return the probabilities for each class.
+
+		Args:
+			probs: probabilities parsed from the given rules.
+
+		Returns:
+			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
+		"""		
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 		return np.matmul(normalized_activation_rule, probs)
@@ -525,9 +539,31 @@ class FuzzySystem(object):
 		return result
 
 
-	def probabilistic_inference(self, ignore_errors=False, verbose=False):
+	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class = False):
+		
+		""" A zero-order TS fuzzy system can produce the same output as the expected output of a probabilistic fuzzy system provided that
+		its consequent parameters are selected as the conditional expectation of the defuzzified output membership functions. This approach
+		gets the activations of rules given a instance (a sample of data), their corresponding probability and will return either the corresponding
+		probabilities for every class or the class corresponding to the highest probability when return_class is set to True. See the readme file for
+		an example.
+
+
+		Args:
+			ignore_errors (bool, optional): Not implemented. Defaults to False.
+			verbose (bool, optional): Not implemented. Defaults to False.
+			return_class (bool, optional): Choose depending on needs. Defaults to False. 
+			When return_class is set to False a list of probabilities for each class is returned, otherwise (True) the class itself is returned.
+			
+
+		Returns:
+			<class 'numpy.int64'>: The class as a numpy integer
+			<class 'numpy.ndarray'>: The probabilities for a given system.
+
+		"""		
 		probs = self.get_probas()
 		result = self.mediate_probabilistic(probs)
+		if return_class == True:
+			return np.argmax(result)
 		return result
 
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
