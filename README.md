@@ -1,18 +1,18 @@
 ![Python package](https://github.com/aresio/simpful/workflows/Python%20package/badge.svg?branch=master)
 
 # simpful
-A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
-Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
+A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language. Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
 
 ## Usage
 
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
 
+### Example 1:
+
+A simple fuzzy model (Takagi Sugeno) describing how the heating power of a gas burner depends on the oxygen supply. We use a point-based approach for defining the fuzzy sets. The consequents can either be crisp or functional. 
 
 ```
 import simpful as sf
-
-# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
 
 FS = sf.FuzzySystem()
 
@@ -39,7 +39,7 @@ print (FS.Sugeno_inference(['POWER']))
 ```
 
 
-## Example 2: tipping with Mamdani 
+### Example 2: tipping with Mamdani 
 
 This second example shows how to model a FIS using Mamdani inference. It also shows some facilities 
 that make modeling more concise and clear: automatic Triangles (i.e., pre-baked linguistic variables 
@@ -69,6 +69,37 @@ FS.set_variable("quality", 6.5)
 FS.set_variable("service", 9.8) 
 
 tip = FS.inference()
+```
+
+### Example 3: Probabilistic Classification using Takagi Sugeno
+
+Simpful now supports classification using conditional probabilities. Please keep in mind that these probabilities can not be estimated automatically yet and have to be fed to the system when defining the rules. The implementation is based on the following paper: [Function approximation using probabilistic fuzzy systems](https://research.tue.nl/en/publications/function-approximation-using-probabilistic-fuzzy-systems).
+
+```
+
+import simpful as sf
+
+A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
+
+# Initialize class
+FS = sf.FuzzySystem()
+
+# Define a linguistic variable.
+S_1 = sf.FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
+S_2 = sf.FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
+S_3 = sf.FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
+FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3] ))
+
+# Define fuzzy rules.
+RULE1 = "IF (OXI IS low_flow) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
+RULE2 = "IF (OXI IS medium_flow) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
+RULE3 = "IF (NOT (OXI IS low_flow)) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
+FS.add_proba_rules([RULE1, RULE2, RULE3])
+
+# Set Variable, perform probabilistic inference and print output values.
+FS.set_variable("OXI", .51)
+print(FS.probabilistic_inference())
+
 ```
 
 ## Installation
