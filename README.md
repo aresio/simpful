@@ -107,6 +107,5 @@ print(FS.probabilistic_inference())
 `pip install simpful`
 
 ## Further info
-Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. Usage information can be found on the wiki page: 
-[simpful/wiki](https://github.com/aresio/simpful/wiki).
+Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. Usage information can be found on the [wiki page](https://github.com/aresio/simpful/wiki).
 If you need further information, please write an e-mail at: m.s.nobile@tue.nl.
