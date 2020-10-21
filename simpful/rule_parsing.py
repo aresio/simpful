@@ -82,7 +82,7 @@ def postparse(STRINGA, verbose=False):
     if re.match(r"P\(", stripped) is not None:
         return tuple(re.findall(r"\w+(?=\sis)|(?<=is\s)\w+|\d\.\d\d", stripped))
     else:
-        return tuple(re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+", stripped))
+        return tuple(re.findall(r"\w+(?=\sIS\s)|(?<=\sIS\s)\w+", stripped))
 
 def find_index_operator(string, verbose=False):
 	if verbose: print(" * Looking for an operator in", string)
