@@ -75,6 +75,12 @@ tip = FS.inference()
 
 `pip install simpful`
 
+## Citing Simpful
+
+If you find Simpful useful for your research, please cite our work as follows:
+
+Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful: a user-friendly Python library for fuzzy logic, International Journal of Computational Intelligence Systems, 2020 (accepted)
+
 ## Further info
 Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
 
