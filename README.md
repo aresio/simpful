@@ -72,7 +72,7 @@ tip = FS.inference()
 ```
 ## Additional examples
 
-Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/4445547/tree).
+Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
 
 ## Installation
 
