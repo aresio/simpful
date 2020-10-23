@@ -4,7 +4,7 @@
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
 Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
 
-## Usage
+## Usage example 1: tipping with Sugeno
 
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
 
@@ -39,7 +39,7 @@ print (FS.Sugeno_inference(['POWER']))
 ```
 
 
-## Example 2: tipping with Mamdani 
+## Usage example 2: tipping with Mamdani 
 
 This second example shows how to model a FIS using Mamdani inference. It also shows some facilities 
 that make modeling more concise and clear: automatic Triangles (i.e., pre-baked linguistic variables 
@@ -70,6 +70,9 @@ FS.set_variable("service", 9.8)
 
 tip = FS.inference()
 ```
+## Additional examples
+
+Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
 
 ## Installation
 
