@@ -4,6 +4,8 @@ from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict
+import re
+import string
 try:
 	import seaborn as sns
 except ImportError:
@@ -11,6 +13,9 @@ except ImportError:
 
 # constant values
 linestyles= ["-", "--", ":", "-."]
+
+# for sanitization
+valid_characters = string.ascii_letters + string.digits + "()_ "
 
 
 class UndefinedUniverseOfDiscourseError(Exception):
@@ -189,7 +194,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self, operators=None, show_banner=True, verbose=True):
+	def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True):
 
 		self._rules = []
 		self._lvs = {}
@@ -202,6 +207,9 @@ class FuzzySystem(object):
 
 		self._detected_type = None
 
+		self._sanitize_input = sanitize_input
+		if sanitize_input and verbose:
+			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
 
 	def _banner(self):
 		import pkg_resources
@@ -245,15 +253,25 @@ class FuzzySystem(object):
 			raise NotImplementedError("Excel support not available yet.")
 
 
+	def _sanitize(self, rule):
+		new_rule = "".join(ch for ch in rule if ch in valid_characters)
+		return new_rule
+
+
 	def add_rules(self, rules, verbose=False):
 		"""
 		Adds new fuzzy rules to the fuzzy system.
 
 		Args:
 			rules: list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful's syntax.
+			sanitize: True/False, automatically removes non alphanumeric symbols from rules
 			verbose: True/False, toggles verbose mode.
 		"""
 		for rule in rules:
+			
+			# optional: remove invalid symbols
+			if self._sanitize_input: rule = self._sanitize(rule)
+
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
@@ -272,6 +290,7 @@ class FuzzySystem(object):
 			LV: linguistic variable object to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		if LV._concept is None: 
 			LV._concept = name
 		self._lvs[name]=deepcopy(LV)
@@ -287,6 +306,7 @@ class FuzzySystem(object):
 			value: numerical value of the crisp output value to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		self._crispvalues[name]=value
 		if verbose: print(" * Crisp output value for '%s' set to %f" % (name, value))
 		self._set_model_type("Sugeno")
@@ -302,18 +322,10 @@ class FuzzySystem(object):
 			The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 		self._set_model_type("Sugeno")
-
-	"""
-	def set_output_FS(self, fuzzyset, verbose=False):
-		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
-		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
-		self._set_model_type("Mamdani")
-		return fuzzyset
-	"""
-
 
 	def _set_model_type(self, model_type):
 		if self._detected_type == "inconsistent": return
