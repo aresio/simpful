@@ -233,6 +233,7 @@ class FuzzySystem(object):
 			value: numerical value to be set.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		try: 
 			value = float(value)
 			self._variables[name] = value
@@ -481,6 +482,8 @@ class FuzzySystem(object):
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
 		# default: inference on ALL rules/terms
+		if self._sanitize: 
+			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
@@ -505,6 +508,8 @@ class FuzzySystem(object):
 		"""
 
 		# default: inference on ALL rules/terms
+		if self._sanitize: 
+			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
