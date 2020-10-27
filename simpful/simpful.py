@@ -482,7 +482,7 @@ class FuzzySystem(object):
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
 		# default: inference on ALL rules/terms
-		if self._sanitize: 
+		if self._sanitize and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
@@ -508,7 +508,7 @@ class FuzzySystem(object):
 		"""
 
 		# default: inference on ALL rules/terms
-		if self._sanitize: 
+		if self._sanitize and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
