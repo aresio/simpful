@@ -366,6 +366,9 @@ class FuzzySystem(object):
 		"""
 		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
 		return results
+	
+	def optimize(self, ols=True):
+		pass
 
 
 	def get_probas(self):
