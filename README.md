@@ -4,6 +4,17 @@
 A Python library for fuzzy logic reasoning, designed to provide a simple and lightweight API, as close as possible to natural language.
 Simpful supports Mamdani and Sugeno reasoning of any order, parsing any complex fuzzy rules involving AND, OR, and NOT operators, using arbitrarily shaped fuzzy sets.
 
+## Installation
+
+`pip install simpful`
+
+## Citing Simpful
+
+If you find Simpful useful for your research, please cite our work as follows:
+
+Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful: a user-friendly Python library for fuzzy logic, International Journal of Computational Intelligence Systems, 13(1):1687–1698, 2020
+[DOI:10.2991/ijcis.d.201012.002](https://doi.org/10.2991/ijcis.d.201012.002)
+
 ## Usage example 1: tipping with Sugeno
 
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
@@ -37,7 +48,6 @@ FS.add_rules([RULE1, RULE2, RULE3])
 FS.set_variable("OXI", .51)
 print (FS.Sugeno_inference(['POWER']))
 ```
-
 
 ## Usage example 2: tipping with Mamdani 
 
@@ -73,16 +83,6 @@ tip = FS.inference()
 ## Additional examples
 
 Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
-
-## Installation
-
-`pip install simpful`
-
-## Citing Simpful
-
-If you find Simpful useful for your research, please cite our work as follows:
-
-Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful: a user-friendly Python library for fuzzy logic, International Journal of Computational Intelligence Systems, 2020 (accepted)
 
 ## Further info
 Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
