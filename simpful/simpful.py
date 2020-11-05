@@ -195,7 +195,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True):
+	def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True, X=None, var_names=None):
 
 		self._rules = []
 		self._lvs = {}
@@ -207,6 +207,8 @@ class FuzzySystem(object):
 		if show_banner: self._banner()
 		self._operators = operators
 		self._detected_type = None
+		self._X = X
+		self.var_names=var_names
 
 		self._sanitize_input = sanitize_input
 		if sanitize_input and verbose:
@@ -368,7 +370,7 @@ class FuzzySystem(object):
 		return results
 	
 	def optimize(self, ols=True):
-		pass
+		print('Hello, Nikhil!')
 
 
 	def get_probas(self):
@@ -615,7 +617,13 @@ class FuzzySystem(object):
 		else:
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
-
+	def predict(self):
+		preds_ = []
+		for instance in self._X:
+			for var_name, feat_val in zip(self.var_names, instance):
+				self.set_variable(var_name, feat_val)
+			preds_.append(self.inference())
+		return preds_
 
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
