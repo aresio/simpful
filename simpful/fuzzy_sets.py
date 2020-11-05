@@ -138,6 +138,7 @@ class Gaussian_MF(MF_object):
 	def __init__(self, mu, sigma):
 		self._mu = mu
 		self._sigma = sigma
+		if sigma<=0: print("WARNING: sigma should be strictly positive, Simpful received sigma=%f" % sigma)
 
 	def _execute(self, x):
 		return _gaussian(x, self._mu, self._sigma)
@@ -172,8 +173,11 @@ class DoubleGaussian_MF(MF_object):
 	def __init__(self, mu1, sigma1, mu2, sigma2):
 		self._mu1 = mu1
 		self._sigma1 = sigma1
+		if sigma1<=0: print("WARNING: sigma should be strictly positive, Simpful received sigma1=%f" % sigma1)
 		self._mu2 = mu2
 		self._sigma2 = sigma2
+		if sigma2<=0: print("WARNING: sigma should be strictly positive, Simpful received sigma2=%f" % sigma2)
+
 
 	def _execute(self, x):
 		first = _gaussian(x, self._mu1, self._sigma1)
