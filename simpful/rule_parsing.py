@@ -127,10 +127,10 @@ def postparse(STRINGA, verbose=False):
 						+ STRINGA)
 	if re.match(r"P\(", stripped) is not None:
 		probas = [float(i) for i in (re.findall(r"\d\.?\d*", stripped))]
-		if not np.isclose(sum(probas), 1):
-			raise Exception ("ERROR: badly formatted rule, sum of probabilities needs to be equal to 1.\n"
-							+ " ---- PROBLEMATIC RULE:\n"
-							+ STRINGA)
+		# if not np.isclose(sum(probas), 1):
+		# 	raise Exception ("ERROR: badly formatted rule, sum of probabilities needs to be equal to 1.\n"
+		# 					+ " ---- PROBLEMATIC RULE:\n"
+		# 					+ STRINGA)
 		class_info = re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+|\d\.\d\d", stripped)
 		out = (probas, class_info)
 		return out

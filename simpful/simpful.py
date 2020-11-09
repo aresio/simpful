@@ -195,7 +195,8 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True, X=None, var_names=None):
+	def __init__(self,  var_names=None, centers=None , widths=None, operators=None,\
+		 show_banner=True, sanitize_input=False, verbose=True, X=None,  probas=None):
 
 		self._rules = []
 		self._lvs = {}
@@ -203,12 +204,14 @@ class FuzzySystem(object):
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		self._outputfuzzysets = {}
-		self._probas = []
+		self._probas = probas
 		if show_banner: self._banner()
 		self._operators = operators
 		self._detected_type = None
 		self._X = X
 		self.var_names=var_names
+		self.centers=centers
+		self.widths=widths
 
 		self._sanitize_input = sanitize_input
 		if sanitize_input and verbose:
@@ -318,6 +321,24 @@ class FuzzySystem(object):
 		self._lvs[name]=deepcopy(LV)
 		if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
+	def add_linguistic_variables(self, var_names):
+		#Setup fuzzysets
+		var_names=var_names
+		for i, ling_var in enumerate(var_names):
+			#Construct fuzzy sets
+			fuzzysets = []
+			for rulenr in range(len(self._rules)):
+				fuzzyset = FuzzySet(
+					function=Gaussian_MF(
+						self.centers[rulenr, i],
+						self.widths[rulenr, i]
+					),
+					term='cluster{}'.format(rulenr))
+				fuzzysets.append(fuzzyset)
+		
+			#Add linguistic variable to fuzzy system
+			MF_ling_var = LinguisticVariable(fuzzysets, concept=ling_var, universe_of_discourse=[-10,10])
+			self.add_linguistic_variable(ling_var, MF_ling_var)
 
 	def set_crisp_output_value(self, name, value, verbose=False):
 		"""
@@ -332,7 +353,10 @@ class FuzzySystem(object):
 		self._crispvalues[name]=value
 		if verbose: print(" * Crisp output value for '%s' set to %f" % (name, value))
 		self._set_model_type("Sugeno")
-
+	
+	def proba_zero_order(self):
+		for i in range(len(self._probas)):
+			self.set_crisp_output_value('fun{}'.format(i), self._probas[i])
 
 	def set_output_function(self, name, function, verbose=False):
 		"""
@@ -618,12 +642,18 @@ class FuzzySystem(object):
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
 	def predict(self):
+		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
+
+		Returns:
+			[ndarray]: a list of predictions.
+		"""		
 		preds_ = []
 		for instance in self._X:
 			for var_name, feat_val in zip(self.var_names, instance):
 				self.set_variable(var_name, feat_val)
-			preds_.append(self.inference())
+			preds_.append(self.probabilistic_inference())
 		return preds_
+
 
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
