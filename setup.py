@@ -15,7 +15,5 @@ setup(
         "requests",
     ],
   classifiers = ['Programming Language :: Python :: 3.7'],
-  long_description='simpful is a Python library for fuzzy logic reasoning, \
-  designed to provide a simple and lightweight API, as close as possible \
-  to natural language.',
+  long_description = open('README.md').read(),
 )
