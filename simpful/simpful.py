@@ -301,7 +301,7 @@ class FuzzySystem(object):
 		for rule in rules:
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			consequent = postparse(rule)
-			parsed_consequent = np.array(consequent[0])
+			parsed_consequent = np.array(consequent)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
 		self._set_model_type('probabilistic')
 		if verbose:
