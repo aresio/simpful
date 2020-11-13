@@ -196,7 +196,7 @@ class FuzzySystem(object):
 	"""
 
 	def __init__(self,  var_names=None, centers=None , widths=None, operators=None,\
-		 show_banner=True, sanitize_input=False, verbose=True, X=None,  probas=None):
+		 show_banner=True, sanitize_input=False, verbose=True, X=None,  y=None, probas=None):
 
 		self._rules = []
 		self._lvs = {}
@@ -204,15 +204,18 @@ class FuzzySystem(object):
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		self._outputfuzzysets = {}
-		self._probas = probas
 		if show_banner: self._banner()
 		self._operators = operators
 		self._detected_type = None
 		self._X = X
+		self.y = y
 		self.var_names=var_names
 		self.centers=centers
 		self.widths=widths
-
+		self.A=[]
+		self.just_beta=None
+		self.probas=None
+#		self._probas = self.estimate_probas() if probas is None else probas
 		self._sanitize_input = sanitize_input
 		if sanitize_input and verbose:
 			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
@@ -536,11 +539,36 @@ class FuzzySystem(object):
 
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
-		"""		
+		"""
+		if probs is None:
+			self.estimate_probas()		
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+		# save rule outputs for estimating probas later
+		self.A.append(normalized_activation_rule)
 		return np.matmul(normalized_activation_rule, probs)
+	
+	def preprocess_a(self):
 
+		
+		n_rules = len(self._rules)
+		longform_betas = np.asarray(self.A)
+		longform_betas = longform_betas.T.ravel()
+		just_betas = np.split(longform_betas, n_rules)
+		self.just_beta = np.asarray(just_betas)
+		return just_betas
+
+
+	def estimate_probas(self):
+		A = self.preprocess_a()
+		A = np.transpose(A)
+		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
+		if len(np.unique(self.y)) == 2:
+			probas = np.hstack((probas, 1-probas)) 
+		return probas
+	
+	def set_proba_to_none(self):
+		self._probas = None
 
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
@@ -651,9 +679,21 @@ class FuzzySystem(object):
 		for instance in self._X:
 			for var_name, feat_val in zip(self.var_names, instance):
 				self.set_variable(var_name, feat_val)
-			preds_.append(self.probabilistic_inference())
+			preds_.append(self.inference())
 		return preds_
 
+	def predict_zero(self):
+		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
+
+		Returns:
+			[ndarray]: a list of predictions.
+		"""
+		preds_ = []
+		for instance in self._X:
+			for var_name, feat_val in zip(self.var_names, instance):
+				self.set_variable(var_name, feat_val)
+			preds_.append(self.probabilistic_inference())
+		return preds_
 
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
