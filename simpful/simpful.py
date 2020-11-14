@@ -1,3 +1,4 @@
+import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
@@ -195,7 +196,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self,  operators=None, show_banner=True, sanitize_input=False, verbose=True):
+	def __init__(self,  operators=None, show_banner=True, sanitize_input=False, verbose=False):
 
 		self._rules = []
 		self._lvs = {}
@@ -594,6 +595,8 @@ class ProbaFuzzySystem(FuzzySystem):
 	def __init__(self, var_names=None, centers=None, widths=None,\
 		X=None,  y=None, probas=None):
 
+		super().__init__()
+
 		self._detected_type = None
 		self._X = X
 		self.y = y
@@ -610,9 +613,12 @@ class ProbaFuzzySystem(FuzzySystem):
 		In addition to this it will also extract the probabilities of each rule.
 
 		Args:
-			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. For an example please refer to the readme file.
+			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. 
+			For an example please refer to the readme file.
 			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
 		"""
+
+		
 		for rule in rules:
 			parsed_antecedent = curparse(
 				preparse(rule), verbose=verbose, operators=self._operators)
@@ -650,11 +656,10 @@ class ProbaFuzzySystem(FuzzySystem):
 		for i in range(len(self._probas)):
 			self.set_crisp_output_value('fun{}'.format(i), self._probas[i])
 
-	def optimize(self, ols=True):
-		print('Hello, Nikhil!')
 
 	def mediate_probabilistic(self, probs):
-		""" Performs probabilistic inference. This method gets the firing strengths of each rule and normalizes these outputs. This way we can see how much
+		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
+		and normalizes these outputs. This way we can see how much
 		more an instance triggers each rule. It will return the probabilities for each class. 
 
 		Args:
@@ -665,7 +670,7 @@ class ProbaFuzzySystem(FuzzySystem):
 		"""
 		if probs is None:
 			self.estimate_probas()
-		rule_outputs = np.array(self.get_firing_strengths())
+		rule_outputs = np.array(super().get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 		# save rule outputs for estimating probas later
 		self.A.append(normalized_activation_rule)
@@ -692,18 +697,22 @@ class ProbaFuzzySystem(FuzzySystem):
 		self._probas = None
 
 	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=False):
-		""" A zero-order TS fuzzy system can produce the same output as the expected output of a probabilistic fuzzy system provided that
-		its consequent parameters are selected as the conditional expectation of the defuzzified output membership functions. This approach
-		gets the activations of rules given a instance (a sample of data), their corresponding probability and will return either the corresponding
-		probabilities for every class or the class corresponding to the highest probability when return_class is set to True. See the readme file for
-		an example. Exact details are described in the paper by Fialho et al. (2016) in the Applied Soft Computing journal.
+		""" A zero-order TS fuzzy system can produce the same output as the expected output of 
+		a probabilistic fuzzy system provided that its consequent parameters are selected as the 
+		conditional expectation of the defuzzified output membership functions. This approach
+		gets the activations of rules given a instance (a sample of data), their corresponding 
+		probability and will return either the corresponding probabilities for every class or 
+		the class corresponding to the highest probability when return_class is set to True. See 
+		the readme file for an example. Exact details are described in the paper by Fialho 
+		et al. (2016) in the Applied Soft Computing journal.
 
 
 		Args:
 			ignore_errors (bool, optional): Not implemented. Defaults to False.
 			verbose (bool, optional): Not implemented. Defaults to False.
 			return_class (bool, optional): Choose depending on needs. Defaults to False. 
-			When return_class is set to False a list of probabilities for each class is returned, otherwise (True) the class itself is returned.
+			When return_class is set to False a list of probabilities for each class is 
+			returned, otherwise (True) the class itself is returned.
 			
 
 		Returns:
