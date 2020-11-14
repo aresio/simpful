@@ -1,6 +1,7 @@
 import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
+from .rules import *
 from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
@@ -590,13 +591,13 @@ class FuzzySystem(object):
 		fig.savefig(outputfile)
 
 
-class ProbaFuzzySystem(FuzzySystem):
+class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 	def __init__(self, var_names=None, centers=None, widths=None,\
 		X=None,  y=None, probas=None):
 
 		super().__init__()
-
+		self.raw_rules=None
 		self._detected_type = None
 		self._X = X
 		self.y = y
@@ -607,6 +608,10 @@ class ProbaFuzzySystem(FuzzySystem):
 		self.just_beta = None
 		self.probas = None
 #		self._probas = self.estimate_probas() if probas is None else probas
+	
+	def router(self):
+		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
+			pass
 
 	def add_proba_rules(self, rules, verbose=False):
 		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
@@ -617,14 +622,17 @@ class ProbaFuzzySystem(FuzzySystem):
 			For an example please refer to the readme file.
 			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
 		"""
+		self.raw_rules = rules
 
-		
 		for rule in rules:
 			parsed_antecedent = curparse(
 				preparse(rule), verbose=verbose, operators=self._operators)
 			consequent = postparse(rule)
 			parsed_consequent = np.array(consequent)
 			self._rules.append([parsed_antecedent, parsed_consequent])
+		
+		self.router()
+
 		self._set_model_type('probabilistic')
 		if verbose:
 			print(" * Added rule IF", parsed_antecedent,
