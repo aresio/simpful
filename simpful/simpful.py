@@ -646,9 +646,9 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		if verbose:
 			print(" * %d rules successfully added" % len(rules))
 
-	def add_linguistic_variables(self, var_names):
+	def add_linguistic_variables(self):
 		#Setup fuzzysets
-		var_names = var_names
+		var_names = self.var_names
 		for i, ling_var in enumerate(var_names):
 			#Construct fuzzy sets
 			fuzzysets = []
