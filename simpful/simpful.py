@@ -1,10 +1,14 @@
+import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
+from .rules import RuleGen
 from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict
 import numpy as np
+import re
+import string
 try:
 	import seaborn as sns
 except ImportError:
@@ -12,6 +16,9 @@ except ImportError:
 
 # constant values
 linestyles= ["-", "--", ":", "-."]
+
+# for sanitization
+valid_characters = string.ascii_letters + string.digits + "()_ "
 
 
 class UndefinedUniverseOfDiscourseError(Exception):
@@ -190,7 +197,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self, operators=None, show_banner=True, verbose=True):
+	def __init__(self,  operators=None, show_banner=True, sanitize_input=False, verbose=False):
 
 		self._rules = []
 		self._lvs = {}
@@ -198,11 +205,11 @@ class FuzzySystem(object):
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		self._outputfuzzysets = {}
-		self._probas = []
 		if show_banner: self._banner()
 		self._operators = operators
-		self._detected_type = None
-
+		self._sanitize_input = sanitize_input
+		if sanitize_input and verbose:
+			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
 
 	def _banner(self):
 		import pkg_resources
@@ -226,6 +233,7 @@ class FuzzySystem(object):
 			value: numerical value to be set.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		try: 
 			value = float(value)
 			self._variables[name] = value
@@ -246,15 +254,25 @@ class FuzzySystem(object):
 			raise NotImplementedError("Excel support not available yet.")
 
 
+	def _sanitize(self, rule):
+		new_rule = "".join(ch for ch in rule if ch in valid_characters)
+		return new_rule
+
+
 	def add_rules(self, rules, verbose=False):
 		"""
 		Adds new fuzzy rules to the fuzzy system.
 
 		Args:
 			rules: list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful's syntax.
+			sanitize: True/False, automatically removes non alphanumeric symbols from rules
 			verbose: True/False, toggles verbose mode.
 		"""
 		for rule in rules:
+			
+			# optional: remove invalid symbols
+			if self._sanitize_input: rule = self._sanitize(rule)
+
 			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
@@ -263,24 +281,7 @@ class FuzzySystem(object):
 				print()
 		if verbose: print(" * %d rules successfully added" % len(rules))
 	
-	def add_proba_rules(self, rules, verbose=False):
-		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
-		In addition to this it will also extract the probabilities of each rule.
 
-		Args:
-			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. For an example please refer to the readme file.
-			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
-		"""		
-		for rule in rules:
-			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
-			consequent = postparse(rule)
-			parsed_consequent = np.array(consequent[0])
-			self._rules.append( [parsed_antecedent, parsed_consequent] )
-		self._set_model_type('probabilistic')
-		if verbose:
-			print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent, '\n')
-		if verbose: print(" * %d rules successfully added" % len(rules))
-		
 
 	def add_linguistic_variable(self, name, LV, verbose=False):
 		"""
@@ -291,6 +292,7 @@ class FuzzySystem(object):
 			LV: linguistic variable object to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		if LV._concept is None: 
 			LV._concept = name
 		self._lvs[name]=deepcopy(LV)
@@ -306,10 +308,10 @@ class FuzzySystem(object):
 			value: numerical value of the crisp output value to be added to the fuzzy system.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		self._crispvalues[name]=value
 		if verbose: print(" * Crisp output value for '%s' set to %f" % (name, value))
 		self._set_model_type("Sugeno")
-
 
 	def set_output_function(self, name, function, verbose=False):
 		"""
@@ -321,18 +323,10 @@ class FuzzySystem(object):
 			The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
 			verbose: True/False, toggles verbose mode.
 		"""
+		if self._sanitize_input: name = self._sanitize(name)
 		self._outputfunctions[name]=function
 		if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
 		self._set_model_type("Sugeno")
-
-	"""
-	def set_output_FS(self, fuzzyset, verbose=False):
-		self._outputfuzzysets[fuzzyset.get_term()]=fuzzyset
-		if verbose: print(" * Output fuzzy set for '%s' set" % (name))
-		self._set_model_type("Mamdani")
-		return fuzzyset
-	"""
-
 
 	def _set_model_type(self, model_type):
 		if self._detected_type == "inconsistent": return
@@ -353,7 +347,7 @@ class FuzzySystem(object):
 		"""
 		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
 		return results
-
+	
 
 	def get_probas(self):
 		""" Will get the probabilities from a probabilistic rule base.
@@ -485,21 +479,6 @@ class FuzzySystem(object):
 
 		return final_result
 
-	def mediate_probabilistic(self, probs):
-		""" Performs probabilistic inference. This method gets the firing strengths of each rule and normalizes these outputs. This way we can see how much
-		more an instance triggers each rule. It will return the probabilities for each class. 
-
-		Args:
-			probs: probabilities parsed from the given rules.
-
-		Returns:
-			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
-		"""		
-		rule_outputs = np.array(self.get_firing_strengths())
-		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
-		return np.matmul(normalized_activation_rule, probs)
-
-
 	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
 		"""
 		Performs Sugeno fuzzy inference.
@@ -513,6 +492,8 @@ class FuzzySystem(object):
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
 		# default: inference on ALL rules/terms
+		if self._sanitize and terms is not None: 
+			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
@@ -537,6 +518,8 @@ class FuzzySystem(object):
 		"""
 
 		# default: inference on ALL rules/terms
+		if self._sanitize and terms is not None: 
+			terms = [self._sanitize(term) for term in terms]
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
@@ -545,33 +528,6 @@ class FuzzySystem(object):
 		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
 		return result
 
-
-	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class = False):
-		
-		""" A zero-order TS fuzzy system can produce the same output as the expected output of a probabilistic fuzzy system provided that
-		its consequent parameters are selected as the conditional expectation of the defuzzified output membership functions. This approach
-		gets the activations of rules given a instance (a sample of data), their corresponding probability and will return either the corresponding
-		probabilities for every class or the class corresponding to the highest probability when return_class is set to True. See the readme file for
-		an example. Exact details are described in the paper by Fialho et al. (2016) in the Applied Soft Computing journal.
-
-
-		Args:
-			ignore_errors (bool, optional): Not implemented. Defaults to False.
-			verbose (bool, optional): Not implemented. Defaults to False.
-			return_class (bool, optional): Choose depending on needs. Defaults to False. 
-			When return_class is set to False a list of probabilities for each class is returned, otherwise (True) the class itself is returned.
-			
-
-		Returns:
-			<class 'numpy.int64'>: The class as a numpy integer
-			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
-
-		"""		
-		probs = self.get_probas()
-		result = self.mediate_probabilistic(probs)
-		if return_class == True:
-			return np.argmax(result)
-		return result
 
 	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000, return_class = False):
 		"""
@@ -589,14 +545,12 @@ class FuzzySystem(object):
 		if self._detected_type == "Sugeno":
 			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
 		elif self._detected_type == "probabilistic":
-			return self.probabilistic_inference(ignore_errors=ignore_errors, verbose=verbose, return_class = return_class)
+			return ProbaFuzzySystem.probabilistic_inference(ignore_errors=ignore_errors, verbose=verbose, return_class = return_class)
 		elif self._detected_type is None: # default
 			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
 		else:
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
-
-
 	def produce_figure(self, outputfile='output.pdf'):
 		"""
 		Plots the membership functions of each linguistic variable contained in the fuzzy system.
@@ -635,6 +589,182 @@ class FuzzySystem(object):
 
 		fig.tight_layout()
 		fig.savefig(outputfile)
+
+
+class ProbaFuzzySystem(FuzzySystem, RuleGen):
+
+	def __init__(self, consequents=None, var_names=None, centers=None, widths=None,
+              X=None,  y=None, probas=None, threshold=None, generateprobas=False,
+              operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
+              all_var_names=None):
+
+		FuzzySystem.__init__(self,  operators=None, show_banner=True,
+		                     sanitize_input=False, verbose=False)
+		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
+                   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
+
+		self.raw_rules=None
+		self._detected_type = None
+		self._X = X
+		self.y = y
+		self.var_names = var_names
+		self.centers = centers
+		self.widths = widths
+		self.A = []
+		self.just_beta = None
+		self.probas_ = None
+#		self._probas = self.estimate_probas() if probas is None else probas
+	
+	def router(self):
+		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
+			pass
+
+	def add_proba_rules(self, rules, verbose=False):
+		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
+		In addition to this it will also extract the probabilities of each rule.
+
+		Args:
+			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. 
+			For an example please refer to the readme file.
+			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
+		"""
+		self.raw_rules = rules
+
+		for rule in rules:
+			parsed_antecedent = curparse(
+				preparse(rule), verbose=verbose, operators=self._operators)
+			consequent = postparse(rule)
+			parsed_consequent = np.array(consequent)
+			self._rules.append([parsed_antecedent, parsed_consequent])
+		
+		# self.router()
+
+		self._set_model_type('probabilistic')
+		if verbose:
+			print(" * Added rule IF", parsed_antecedent,
+			      "THEN", parsed_consequent, '\n')
+		if verbose:
+			print(" * %d rules successfully added" % len(rules))
+
+	def add_linguistic_variables(self, var_names):
+		#Setup fuzzysets
+		var_names = var_names
+		for i, ling_var in enumerate(var_names):
+			#Construct fuzzy sets
+			fuzzysets = []
+			for rulenr in range(len(self._rules)):
+				fuzzyset = FuzzySet(
+					function=Gaussian_MF(
+						self.centers[rulenr, i],
+						self.widths[rulenr, i]
+					),
+					term='cluster{}'.format(rulenr))
+				fuzzysets.append(fuzzyset)
+
+			#Add linguistic variable to fuzzy system
+			MF_ling_var = LinguisticVariable(
+				fuzzysets, concept=ling_var, universe_of_discourse=[-10, 10])
+			self.add_linguistic_variable(ling_var, MF_ling_var)
+
+	def proba_zero_order(self):
+		for i in range(len(self._probas)):
+			self.set_crisp_output_value('fun{}'.format(i), self._probas[i])
+
+
+	def mediate_probabilistic(self, probs):
+		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
+		and normalizes these outputs. This way we can see how much
+		more an instance triggers each rule. It will return the probabilities for each class. 
+
+		Args:
+			probs: probabilities parsed from the given rules.
+
+		Returns:
+			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
+		"""
+		if probs is None:
+			self.estimate_probas()
+		rule_outputs = np.array(self.get_firing_strengths())
+		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+		# save rule outputs for estimating probas later
+		self.A.append(normalized_activation_rule)
+		return np.matmul(normalized_activation_rule, probs)
+
+	def preprocess_a(self):
+
+		n_rules = len(self._rules)
+		longform_betas = np.asarray(self.A)
+		longform_betas = longform_betas.T.ravel()
+		just_betas = np.split(longform_betas, n_rules)
+		self.just_beta = np.asarray(just_betas)
+		return just_betas
+
+	def estimate_probas(self):
+		A = self.preprocess_a()
+		A = np.transpose(A)
+		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
+		if len(np.unique(self.y)) == 2:
+			probas = np.hstack((probas, 1-probas))
+		return probas
+
+	def set_proba_to_none(self):
+		self._probas = None
+
+	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=False):
+		""" A zero-order TS fuzzy system can produce the same output as the expected output of 
+		a probabilistic fuzzy system provided that its consequent parameters are selected as the 
+		conditional expectation of the defuzzified output membership functions. This approach
+		gets the activations of rules given a instance (a sample of data), their corresponding 
+		probability and will return either the corresponding probabilities for every class or 
+		the class corresponding to the highest probability when return_class is set to True. See 
+		the readme file for an example. Exact details are described in the paper by Fialho 
+		et al. (2016) in the Applied Soft Computing journal.
+
+
+		Args:
+			ignore_errors (bool, optional): Not implemented. Defaults to False.
+			verbose (bool, optional): Not implemented. Defaults to False.
+			return_class (bool, optional): Choose depending on needs. Defaults to False. 
+			When return_class is set to False a list of probabilities for each class is 
+			returned, otherwise (True) the class itself is returned.
+			
+
+		Returns:
+			<class 'numpy.int64'>: The class as a numpy integer
+			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
+
+		"""
+		probs = self.get_probas()
+		result = self.mediate_probabilistic(probs)
+		if return_class == True:
+			return np.argmax(result)
+		return result
+
+	def predict(self):
+		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
+
+		Returns:
+			[ndarray]: a list of predictions.
+		"""
+		preds_ = []
+		for instance in self._X:
+			for var_name, feat_val in zip(self.var_names, instance):
+				self.set_variable(var_name, feat_val)
+			preds_.append(self.inference())
+		return preds_
+
+	def predict_zero(self):
+		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
+
+		Returns:
+			[ndarray]: a list of predictions.
+		"""
+		preds_ = []
+		for instance in self._X:
+			for var_name, feat_val in zip(self.var_names, instance):
+				self.set_variable(var_name, feat_val)
+			preds_.append(self.probabilistic_inference())
+		return preds_
 
 if __name__ == '__main__':
 	pass

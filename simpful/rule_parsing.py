@@ -25,6 +25,7 @@ class Clause(object):
 			print("is actually", self._term)
 			print("answer:", ans[self._term])
 		try:
+#			FuzzySystem.A.append(ans[self._term])	# i need to remove this (@nikhil)
 			return ans[self._term]
 		except KeyError:
 			raise Exception("ERROR: term '" + self._term + "'' not defined.\n"
@@ -127,13 +128,20 @@ def postparse(STRINGA, verbose=False):
 						+ STRINGA)
 	if re.match(r"P\(", stripped) is not None:
 		probas = [float(i) for i in (re.findall(r"\d\.?\d*", stripped))]
-		if not np.isclose(sum(probas), 1):
-			raise Exception ("ERROR: badly formatted rule, sum of probabilities needs to be equal to 1.\n"
-							+ " ---- PROBLEMATIC RULE:\n"
-							+ STRINGA)
-		class_info = re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+|\d\.\d\d", stripped)
-		out = (probas, class_info)
-		return out
+		if not probas:
+			class_info = re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+|\d\.\d\d|None", stripped)
+			number_of_probas = class_info.count('None')
+			if number_of_probas is False:
+				raise Exception("For probability estimation probabilities must be intialized as None.")
+			trigger = True
+			return [number_of_probas, trigger]
+
+		# if not np.isclose(sum(probas), 1):
+		# 	raise Exception ("ERROR: badly formatted rule, sum of probabilities needs to be equal to 1.\n"
+		# 					+ " ---- PROBLEMATIC RULE:\n"
+		# 					+ STRINGA)
+		
+		return probas
 	else:
 		return tuple(re.findall(r"\w+(?=\sIS)|(?<=IS\s)\w+", stripped))
 

@@ -59,7 +59,7 @@ class Triangular_MF(MF_object):
 				return 1
 
 	def __repr__(self):
-		return "<Triangular MF (%f, %f, %f), term: %s>"% (self._a, self._b, self._c, self._term)
+		return "<Triangular MF (%f, %f, %f)>"% (self._a, self._b, self._c)
 
 class Trapezoidal_MF(MF_object):
 	"""
