@@ -593,17 +593,22 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, consequents, var_names=None, centers=None, widths=None,
+              X=None,  y=None, probas=None, threshold=None, generateprobas=False,
+              operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
+              all_var_names=None):
 
-		RuleGen.__init__
-		super().__init__()
+		FuzzySystem.__init__(self,  operators=None, show_banner=True,
+		                     sanitize_input=False, verbose=False)
+		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
+                   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
 		self.raw_rules=None
 		self._detected_type = None
-		self._X = None
-		self.y = None
-		self.var_names = None
-		self.centers = None
-		self.widths = None
+		self._X = X
+		self.y = y
+		self.var_names = var_names
+		self.centers = centers
+		self.widths = widths
 		self.A = []
 		self.just_beta = None
 		self.probas = None
