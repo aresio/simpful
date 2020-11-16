@@ -193,11 +193,12 @@ class FuzzySet(object):
 			points: list of points to define a polygonal fuzzy sets. Each point is defined  as a list of two coordinates in the universe of discourse/membership degree space.
 			function: function to define a non-polygonal fuzzy set. Supports pre-implemented membership functions Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangle_MF, Trapezoidal_MF or user-defined functions.
 			term: string representing the linguistic term to be associated to the fuzzy set.
-			high_quality_interpolate: True/False, toggles high quality interpolation.
+			high_quality_interpolate: True/False, toggles high quality interpolation for point-based fuzzy sets. Default value is set to False.
+			boundary_values: list of two membership values for point-based fuzzy sets. The first and second value are used to fill in values at the left-side and right-side of the fuzzy set, respectively. If None (default value), fuzzy sets will be considered as shouldered.
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self, points=None, function=None, term="", high_quality_interpolate=True, verbose=False):
+	def __init__(self, points=None, function=None, term="", high_quality_interpolate=False, boundary_values=None, verbose=False):
 		self._term = term
 
 		if points is None and function is not None:
@@ -208,14 +209,20 @@ class FuzzySet(object):
 
 
 		if len(points)<2: 
-			print("ERROR: more than one point required")
-			exit(-1)
+			raise Exception("ERROR: more than one point required")
 		if term=="":
-			print("ERROR: please specify a linguistic term")
-			exit(-3)
+			raise Exception("ERROR: please specify a linguistic term")
 		self._type = "pointbased"
 		self._high_quality_interpolate = high_quality_interpolate
 		self._points = array(points)
+
+		if boundary_values == None:
+			self.boundary_values = [self._points.T[1][0], self._points.T[1][-1]]
+		else:
+			if len(boundary_values) == 2 and all(isinstance(x, (int, float)) for x in boundary_values): 
+				self.boundary_values = boundary_values
+			else: 
+				raise Exception("ERROR: boundary_values must be a list of two numbers")
 		
 
 	def __repr__(self):
@@ -258,9 +265,9 @@ class FuzzySet(object):
 		return min(cut, self.get_value(v))
 		
 
-	def get_value_slow(self, v):		
+	def get_value_slow(self, v):
 		f = interp1d(self._points.T[0], self._points.T[1], 
-			bounds_error=False, fill_value=(self._points.T[1][0], self._points.T[1][-1]))
+			bounds_error=False, fill_value=(self.boundary_values[0], self.boundary_values[1]))
 		result = f(v)
 		return(result)
 
@@ -268,11 +275,11 @@ class FuzzySet(object):
 		x = self._points.T[0]
 		y = self._points.T[1]
 		N = len(x)
-		if v<x[0]: return self._points.T[1][0] 
+		if v<x[0]: return self.boundary_values[0] # fallback for values outside the Universe of the discourse
 		for i in range(N-1):
 			if (x[i]<= v) and (v <= x[i+1]):
 				return self._fast_interpolate(x[i], y[i], x[i+1], y[i+1], v)
-		return self._points.T[1][-1] # fallback for values outside the Universe of the discourse
+		return self.boundary_values[1] # fallback for values outside the Universe of the discourse
 
 	def _fast_interpolate(self, x0, y0, x1, y1, x):
 		#print(x0, y0, x1, y1, x); exit()
