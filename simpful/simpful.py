@@ -395,12 +395,18 @@ class FuzzySystem(object):
 					den += value
 
 			try:
-				final_result[output] = num / den
+				if den == 0.0:
+					final_result[output] = 0.0
+					print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Sugeno inference was set to 0." % output)
+				else:
+					final_result[output] = num / den
+
 			except ArithmeticError:
 				if ignore_errors==True:
 					print("WARNING: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
 				else:
 					raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
+		
 		return final_result
 
 
@@ -487,7 +493,7 @@ class FuzzySystem(object):
 			terms= list(set(temp))
 
 		array_rules = array(self._rules, dtype='object')
-		result = self.mediate( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors )
+		result = self.mediate(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
 		return result
 
 
@@ -752,17 +758,10 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""
-		if self.__estimate == False:
-			if self.probas_ is None:
-				self.probas_ = self.get_probas()
-			result = self.mediate_probabilistic()
-			if return_class == True:
-				return np.argmax(result)
-			return result
-		else:
-			self.probas_ = self.estimate_probas()
-			self.__estimate = False
-			self.predict_pfs()
+		result = self.mediate_probabilistic()
+		if return_class == True:
+			return np.argmax(result)
+		return result
 
 
 	def predict_pfs(self):
@@ -771,6 +770,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			[ndarray]: a list of predictions.
 		"""
+		if self.__estimate == False:
+			if self.probas_ is None:
+				self.probas_ = self.get_probas()
+		else:
+			self.probas_ = self.estimate_probas()
+			self.__estimate = False
+
 		preds_ = []
 		for instance in self._X:
 			for var_name, feat_val in zip(self.var_names, instance):
