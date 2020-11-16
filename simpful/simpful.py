@@ -347,18 +347,6 @@ class FuzzySystem(object):
 		"""
 		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
 		return results
-	
-
-	def get_probas(self):
-		""" Will get the probabilities from a probabilistic rule base.
-
-		Returns:
-			<class 'numpy.ndarray'>: The probabilities of a probabilistic fuzzy rulebase.
-		"""		
-		probas = []
-		for proba in self._rules:
-			probas.append(proba[1])
-		return np.vstack(probas)
 
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False):
@@ -613,11 +601,12 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.A = []
 		self.just_beta = None
 		self.probas_ = None
+		self.__estimate = False
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
 		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
-			pass
+			self.__estimate = True
 
 	def add_proba_rules(self, rules, verbose=False):
 		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
@@ -637,7 +626,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			parsed_consequent = np.array(consequent)
 			self._rules.append([parsed_antecedent, parsed_consequent])
 		
-		# self.router()
+		self.router()
 
 		self._set_model_type('probabilistic')
 		if verbose:
@@ -682,13 +671,28 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
 		"""
-		if probs is None:
-			self.estimate_probas()
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
-		# save rule outputs for estimating probas later
-		self.A.append(normalized_activation_rule)
 		return np.matmul(normalized_activation_rule, probs)
+
+	def prepare_a(self):
+		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
+		and normalizes these outputs. This way we can see how much
+		more an instance triggers each rule. It will return the probabilities for each class. 
+
+		Args:
+			probs: probabilities parsed from the given rules.
+
+		Returns:
+			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
+		"""
+
+		for instance in self._X:
+			for var_name, feat_val in zip(self.var_names, instance):
+				rule_outputs = np.array(self.get_firing_strengths())
+				normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+				# save rule outputs for estimating probas later
+				self.A.append(normalized_activation_rule)
 
 	def preprocess_a(self):
 
@@ -700,12 +704,24 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		return just_betas
 
 	def estimate_probas(self):
+		self.prepare_a()
 		A = self.preprocess_a()
 		A = np.transpose(A)
 		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
 		if len(np.unique(self.y)) == 2:
 			probas = np.hstack((probas, 1-probas))
 		return probas
+
+	def get_probas(self):
+		""" Will get the probabilities from a probabilistic rule base.
+
+		Returns:
+			<class 'numpy.ndarray'>: The probabilities of a probabilistic fuzzy rulebase.
+		"""
+		probas = []
+		for proba in self._rules:
+			probas.append(proba[1])
+		return np.vstack(probas)
 
 	def set_proba_to_none(self):
 		self._probas = None
@@ -734,26 +750,18 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""
-		probs = self.get_probas()
-		result = self.mediate_probabilistic(probs)
-		if return_class == True:
-			return np.argmax(result)
-		return result
+		if self.__estimate == False:
+			probs = self.get_probas()
+			result = self.mediate_probabilistic(probs)
+			if return_class == True:
+				return np.argmax(result)
+			return result
+		else:
+			probs = self.estimate_probas()
+			self.probabilistic_inference()
 
-	def predict(self):
-		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
 
-		Returns:
-			[ndarray]: a list of predictions.
-		"""
-		preds_ = []
-		for instance in self._X:
-			for var_name, feat_val in zip(self.var_names, instance):
-				self.set_variable(var_name, feat_val)
-			preds_.append(self.inference())
-		return preds_
-
-	def predict_zero(self):
+	def predict_pfs(self):
 		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
 
 		Returns:
