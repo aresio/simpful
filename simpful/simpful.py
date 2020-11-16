@@ -712,7 +712,6 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
 		if len(np.unique(self.y)) == 2:
 			probas = np.hstack((probas, 1-probas))
-		self.probas_ = probas
 		return probas
 
 	def get_probas(self):
@@ -762,6 +761,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			return result
 		else:
 			self.probas_ = self.estimate_probas()
+			self.__estimate = False
 			self.predict_pfs()
 
 
