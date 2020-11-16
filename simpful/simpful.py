@@ -689,10 +689,11 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 		for instance in self._X:
 			for var_name, feat_val in zip(self.var_names, instance):
-				rule_outputs = np.array(self.get_firing_strengths())
-				normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
-				# save rule outputs for estimating probas later
-				self.A.append(normalized_activation_rule)
+				self.set_variable(var_name, feat_val)
+			rule_outputs = np.array(self.get_firing_strengths())
+			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+			# save rule outputs for estimating probas later
+			self.A.append(normalized_activation_rule)
 
 	def preprocess_a(self):
 
@@ -758,7 +759,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			return result
 		else:
 			probs = self.estimate_probas()
-			self.probabilistic_inference()
+			self.predict_pfs()
 
 
 	def predict_pfs(self):
