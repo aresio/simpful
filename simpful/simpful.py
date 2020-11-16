@@ -660,7 +660,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			self.set_crisp_output_value('fun{}'.format(i), self._probas[i])
 
 
-	def mediate_probabilistic(self, probs):
+	def mediate_probabilistic(self):
 		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
 		and normalizes these outputs. This way we can see how much
 		more an instance triggers each rule. It will return the probabilities for each class. 
@@ -671,6 +671,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
 		"""
+		probs = self.probas_
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 		return np.matmul(normalized_activation_rule, probs)
@@ -711,6 +712,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
 		if len(np.unique(self.y)) == 2:
 			probas = np.hstack((probas, 1-probas))
+		self.probas_ = probas
 		return probas
 
 	def get_probas(self):
@@ -722,7 +724,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		probas = []
 		for proba in self._rules:
 			probas.append(proba[1])
-		return np.vstack(probas)
+		return np.vstack(probas) 
 
 	def set_proba_to_none(self):
 		self._probas = None
@@ -752,13 +754,14 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 		"""
 		if self.__estimate == False:
-			probs = self.get_probas()
-			result = self.mediate_probabilistic(probs)
+			if self.probas_ is None:
+				self.probas_ = self.get_probas()
+			result = self.mediate_probabilistic()
 			if return_class == True:
 				return np.argmax(result)
 			return result
 		else:
-			probs = self.estimate_probas()
+			self.probas_ = self.estimate_probas()
 			self.predict_pfs()
 
 
