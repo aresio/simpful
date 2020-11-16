@@ -593,7 +593,7 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, consequents, var_names=None, centers=None, widths=None,
+	def __init__(self, consequents=None, var_names=None, centers=None, widths=None,
               X=None,  y=None, probas=None, threshold=None, generateprobas=False,
               operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
               all_var_names=None):
@@ -602,6 +602,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		                     sanitize_input=False, verbose=False)
 		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
                    probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
+
 		self.raw_rules=None
 		self._detected_type = None
 		self._X = X
@@ -611,7 +612,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.widths = widths
 		self.A = []
 		self.just_beta = None
-		self.probas = None
+		self.probas_ = None
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
@@ -636,7 +637,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			parsed_consequent = np.array(consequent)
 			self._rules.append([parsed_antecedent, parsed_consequent])
 		
-		self.router()
+		# self.router()
 
 		self._set_model_type('probabilistic')
 		if verbose:
@@ -683,7 +684,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		"""
 		if probs is None:
 			self.estimate_probas()
-		rule_outputs = np.array(super().get_firing_strengths())
+		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 		# save rule outputs for estimating probas later
 		self.A.append(normalized_activation_rule)
