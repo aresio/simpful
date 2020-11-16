@@ -1,7 +1,7 @@
 import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
-from .rules import *
+from .rules import RuleGen
 from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
@@ -593,17 +593,17 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, var_names=None, centers=None, widths=None,\
-		X=None,  y=None, probas=None):
+	def __init__(self, *args, **kwargs):
 
+		RuleGen.__init__
 		super().__init__()
 		self.raw_rules=None
 		self._detected_type = None
-		self._X = X
-		self.y = y
-		self.var_names = var_names
-		self.centers = centers
-		self.widths = widths
+		self._X = None
+		self.y = None
+		self.var_names = None
+		self.centers = None
+		self.widths = None
 		self.A = []
 		self.just_beta = None
 		self.probas = None
