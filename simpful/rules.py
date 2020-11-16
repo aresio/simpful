@@ -1,7 +1,7 @@
 import numpy as np
 import operator
 import regex as re
-from .simpful import preparse, postparse
+from .rule_parsing import preparse, postparse
 import itertools
 
 def proba_generator(n):
