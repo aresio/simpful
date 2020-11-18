@@ -4,8 +4,10 @@ from .rule_parsing import curparse, preparse, postparse
 from .rules import RuleGen
 from numpy import array, linspace
 from scipy.interpolate import interp1d
+from scipy.optimize import least_squares
 from copy import deepcopy
 from collections import defaultdict
+import random
 import numpy as np
 import re
 import string
@@ -19,7 +21,6 @@ linestyles= ["-", "--", ":", "-."]
 
 # for sanitization
 valid_characters = string.ascii_letters + string.digits + "()_ "
-
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -701,23 +702,28 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 			# save rule outputs for estimating probas later
 			self.A.append(normalized_activation_rule)
+		copy_of_A = self.A
+		return copy_of_A
 
-	def preprocess_a(self):
 
-		n_rules = len(self._rules)
-		longform_betas = np.asarray(self.A)
-		longform_betas = longform_betas.T.ravel()
-		just_betas = np.split(longform_betas, n_rules)
-		self.just_beta = np.asarray(just_betas)
-		return just_betas
+	def loss(self, b, x=None, y=None):
+		if x is None:
+			x = self.A
+		if y is None:
+			y = self.y
+		return (y-np.dot(x, b))**2
 
+	
 	def estimate_probas(self):
-		self.prepare_a()
-		A = self.preprocess_a()
-		A = np.transpose(A)
-		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
+		A = self.prepare_a()
+		init_mat = np.full((3,), random.uniform(0, 1), dtype=float)
+		res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
+		probas = res.x
+		probas = probas.T
 		if len(np.unique(self.y)) == 2:
-			probas = np.hstack((probas, 1-probas))
+			binary_case = np.vstack((1-probas, probas))
+			binary_case = binary_case.T
+			probas = binary_case
 		return probas
 
 	def get_probas(self):
