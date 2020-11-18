@@ -209,6 +209,7 @@ class FuzzySystem(object):
 		if show_banner: self._banner()
 		self._operators = operators
 		self._sanitize_input = sanitize_input
+		self._detected_type = None
 		if sanitize_input and verbose:
 			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
 
@@ -588,7 +589,7 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, consequents=None, var_names=None, centers=None, widths=None,
+	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
               X=None,  y=None, probas=None, threshold=None, generateprobas=False,
               operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
               all_var_names=None):
@@ -599,7 +600,6 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
                    probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
 
 		self.raw_rules=None
-		self._detected_type = None
 		self._X = X
 		self.y = y
 		self.var_names = var_names
@@ -609,6 +609,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.just_beta = None
 		self.probas_ = None
 		self.__estimate = False
+		self._return_class = _return_class
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
@@ -716,7 +717,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	
 	def estimate_probas(self):
 		A = self.prepare_a()
-		init_mat = np.full((3,), random.uniform(0, 1), dtype=float)
+		init_mat = np.full((len(self._rules),), random.uniform(0, 1), dtype=float)
 		res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
 		probas = res.x
 		probas = probas.T
@@ -740,7 +741,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	def set_proba_to_none(self):
 		self._probas = None
 
-	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=False):
+	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=None):
 		""" A zero-order TS fuzzy system can produce the same output as the expected output of 
 		a probabilistic fuzzy system provided that its consequent parameters are selected as the 
 		conditional expectation of the defuzzified output membership functions. This approach
@@ -764,6 +765,8 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""
+		if return_class is None:
+			return_class is self._return_class
 		result = self.mediate_probabilistic()
 		if return_class == True:
 			return np.argmax(result)
