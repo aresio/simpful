@@ -4,8 +4,10 @@ from .rule_parsing import curparse, preparse, postparse
 from .rules import RuleGen
 from numpy import array, linspace
 from scipy.interpolate import interp1d
+from scipy.optimize import least_squares
 from copy import deepcopy
 from collections import defaultdict
+import random
 import numpy as np
 import re
 import string
@@ -19,7 +21,6 @@ linestyles= ["-", "--", ":", "-."]
 
 # for sanitization
 valid_characters = string.ascii_letters + string.digits + "()_ "
-
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -208,6 +209,7 @@ class FuzzySystem(object):
 		if show_banner: self._banner()
 		self._operators = operators
 		self._sanitize_input = sanitize_input
+		self._detected_type = None
 		if sanitize_input and verbose:
 			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
 
@@ -587,7 +589,7 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, consequents=None, var_names=None, centers=None, widths=None,
+	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
               X=None,  y=None, probas=None, threshold=None, generateprobas=False,
               operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
               all_var_names=None):
@@ -598,7 +600,6 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
                    probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
 
 		self.raw_rules=None
-		self._detected_type = None
 		self._X = X
 		self.y = y
 		self.var_names = var_names
@@ -608,6 +609,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.just_beta = None
 		self.probas_ = None
 		self.__estimate = False
+		self._return_class = _return_class
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
@@ -701,23 +703,28 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 			# save rule outputs for estimating probas later
 			self.A.append(normalized_activation_rule)
+		copy_of_A = self.A
+		return copy_of_A
 
-	def preprocess_a(self):
 
-		n_rules = len(self._rules)
-		longform_betas = np.asarray(self.A)
-		longform_betas = longform_betas.T.ravel()
-		just_betas = np.split(longform_betas, n_rules)
-		self.just_beta = np.asarray(just_betas)
-		return just_betas
+	def loss(self, b, x=None, y=None):
+		if x is None:
+			x = self.A
+		if y is None:
+			y = self.y
+		return (y-np.dot(x, b))**2
 
+	
 	def estimate_probas(self):
-		self.prepare_a()
-		A = self.preprocess_a()
-		A = np.transpose(A)
-		probas = np.dot(np.linalg.pinv(np.dot(A.T, A)), np.dot(A.T, self.y))
+		A = self.prepare_a()
+		init_mat = np.full((len(self._rules),), random.uniform(0, 1), dtype=float)
+		res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
+		probas = res.x
+		probas = probas.T
 		if len(np.unique(self.y)) == 2:
-			probas = np.hstack((probas, 1-probas))
+			binary_case = np.vstack((1-probas, probas))
+			binary_case = binary_case.T
+			probas = binary_case
 		return probas
 
 	def get_probas(self):
@@ -734,7 +741,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	def set_proba_to_none(self):
 		self._probas = None
 
-	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=False):
+	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=None):
 		""" A zero-order TS fuzzy system can produce the same output as the expected output of 
 		a probabilistic fuzzy system provided that its consequent parameters are selected as the 
 		conditional expectation of the defuzzified output membership functions. This approach
@@ -758,6 +765,8 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""
+		if return_class is None:
+			return_class is self._return_class
 		result = self.mediate_probabilistic()
 		if return_class == True:
 			return np.argmax(result)
