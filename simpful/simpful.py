@@ -198,7 +198,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self,  operators=None, show_banner=True, sanitize_input=False, verbose=False):
+	def __init__(self,  operators=None, show_banner=False, sanitize_input=False, verbose=False):
 
 		self._rules = []
 		self._lvs = {}
@@ -592,9 +592,9 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
               X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
               operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
-              all_var_names=None):
+              all_var_names=None, pred_test = False):
 
-		FuzzySystem.__init__(self,  operators=None, show_banner=True,
+		FuzzySystem.__init__(self,  operators=None, show_banner=False,
 		                     sanitize_input=False, verbose=False)
 		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
                    probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
@@ -612,6 +612,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.probas_ = None
 		self.__estimate = False
 		self._return_class = _return_class
+		self.predict_test = pred_test
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
@@ -768,11 +769,14 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 		"""
 		if return_class is None:
-			return_class is self._return_class
+			return_class = self._return_class
 		result = self.mediate_probabilistic()
 		if return_class == True:
 			return np.argmax(result)
 		return result
+	
+	def evaluate_fitness(self):
+		pass
 
 
 	def predict_pfs(self):
@@ -787,13 +791,21 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		else:
 			self.probas_ = self.estimate_probas()
 			self.__estimate = False
-
-		preds_ = []
-		for instance in self._X:
-			for var_name, feat_val in zip(self.var_names, instance):
-				self.set_variable(var_name, feat_val)
-			preds_.append(self.probabilistic_inference())
-		return preds_
+		
+		if self.predict_test is False:
+			preds_ = []
+			for instance in self._X:
+				for var_name, feat_val in zip(self.var_names, instance):
+					self.set_variable(var_name, feat_val)
+				preds_.append(self.probabilistic_inference())
+			return preds_
+		else:
+			preds_ = []
+			for instance in self._X_test:
+				for var_name, feat_val in zip(self.var_names, instance):
+					self.set_variable(var_name, feat_val)
+				preds_.append(self.probabilistic_inference())
+			return preds_
 
 if __name__ == '__main__':
 	pass
