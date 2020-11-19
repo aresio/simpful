@@ -1,8 +1,14 @@
-from distutils.core import setup
+from setuptools import setup
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
   name = 'simpful',
   packages = ['simpful'], # this must be the same as the name above
-  version = '2.2.7',
+  version = '2.2.10',
   description = 'A user-friendly Python library for fuzzy logic',
   author = 'Marco S. Nobile',
   author_email = 'm.s.nobile@tue.nl',
@@ -15,7 +21,6 @@ setup(
         "requests",
     ],
   classifiers = ['Programming Language :: Python :: 3.7'],
-  long_description='simpful is a Python library for fuzzy logic reasoning, \
-  designed to provide a simple and lightweight API, as close as possible \
-  to natural language.',
+  long_description=long_description,
+  long_description_content_type='text/markdown',
 )

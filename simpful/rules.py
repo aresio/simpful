@@ -1,7 +1,7 @@
 import numpy as np
 import operator
 import regex as re
-from simpful import preparse, postparse
+from .rule_parsing import preparse, postparse
 import itertools
 
 def proba_generator(n):
@@ -33,7 +33,7 @@ class RuleGen:
 
     """
     def __init__(self, cluster_centers, n_consequents, all_var_names=None, threshold=None, var_names=None, probas=None,
-                 generateprobas=False, operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND']):
+                 generateprobas=None, operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND']):
 
         """ Contructor methods that should initialize at least the following:
             cluster_centers, n_consequents
