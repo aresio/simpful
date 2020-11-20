@@ -231,7 +231,6 @@ class FuzzySet(object):
 			Returns: 
 				The membership value of v to this Fuzzy Set.
 		"""
-
 		if self._type == "function":
 			return self._funpointer(v)
 

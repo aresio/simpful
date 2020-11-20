@@ -585,5 +585,15 @@ class FuzzySystem(object):
 		fig.tight_layout()
 		fig.savefig(outputfile)
 
+
+	def aggregate(self, list_variables, function):
+		# TEST
+		memberships = []
+		for variable, fuzzyset in list_variables.items():
+			value = self._variables[variable]
+			result = self._lvs[variable].get_values(value)[fuzzyset]
+			memberships.append(result)
+		return function(memberships)
+
 if __name__ == '__main__':
 	pass
