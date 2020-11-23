@@ -67,6 +67,9 @@ class Functional(object):
 		else:
 			A = self._A.evaluate(FuzzySystem)
 			B = self._B.evaluate(FuzzySystem)
+			# bugfix for not @ nikhil
+			if re.match(r'[)]\s', self._fun) is not None:
+				self._fun = re.sub('[)]\s', '', self._fun)
 			return array(eval(self._fun+"(%s, %s)" % (A,B)))
 		
 	def __repr__(self):

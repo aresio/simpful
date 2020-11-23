@@ -216,7 +216,8 @@ class RuleGen:
         Generates PFS rules randomly. It uses the operators as defined in the contructor (__init__) and thus 
         can easily be updated. The end result will be of shape (n_clusters, n_outcomes). 
         In laymans terms: this method will generate a rule for every cluster partition. The probabilities will 
-        sum up to one and are either given or they can be randomly generated (uniformly distributed).
+        sum up to one and are either given or they can be randomly generated (uniformly distributed) if the user doesn't
+        wants to use Nones instead
 
         """        
         RULES = []

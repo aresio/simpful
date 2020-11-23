@@ -354,7 +354,8 @@ class FuzzySystem(object):
 		if self._detected_type == "inconsistent": return
 		if self._detected_type is  None:
 			self._detected_type = model_type
-			print (" * Detected %s model type" % model_type )
+			pass
+#			print (" * Detected %s model type" % model_type )
 		elif self._detected_type != model_type:
 			print("WARNING: model type is unclear (simpful detected %s, but I received a %s output)" % (self._detected_type, model_type))
 			self._detected_type = 'inconsistent'
