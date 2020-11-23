@@ -7,6 +7,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import least_squares
 from copy import deepcopy
 from collections import defaultdict
+from sklearn.metrics import confusion_matrix
 import random
 import numpy as np
 import re
@@ -21,6 +22,25 @@ linestyles= ["-", "--", ":", "-."]
 
 # for sanitization
 valid_characters = string.ascii_letters + string.digits + "()_ "
+
+# alternative to sklearn
+# def perf_measure(y_actual, y_hat):
+#     TP = 0
+#     FP = 0
+#     TN = 0
+#     FN = 0
+
+#     for i in range(len(y_hat)):
+#         if y_actual[i]==y_hat[i]==1:
+#            TP += 1
+#         if y_hat[i]==1 and y_actual[i]!=y_hat[i]:
+#            FP += 1
+#         if y_actual[i]==y_hat[i]==0:
+#            TN += 1
+#         if y_hat[i]==0 and y_actual[i]!=y_hat[i]:
+#            FN += 1
+
+#     return(TP, FP, TN, FN)
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -590,14 +610,14 @@ class FuzzySystem(object):
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
-              X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
-              operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
-              all_var_names=None, pred_test = False):
+			  X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
+			  operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
+			  all_var_names=None, pred_test = False):
 
 		FuzzySystem.__init__(self,  operators=None, show_banner=False,
-		                     sanitize_input=False, verbose=False)
+							 sanitize_input=False, verbose=False)
 		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
-                   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
+				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
 
 		self.raw_rules=None
 		self._X = X
@@ -613,6 +633,9 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.__estimate = False
 		self._return_class = _return_class
 		self.predict_test = pred_test
+		self.preds = None
+		self.accuracy_ = None
+		self.fitness_ = None
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def router(self):
@@ -642,7 +665,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self._set_model_type('probabilistic')
 		if verbose:
 			print(" * Added rule IF", parsed_antecedent,
-			      "THEN", parsed_consequent, '\n')
+				  "THEN", parsed_consequent, '\n')
 		if verbose:
 			print(" * %d rules successfully added" % len(rules))
 
@@ -776,8 +799,22 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		return result
 	
 	def evaluate_fitness(self):
-		pass
+		tn, fp, fn, tp = confusion_matrix(self._y_test, self.preds).ravel()
+		self.fitness_ = self.fitness(tn, fp, fn, tp)
+		return self.fitness(tn, fp, fn, tp)
+	
+	def evaluate_accuracy(self):
+		tn, fp, fn, tp = confusion_matrix(self._y_test, self.preds).ravel()
+		self.accuracy_ = self.accuracy(tn, fp, fn, tp)
+		return self.accuracy(tn, fp, fn, tp)
 
+	@staticmethod
+	def fitness(tn, fp, fn, tp):
+		return(((tp)/(tp+fn))*((tn)/(fp+tn)))
+	
+	@staticmethod
+	def accuracy(tn, fp, fn, tp):
+		return (tn+tp)/(tn+fp+fn+tp)
 
 	def predict_pfs(self):
 		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
@@ -805,6 +842,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 				for var_name, feat_val in zip(self.var_names, instance):
 					self.set_variable(var_name, feat_val)
 				preds_.append(self.probabilistic_inference())
+			self.preds = preds_
 			return preds_
 
 if __name__ == '__main__':
