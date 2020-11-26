@@ -1,3 +1,4 @@
+from .rules import proba_generator
 import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
@@ -744,9 +745,12 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	
 	def estimate_probas(self):
 		A = self.prepare_a()
-		init_mat = np.full((len(self._rules),), random.uniform(0, 1), dtype=float)
-		res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
-		probas = res.x
+		init_mat = np.full((len(self._rules),), random.uniform(0.01, 1), dtype=float)
+		try:
+			res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
+			probas = res.x
+		except ValueError:
+			probas = proba_generator(len(self.n_consequents))
 		probas = probas.T
 		if len(np.unique(self.y)) == 2:
 			binary_case = np.vstack((1-probas, probas))
