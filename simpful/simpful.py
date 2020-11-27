@@ -619,7 +619,8 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		FuzzySystem.__init__(self,  operators=None, show_banner=False,
 							 sanitize_input=False, verbose=False)
 		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
-				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
+				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names,
+                   var_len=True)
 
 		self.raw_rules=None
 		self._X = X

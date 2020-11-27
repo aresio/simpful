@@ -222,91 +222,46 @@ class RuleGen:
         RULES = []
         for i in range(self.cluster_centers):
             RULE='IF '
-
-
-
-
-
             for j, var_name in enumerate(self.var_names):
-                
-                _operator = self.generate_operator()
-                
-                if ((j+1) == len(self.var_names)):
-                    # last part of rule
-
+                if ((j+1)== len(self.var_names)):
+                        # last part of rule
                     RULE += '({} IS cluster{})'.format(var_name, i)
-
-                    continue
-
-                    # if random number is bigger then threshold var is included
-                include_var = random.random()
-                    # set threshold to zero to always include all vars
-                threshold = random.random()
-
-                if include_var>threshold:
-                    pass
                 else:
-                    continue                    
-
-                    # when not is selected execute this part with an additional operator is executed
-                if _operator[0] == 'NOT':
-                        
-                        
-                    RULE += '({} ({} IS cluster{})) {} '.format(_operator[0], var_name, i, _operator[1])
-                
-                else:
-                        
-                        # normal execution (meaning not was not choses as operator)
-                    RULE += '({} IS cluster{}) {} '.format(var_name, i, _operator[0])
-                
-
-
-
-
+                    _operator = self.generate_operator()
+                    if _operator[0] == 'NOT':
+                            # when not is selected execute this part with an additional operator
+                        RULE += '({} ({} IS cluster{})) {} '.format(_operator[0], var_name, i, _operator[1])
+                    else:
+                            # normal execution (meaning not was not choses as operator)
+                        RULE += '({} IS cluster{}) {} '.format(var_name, i, _operator[0])
             for k in range(len(self.n_consequents)):
-                
                 if self.generateprobas is True:
-                    
                     self.interpret_consequents()               
-                    
                     if k == 0:
-
                             # first part of end of rule
                         RULE += ' THEN P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.genprobas[k])
                     else:
-
                             # if problem is multiclass
                         RULE += ', P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.genprobas[k])
                 else:
-
                         # usefull for estiamting probabilties
                     if self.probas is None:
-                        
                         if self.generateprobas is False:
-                            
                             if k == 0:
-
                                 RULE += ' THEN P(OUTCOME IS {})=None'.format(self.n_consequents[k])
-                            
                             else:
-
                                 RULE += ', P(OUTCOME IS {})=None'.format(self.n_consequents[k])
                     else:
-
                         if self.probas is None:
                             raise Exception("Error: No probabilities were given. If you want to generate probabilities"
                             + " randomly automatically try setting the generate probabilities parameter to true. ")
                         
                         # if generation of probabilities is set to on (generate probas automatically)
                         if k == 0:
-
                             RULE += ' THEN P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.probas[i][k])
                         else:
-                            
                             RULE += ', P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.probas[i][k])
-            
             RULES.append(RULE)
-        
         self.p_rules=RULES
         return RULES
     
