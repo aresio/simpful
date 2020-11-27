@@ -19,6 +19,7 @@ class MF_object(object):
 def _gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
+
 class Triangular_MF(MF_object):
 	"""
 		Creates a normalized triangular membership function.
@@ -184,6 +185,17 @@ class DoubleGaussian_MF(MF_object):
 		second = _gaussian(x, self._mu2, self._sigma2)
 		return first*second
 
+
+class Crisp_MF(MF_object):
+	
+	def __init__(self, a, b):
+		self._left = a
+		self._right = b
+
+	def _execute(self, x):
+		if x<a: return 0
+		if x>b: return 0
+		return 1
 
 class FuzzySet(object):
 	"""
@@ -396,3 +408,4 @@ class DoubleGaussianFuzzySet(FuzzySet):
 	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
 		super().__init__(function=doublegaussian_MF, term=term)	
+
