@@ -187,14 +187,21 @@ class DoubleGaussian_MF(MF_object):
 
 
 class Crisp_MF(MF_object):
+	"""
+		Creates a crisp membership function.
+
+		Args:
+			a: left extreme value of the set.
+			b: right extreme value of the set.
+	"""
 	
 	def __init__(self, a, b):
 		self._left = a
 		self._right = b
 
 	def _execute(self, x):
-		if x<a: return 0
-		if x>b: return 0
+		if x<self._left: return 0
+		if x>self._right: return 0
 		return 1
 
 class FuzzySet(object):
@@ -403,9 +410,23 @@ class DoubleGaussianFuzzySet(FuzzySet):
 			sigma1: standard deviation of the first distribution.
 			mu2: mean of the second distribution.
 			sigma2: standard deviation of the second distribution.
+			term: string representing the linguistic term to be associated to the fuzzy set.
 	"""
 
 	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
 		super().__init__(function=doublegaussian_MF, term=term)	
 
+class CrispSet(FuzzySet):
+	"""
+		Creates a new crisp set.
+		
+		Args:
+			a: left extreme value of the set.
+			b: right extreme value of the set.
+			term: string representing the linguistic term to be associated to the crisp set.
+	"""
+
+	def __init__(self, a, b, term):
+		crisp_MF = Crisp_MF(a, b)
+		super().__init__(function=crisp_MF, term=term)
