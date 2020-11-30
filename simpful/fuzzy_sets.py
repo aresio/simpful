@@ -231,6 +231,8 @@ class FuzzySet(object):
 			raise Exception("ERROR: more than one point required")
 		if term=="":
 			raise Exception("ERROR: please specify a linguistic term")
+		for p in points:
+			if len(p)>2: raise Exception("ERROR: one fuzzy set named \""+self._term+"\" has more than two coordinates.")
 		self._type = "pointbased"
 		self._high_quality_interpolate = high_quality_interpolate
 		self._points = array(points)
@@ -300,7 +302,6 @@ class FuzzySet(object):
 		return self.boundary_values[1] # fallback for values outside the Universe of the discourse
 
 	def _fast_interpolate(self, x0, y0, x1, y1, x):
-		#print(x0, y0, x1, y1, x); exit()
 		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
 
 
