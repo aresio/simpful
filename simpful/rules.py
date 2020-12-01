@@ -4,6 +4,7 @@ import regex as re
 from .rule_parsing import preparse, postparse
 import itertools
 import random
+from random import randint
 
 def proba_generator(n):
     """
@@ -211,106 +212,110 @@ class RuleGen:
             winner.append(max(ops_probs.items(), key=operator.itemgetter(1))[0])
             
         return winner
-    
+
     def generate_proba_rules(self):
         """
         Generates PFS rules randomly. It uses the operators as defined in the contructor (__init__) and thus 
         can easily be updated. The end result will be of shape (n_clusters, n_outcomes). 
         In laymans terms: this method will generate a rule for every cluster partition. The probabilities will 
         sum up to one and are either given or they can be randomly generated (uniformly distributed).
-        """        
+        """
         RULES = []
+
         for i in range(self.cluster_centers):
-            RULE='IF '
-
-
-
-
+            RULE = 'IF '
+            probas_for_rule = list(proba_generator(len(self.var_names)))
+            indexed = list(enumerate(probas_for_rule))
+            vars_to_be_incl = randint(1, len(self.var_names))
+            top_vars = sorted(
+                indexed, key=operator.itemgetter(1))[-vars_to_be_incl:]
+            incl_var_indexes = [i[0] for i in top_vars]
+            sorted_incl_indexes = sorted(incl_var_indexes)
 
             for j, var_name in enumerate(self.var_names):
-                
+
+                if j in sorted_incl_indexes:
+                    pass
+                else:
+                    continue
+
                 _operator = self.generate_operator()
-                
-                if ((j+1) == len(self.var_names)):
+
+                if j == sorted_incl_indexes[-1]:
                     # last part of rule
 
-                    RULE += '({} IS cluster{})'.format(var_name, i)
+                    if _operator[0] == 'NOT':
+
+                        RULE += '({} ({} IS cluster{}))'.format(
+                            _operator[0], var_name, i)
+
+                    else:
+
+                        RULE += '({} IS cluster{})'.format(var_name, i)
 
                     continue
 
-                    # if random number is bigger then threshold var is included
-                include_var = random.random()
-                    # set threshold to zero to always include all vars
-                threshold = random.random()
-
-                if include_var>threshold:
-                    pass
-                else:
-                    continue                    
-
                     # when not is selected execute this part with an additional operator is executed
                 if _operator[0] == 'NOT':
-                        
-                        
-                    RULE += '({} ({} IS cluster{})) {} '.format(_operator[0], var_name, i, _operator[1])
-                
+
+                    RULE += '({} ({} IS cluster{})) {} '.format(
+                        _operator[0], var_name, i, _operator[1])
+
                 else:
-                        
-                        # normal execution (meaning not was not choses as operator)
-                    RULE += '({} IS cluster{}) {} '.format(var_name, i, _operator[0])
-                
 
-
-
+                    # normal execution (meaning not was not choses as operator)
+                    RULE += '({} IS cluster{}) {} '.format(var_name,
+                                                           i, _operator[0])
 
             for k in range(len(self.n_consequents)):
-                
+
                 if self.generateprobas is True:
-                    
-                    self.interpret_consequents()               
-                    
+
+                    self.interpret_consequents()
+
                     if k == 0:
 
-                            # first part of end of rule
-                        RULE += ' THEN P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.genprobas[k])
+                        # first part of end of rule
+                        RULE += ' THEN P(OUTCOME IS {})={}'.format(
+                            self.n_consequents[k], self.genprobas[k])
                     else:
 
-                            # if problem is multiclass
-                        RULE += ', P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.genprobas[k])
+                        # if problem is multiclass
+                        RULE += ', P(OUTCOME IS {})={}'.format(
+                            self.n_consequents[k], self.genprobas[k])
                 else:
 
-                        # usefull for estiamting probabilties
+                    # usefull for estiamting probabilties
                     if self.probas is None:
-                        
+
                         if self.generateprobas is False:
-                            
+
                             if k == 0:
 
-                                RULE += ' THEN P(OUTCOME IS {})=None'.format(self.n_consequents[k])
-                            
+                                RULE += ' THEN P(OUTCOME IS {})=None'.format(
+                                    self.n_consequents[k])
+
                             else:
 
-                                RULE += ', P(OUTCOME IS {})=None'.format(self.n_consequents[k])
+                                RULE += ', P(OUTCOME IS {})=None'.format(
+                                    self.n_consequents[k])
                     else:
 
                         if self.probas is None:
                             raise Exception("Error: No probabilities were given. If you want to generate probabilities"
-                            + " randomly automatically try setting the generate probabilities parameter to true. ")
-                        
+                                            + " randomly automatically try setting the generate probabilities parameter to true. ")
+
                         # if generation of probabilities is set to on (generate probas automatically)
                         if k == 0:
 
-                            RULE += ' THEN P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.probas[i][k])
+                            RULE += ' THEN P(OUTCOME IS {})={}'.format(
+                                self.n_consequents[k], self.probas[i][k])
                         else:
-                            
-                            RULE += ', P(OUTCOME IS {})={}'.format(self.n_consequents[k], self.probas[i][k])
-            
+
+                            RULE += ', P(OUTCOME IS {})={}'.format(
+                                self.n_consequents[k], self.probas[i][k])
+
             RULES.append(RULE)
-        
-        self.p_rules=RULES
+
+        self.p_rules = RULES
         return RULES
-    
-    def generate_gp_rules(self):
-        
-        # number of rules equal to cluster centers
-        n_rules = self.cluster_centers
