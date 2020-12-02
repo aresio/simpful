@@ -616,11 +616,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			  operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
 			  all_var_names=None, pred_test = False):
 
-		FuzzySystem.__init__(self,  operators=None, show_banner=False,
-							 sanitize_input=False, verbose=False)
+
 		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
 				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names,
                    var_len=True)
+
+		FuzzySystem.__init__(self,  operators=None, show_banner=False,
+                       sanitize_input=False, verbose=False)
 
 		self.raw_rules=None
 		self._X = X
