@@ -676,7 +676,11 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 	def add_linguistic_variables(self):
 		#Setup fuzzysets
-		var_names = self.var_names
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		else:
+			var_names = self.var_names
+
 		for i, ling_var in enumerate(var_names):
 			#Construct fuzzy sets
 			fuzzysets = []
@@ -726,9 +730,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
 		"""
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		else:
+			var_names = self.var_names
 
 		for instance in self._X:
-			for var_name, feat_val in zip(self.var_names, instance):
+			for var_name, feat_val in zip(var_names, instance):
 				self.set_variable(var_name, feat_val)
 			rule_outputs = np.array(self.get_firing_strengths())
 			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
@@ -830,6 +838,12 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			[ndarray]: a list of predictions.
 		"""
+
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		else:
+			var_names = self.var_names
+
 		if self.__estimate == False:
 			if self.probas_ is None:
 				self.probas_ = self.get_probas()
@@ -840,14 +854,14 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		if self.predict_test is False:
 			preds_ = []
 			for instance in self._X:
-				for var_name, feat_val in zip(self.var_names, instance):
+				for var_name, feat_val in zip(var_names, instance):
 					self.set_variable(var_name, feat_val)
 				preds_.append(self.probabilistic_inference())
 			return preds_
 		else:
 			preds_ = []
 			for instance in self._X_test:
-				for var_name, feat_val in zip(self.var_names, instance):
+				for var_name, feat_val in zip(var_names, instance):
 					self.set_variable(var_name, feat_val)
 				preds_.append(self.probabilistic_inference())
 			self.preds = preds_
