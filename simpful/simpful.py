@@ -642,6 +642,18 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.accuracy_ = None
 		self.fitness_ = None
 #		self._probas = self.estimate_probas() if probas is None else probas
+
+	def X_reformatter(self):
+		if self.unique_vars is not None:
+
+			var_pointer = {}
+			for i, var in enumerate(self.all_var_names):
+				var_pointer[var] = i
+			selected_indixes = [var_pointer[i] for i in self.unique_vars]
+			self._X = self._X[0:, selected_indixes]
+		
+		else:
+			return self._X
 	
 	def router(self):
 		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
