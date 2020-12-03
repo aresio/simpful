@@ -98,7 +98,7 @@ class LinguisticVariable(object):
 				ax.plot(x,y, linestyles[nn%4], label=fs._term, )
 			else:
 				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
-				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
+				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(fs.boundary_values[0], fs.boundary_values[1]))
 				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
 				if TGT is not None:
 					ax.plot(TGT, f(TGT), "*", ms=10, label="x")
