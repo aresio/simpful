@@ -183,7 +183,13 @@ class DoubleGaussian_MF(MF_object):
 	def _execute(self, x):
 		first = _gaussian(x, self._mu1, self._sigma1)
 		second = _gaussian(x, self._mu2, self._sigma2)
-		return first*second
+
+		if x <= self._mu1:
+			return first
+		elif x>= self._mu2:
+			return second
+		else:
+			return 1.0
 
 
 class Crisp_MF(MF_object):
