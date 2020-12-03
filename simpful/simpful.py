@@ -648,7 +648,6 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self._X = X
 		self._X_test = X_test
 		self.seed = None
-		self.normalized_activation_rule=None
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def placeholder(self):
@@ -802,10 +801,9 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
 		
-		# debugging purposes
+		# identified exception handling; class zero division
 		if np.isnan(np.min(normalized_activation_rule)):
-			self.normalized_activation_rule = normalized_activation_rule
-			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+			normalized_activation_rule = np.divide(rule_outputs, 0.01)
 		
 		return np.matmul(normalized_activation_rule, probs)
 
