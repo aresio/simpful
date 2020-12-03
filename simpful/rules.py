@@ -41,6 +41,7 @@ class RuleGen:
 
     def __init__(self, n_consequents, cluster_centers, all_var_names=None, threshold=None, var_names=None, probas=None,
                  generateprobas=None, operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'], var_len=False):
+        
         """ Contructor methods that should initialize at least the following:
             cluster_centers, n_consequents
 
@@ -58,7 +59,7 @@ class RuleGen:
 
         self.threshold = threshold
         self.all_var_names = all_var_names
-        self.cluster_centers = cluster_centers.shape[0]
+        self.cluster_centers = cluster_centers.shape[0] if isinstance(cluster_centers, (np.ndarray)) else cluster_centers
         self.var_names = var_names
         self.n_consequents = n_consequents
         self.p_rules = []
@@ -72,7 +73,7 @@ class RuleGen:
         self.pfs = None
         self.var_len = var_len
         self.unique_vars = None
-
+    
     def var_selector(self):
         """
         

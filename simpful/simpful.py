@@ -9,6 +9,9 @@ from scipy.optimize import least_squares
 from copy import deepcopy
 from collections import defaultdict
 from sklearn.metrics import confusion_matrix
+from itertools import combinations
+from skfuzzy import cmeans
+from random import randint
 import random
 import numpy as np
 import re
@@ -614,21 +617,24 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
 			  X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
 			  operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
-			  all_var_names=None, pred_test = False):
+			  all_var_names=None, pred_test = False, numb_rules=[2, 4]):
+		
+		self.numb_rules = numb_rules
+		self.centers = centers
+		if self.centers is None:
+			self.centers = self.placeholder()
 
-
-		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
+		RuleGen.__init__(self, cluster_centers=self.centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
 				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names,
-                   var_len=True)
+				   var_len=True)
 
 		FuzzySystem.__init__(self,  operators=None, show_banner=False,
-                       sanitize_input=False, verbose=False)
+					   sanitize_input=False, verbose=False)
 
 		self.raw_rules=None
 		self.y = y
 		self._y_test = y_test
 		self.var_names = var_names
-		self.centers = centers
 		self.widths = widths
 		self.A = []
 		self.just_beta = None
@@ -641,7 +647,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.fitness_ = None
 		self._X = X
 		self._X_test = X_test
+		self.seed = None
 #		self._probas = self.estimate_probas() if probas is None else probas
+	
+	def placeholder(self):
+		min_rules = self.numb_rules[0]
+		max_rules = self.numb_rules[1]
+		return randint(min_rules, max_rules)
 
 	def X_reformatter(self):
 		if self.unique_vars is not None:
@@ -684,14 +696,74 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 				  "THEN", parsed_consequent, '\n')
 		if verbose:
 			print(" * %d rules successfully added" % len(rules))
+	
+	def estimate_centers(self):
+		self.seed = randint(1, 10)
+		cluster_centers,_,_,_,_,p,fpc = cmeans(self._X.T,
+											 c=self.centers,
+											 m=1.75,
+											 error=0.005,
+											 maxiter=1000,
+											 seed=self.seed)
+		self.centers = cluster_centers
+
+	def estimate_widths(self):
+		
+		"""
+		Calculate the widths of the membership functions as in equation (6).
+		Replicate across each dimension (convenient for later tuning with 
+		gradient descent).
+
+		Output shape: (n_rules, n_features).
+		"""
+
+		#Enumerate all combinations of two centers + calculate euclidean dist
+		center_indices = [i for i in range(len(self.centers))]
+		combs = [comb for comb in combinations(center_indices, 2)]
+		comb_coords = np.array([
+			[self.cluster_centers_[i], self.centers[j]]
+			for i, j in combs
+		])
+
+		dists = []
+		for comb, coord in zip(combs, comb_coords):
+			euc_dist = np.linalg.norm(coord[0] - coord[1])
+			dists.append([comb[0], comb[1], euc_dist])
+
+		#Enter everything in a matrix for minimum finding
+		dist_matrix = np.full(
+			shape=(len(self.centers), len(self.centers)),
+			fill_value=np.inf
+		)
+		for i, j, dist in dists:
+			dist_matrix[i, j] = dist
+
+		#Find the minimum distances for each center
+		min_ver = dist_matrix.min(axis=0)
+		min_hor = dist_matrix.min(axis=1)
+		widths = np.vstack((min_ver, min_hor)).min(axis=0)
+		widths = np.vstack(
+			[widths for i in range(self.centers.shape[1])]
+		)  # Replicate for each dimension in the data
+
+		self.widths = widths.T
 
 	def add_linguistic_variables(self):
-		#Setup fuzzysets
+		
+		# check for unique vars
 		if self.unique_vars is not None:
 			var_names = self.unique_vars
 		else:
 			var_names = self.var_names
+		
+		# check if centers need to be estimated
+		if isinstance(self.centers, (np.ndarray)) is True:
+			pass
+		else:
+			self.estimate_centers()
+			self.estimate_widths
 
+		#Setup fuzzysets
 		for i, ling_var in enumerate(var_names):
 			#Construct fuzzy sets
 			fuzzysets = []
