@@ -828,6 +828,10 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 				self.set_variable(var_name, feat_val)
 			rule_outputs = np.array(self.get_firing_strengths())
 			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+			
+			if np.isnan(np.min(normalized_activation_rule)):
+				normalized_activation_rule = np.divide(rule_outputs, 0.01)
+
 			# save rule outputs for estimating probas later
 			self.A.append(normalized_activation_rule)
 		copy_of_A = self.A
