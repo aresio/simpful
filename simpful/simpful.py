@@ -625,8 +625,6 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
                        sanitize_input=False, verbose=False)
 
 		self.raw_rules=None
-		self._X = X
-		self._X_test = X_test
 		self.y = y
 		self._y_test = y_test
 		self.var_names = var_names
@@ -641,19 +639,20 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self.preds = None
 		self.accuracy_ = None
 		self.fitness_ = None
+		self._X = X
+		self._X_test = X_test
 #		self._probas = self.estimate_probas() if probas is None else probas
 
 	def X_reformatter(self):
 		if self.unique_vars is not None:
-
 			var_pointer = {}
 			for i, var in enumerate(self.all_var_names):
 				var_pointer[var] = i
 			selected_indixes = [var_pointer[i] for i in self.unique_vars]
 			self._X = self._X[0:, selected_indixes]
-		
+			self._X_test = self._X_test[0:, selected_indixes]
 		else:
-			return self._X
+			pass
 	
 	def router(self):
 		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
