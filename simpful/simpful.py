@@ -721,7 +721,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		center_indices = [i for i in range(len(self.centers))]
 		combs = [comb for comb in combinations(center_indices, 2)]
 		comb_coords = np.array([
-			[self.cluster_centers_[i], self.centers[j]]
+			[self.centers[i], self.centers[j]]
 			for i, j in combs
 		])
 
@@ -761,7 +761,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			pass
 		else:
 			self.estimate_centers()
-			self.estimate_widths
+			self.estimate_widths()
 
 		#Setup fuzzysets
 		for i, ling_var in enumerate(var_names):
