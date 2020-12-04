@@ -617,16 +617,17 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
 			  X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
 			  operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
-			  all_var_names=None, pred_test = False, numb_rules=[2, 4]):
+			  all_var_names=None, pred_test = False, numb_rules=None, unique_vars=None):
 		
-		self.numb_rules = numb_rules
+
+		self.numb_rules = [2,4] if numb_rules is None else numb_rules
 		self.centers = centers
 		if self.centers is None:
 			self.centers = self.placeholder()
 
 		RuleGen.__init__(self, cluster_centers=self.centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
 				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names,
-				   var_len=True)
+                   var_len=True, unique_vars=unique_vars)
 
 		FuzzySystem.__init__(self,  operators=None, show_banner=False,
 					   sanitize_input=False, verbose=False)
@@ -651,9 +652,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
 	def placeholder(self):
-		min_rules = self.numb_rules[0]
-		max_rules = self.numb_rules[1]
-		return randint(min_rules, max_rules)
+
+		if not isinstance(self.numb_rules, int):
+			min_rules = self.numb_rules[0]
+			max_rules = self.numb_rules[1]
+			return randint(min_rules, max_rules)
+		else:
+			return self.numb_rules
 
 	def X_reformatter(self):
 		if self.unique_vars is not None:

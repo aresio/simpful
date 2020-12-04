@@ -40,7 +40,8 @@ class RuleGen:
     """
 
     def __init__(self, n_consequents, cluster_centers, all_var_names=None, threshold=None, var_names=None, probas=None,
-                 generateprobas=None, operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'], var_len=False):
+                 generateprobas=None, operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'], var_len=False,
+                 unique_vars=None):
         
         """ Contructor methods that should initialize at least the following:
             cluster_centers, n_consequents
@@ -72,7 +73,7 @@ class RuleGen:
         self.models = {}
         self.pfs = None
         self.var_len = var_len
-        self.unique_vars = None
+        self.unique_vars = None if unique_vars is None else unique_vars
     
     def var_selector(self):
         """
