@@ -30,6 +30,6 @@ If you want to check out some examples or need more information on the usage of 
    :caption: Contents
    :maxdepth: 1
 
-   ./source/simpful_module
-   ./source/fuzzy_sets_module
-   ./source/fuzzy_aggregation
+   ./simpful_module
+   ./fuzzy_sets_module
+   ./fuzzy_aggregation
