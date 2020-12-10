@@ -19,7 +19,7 @@ Installation
 ***************
 You can install Simpful with
 ::
-	pip install simpful
+   pip install simpful
 
 Additional information
 **********************
@@ -29,7 +29,8 @@ If you want to check out some examples or need more information on the usage of 
 .. toctree::
    :caption: Contents
    :maxdepth: 1
-
+   :titlesonly:
+   
    ./simpful_module
    ./fuzzy_sets_module
    ./fuzzy_aggregation
