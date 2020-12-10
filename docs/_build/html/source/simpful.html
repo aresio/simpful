@@ -1,0 +1,792 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>simpful package &mdash; Simpful  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Simpful
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">simpful package</a><ul>
+<li><a class="reference internal" href="#module-simpful.fuzzy_sets">simpful.fuzzy_sets module</a></li>
+<li><a class="reference internal" href="#module-simpful.simpful">simpful.simpful module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Simpful</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>simpful package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/simpful.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="simpful-package">
+<h1>simpful package<a class="headerlink" href="#simpful-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-simpful.fuzzy_sets">
+<span id="simpful-fuzzy-sets-module"></span><h2>simpful.fuzzy_sets module<a class="headerlink" href="#module-simpful.fuzzy_sets" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.CrispSet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">CrispSet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.CrispSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new crisp set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – left extreme value of the set.</p></li>
+<li><p><strong>b</strong> – right extreme value of the set.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the crisp set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.Crisp_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">Crisp_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.Crisp_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates a crisp membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – left extreme value of the set.</p></li>
+<li><p><strong>b</strong> – right extreme value of the set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.DoubleGaussianFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">DoubleGaussianFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu1</span></em>, <em class="sig-param"><span class="n">sigma1</span></em>, <em class="sig-param"><span class="n">mu2</span></em>, <em class="sig-param"><span class="n">sigma2</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.DoubleGaussianFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new double Gaussian fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu1</strong> – mean of the first distribution.</p></li>
+<li><p><strong>sigma1</strong> – standard deviation of the first distribution.</p></li>
+<li><p><strong>mu2</strong> – mean of the second distribution.</p></li>
+<li><p><strong>sigma2</strong> – standard deviation of the second distribution.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.DoubleGaussian_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">DoubleGaussian_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu1</span></em>, <em class="sig-param"><span class="n">sigma1</span></em>, <em class="sig-param"><span class="n">mu2</span></em>, <em class="sig-param"><span class="n">sigma2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.DoubleGaussian_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates a double Gaussian membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu1</strong> – mean of the first distribution.</p></li>
+<li><p><strong>sigma1</strong> – standard deviation of the first distribution.</p></li>
+<li><p><strong>mu2</strong> – mean of the second distribution.</p></li>
+<li><p><strong>sigma2</strong> – standard deviation of the second distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.FuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">FuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">function</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">term</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">high_quality_interpolate</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">boundary_values</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.FuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates a new fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> – list of points to define a polygonal fuzzy sets. Each point is defined  as a list of two coordinates in the universe of discourse/membership degree space.</p></li>
+<li><p><strong>function</strong> – function to define a non-polygonal fuzzy set. Supports pre-implemented membership functions Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangle_MF, Trapezoidal_MF or user-defined functions.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+<li><p><strong>high_quality_interpolate</strong> – True/False, toggles high quality interpolation for point-based fuzzy sets. Default value is set to False.</p></li>
+<li><p><strong>boundary_values</strong> – list of two membership values for point-based fuzzy sets. The first and second value are used to fill in values at the left-side and right-side of the fuzzy set, respectively. If None (default value), fuzzy sets will be considered as shouldered.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="simpful.fuzzy_sets.FuzzySet.get_term">
+<code class="sig-name descname">get_term</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.FuzzySet.get_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the linguistic term associated to this fuzzy set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.fuzzy_sets.FuzzySet.get_value">
+<code class="sig-name descname">get_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.FuzzySet.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the membership value of v to this Fuzzy Set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>v</strong> – element of the universe of discourse.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The membership value of v to this Fuzzy Set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.fuzzy_sets.FuzzySet.get_value_cut">
+<code class="sig-name descname">get_value_cut</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em>, <em class="sig-param"><span class="n">cut</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.FuzzySet.get_value_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the membership value of v to this Fuzzy Set, capped to the cut value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> – element of the universe of discourse.</p></li>
+<li><p><strong>cut</strong> – alpha cut of the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.GaussianFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">GaussianFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">sigma</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.GaussianFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new Gaussian fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> – mean of the distribution.</p></li>
+<li><p><strong>sigma</strong> – standard deviation of the distribution.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.Gaussian_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">Gaussian_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">sigma</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.Gaussian_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates a Gaussian membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> – mean of the distribution.</p></li>
+<li><p><strong>sigma</strong> – standard deviation of the distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.InvGaussianFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">InvGaussianFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">sigma</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.InvGaussianFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new inversed Gaussian fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> – mean of the distribution.</p></li>
+<li><p><strong>sigma</strong> – standard deviation of the distribution.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.InvGaussian_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">InvGaussian_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">sigma</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.InvGaussian_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates an inversed Gaussian membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> – mean of the distribution.</p></li>
+<li><p><strong>sigma</strong> – standard deviation of the distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.InvSigmoidFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">InvSigmoidFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.InvSigmoidFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new inversed sigmoidal fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>c</strong> – universe of discourse coordinate of inflection point.</p></li>
+<li><p><strong>a</strong> – steepness of the curve.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.InvSigmoid_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">InvSigmoid_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">a</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.InvSigmoid_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates an inversed sigmoid membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>c</strong> – universe of discourse coordinate of inflection point.</p></li>
+<li><p><strong>a</strong> – steepness of the curve.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.SigmoidFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">SigmoidFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.SigmoidFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new sigmoidal fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>c</strong> – universe of discourse coordinate of inflection point.</p></li>
+<li><p><strong>a</strong> – steepness of the curve.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.Sigmoid_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">Sigmoid_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">a</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.Sigmoid_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates a sigmoidal membership function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>c</strong> – universe of discourse coordinate of the inflection point.</p></li>
+<li><p><strong>a</strong> – steepness of the curve.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.TrapezoidFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">TrapezoidFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.TrapezoidFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new trapezoidal fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – universe of discourse coordinate of the leftmost vertex.</p></li>
+<li><p><strong>b</strong> – universe of discourse coordinate of the upper left vertex.</p></li>
+<li><p><strong>c</strong> – universe of discourse coordinate of the upper right vertex.</p></li>
+<li><p><strong>d</strong> – universe of discourse coordinate of the rightmost vertex.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.Trapezoidal_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">Trapezoidal_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">b</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">c</span><span class="o">=</span><span class="default_value">0.75</span></em>, <em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.Trapezoidal_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<p>Creates a normalized trapezoidal membership function.
+Requires a &lt;= b &lt;= c &lt;= d.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – universe of discourse coordinate of the leftmost vertex.</p></li>
+<li><p><strong>b</strong> – universe of discourse coordinate of the upper left vertex.</p></li>
+<li><p><strong>c</strong> – universe of discourse coordinate of the upper right vertex.</p></li>
+<li><p><strong>d</strong> – universe of discourse coordinate of the rightmost vertex.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.TriangleFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">TriangleFuzzySet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">term</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.TriangleFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.fuzzy_sets.FuzzySet" title="simpful.fuzzy_sets.FuzzySet"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.FuzzySet</span></code></a></p>
+<p>Creates a new triangular fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – universe of discourse coordinate of the leftmost vertex.</p></li>
+<li><p><strong>b</strong> – universe of discourse coordinate of the upper vertex.</p></li>
+<li><p><strong>c</strong> – universe of discourse coordinate of the rightmost vertex.</p></li>
+<li><p><strong>term</strong> – string representing the linguistic term to be associated to the fuzzy set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.fuzzy_sets.Triangular_MF">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.fuzzy_sets.</code><code class="sig-name descname">Triangular_MF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">b</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">c</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.fuzzy_sets.Triangular_MF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.fuzzy_sets.MF_object</span></code></p>
+<blockquote>
+<div><p>Creates a normalized triangular membership function.
+Requires a &lt;= b &lt;= c and the semantics is the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span>       <span class="o">|</span>   <span class="o">.</span>
+        <span class="o">|</span>  <span class="o">/</span> \
+        <span class="o">|</span> <span class="o">/</span>   \
+<span class="mi">0</span>       <span class="o">|/</span>     \
+        <span class="o">---------</span>
+         <span class="n">a</span>  <span class="n">b</span>  <span class="n">c</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – universe of discourse coordinate of the leftmost vertex.</p></li>
+<li><p><strong>b</strong> – universe of discourse coordinate of the upper vertex.</p></li>
+<li><p><strong>c</strong> – universe of discourse coordinate of the rightmost vertex.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-simpful.simpful">
+<span id="simpful-simpful-module"></span><h2>simpful.simpful module<a class="headerlink" href="#module-simpful.simpful" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="simpful.simpful.AutoTriangle">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.simpful.</code><code class="sig-name descname">AutoTriangle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_sets</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">terms</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">universe_of_discourse</span><span class="o">=</span><span class="default_value">[0, 1]</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.AutoTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simpful.simpful.LinguisticVariable" title="simpful.simpful.LinguisticVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">simpful.simpful.LinguisticVariable</span></code></a></p>
+<p>Creates a new linguistic variable, whose universe of discourse is automatically divided in a given number of fuzzy sets.
+The sets are all symmetrical, normalized, and for each element of the universe their memberships sum up to 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_sets</strong> – (integer) number of fuzzy sets in which the universe of discourse must be divided.</p></li>
+<li><p><strong>terms</strong> – list of strings containing linguistic terms for the fuzzy sets (must be appropriate to the number of fuzzy sets).</p></li>
+<li><p><strong>universe_of_discourse</strong> – a list of two elements, specifying min and max of the universe of discourse.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.simpful.FuzzySystem">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.simpful.</code><code class="sig-name descname">FuzzySystem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">operators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_banner</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sanitize_input</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates a new fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> – a list of strings, specifying fuzzy operators to be used instead of defaults.</p></li>
+<li><p><strong>supported operators</strong> (<em>Currently</em>) – ‘AND_PRODUCT’.</p></li>
+<li><p><strong>show_banner</strong> – True/False, toggles display of banner.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.Mamdani_inference">
+<code class="sig-name descname">Mamdani_inference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">terms</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_errors</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">subdivisions</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.Mamdani_inference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Mamdani fuzzy inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>terms</strong> – list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.</p></li>
+<li><p><strong>subdivisions</strong> – the number of integration steps to be performed (default: 1000).</p></li>
+<li><p><strong>ignore_errors</strong> – True/False, toggles the raising of errors during the inference.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary, containing as keys the variables’ names and as values their numerical inferred values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.Sugeno_inference">
+<code class="sig-name descname">Sugeno_inference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">terms</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_errors</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.Sugeno_inference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Sugeno fuzzy inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>terms</strong> – list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.</p></li>
+<li><p><strong>ignore_errors</strong> – True/False, toggles the raising of errors during the inference.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary, containing as keys the variables’ names and as values their numerical inferred values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.add_linguistic_variable">
+<code class="sig-name descname">add_linguistic_variable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">LV</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.add_linguistic_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new linguistic variable to the fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – string containing the name of the linguistic variable.</p></li>
+<li><p><strong>LV</strong> – linguistic variable object to be added to the fuzzy system.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.add_rules">
+<code class="sig-name descname">add_rules</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rules</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.add_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds new fuzzy rules to the fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rules</strong> – list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful’s syntax.</p></li>
+<li><p><strong>sanitize</strong> – True/False, automatically removes non alphanumeric symbols from rules</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.add_rules_from_file">
+<code class="sig-name descname">add_rules_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.add_rules_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports new fuzzy rules by reading the strings from a text file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.get_firing_strengths">
+<code class="sig-name descname">get_firing_strengths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.get_firing_strengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a list of the firing strengths of the the rules,
+given the current state of input variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list containing rules’ firing strengths</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.inference">
+<code class="sig-name descname">inference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">terms</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_errors</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">subdivisions</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.inference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the fuzzy inference, trying to automatically choose the correct inference engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>terms</strong> – list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.</p></li>
+<li><p><strong>ignore_errors</strong> – True/False, toggles the raising of errors during the inference.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+<li><p><strong>subdivisions</strong> – set the number of integration steps to be performed by Mamdani inference (default: 1000).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary, containing as keys the variables’ names and as values their numerical inferred values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.produce_figure">
+<code class="sig-name descname">produce_figure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputfile</span><span class="o">=</span><span class="default_value">'output.pdf'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.produce_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the membership functions of each linguistic variable contained in the fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputfile</strong> – path and filename where the plot must be saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.set_crisp_output_value">
+<code class="sig-name descname">set_crisp_output_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.set_crisp_output_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new crisp output value to the fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – string containing the identifying name of the crisp output value.</p></li>
+<li><p><strong>value</strong> – numerical value of the crisp output value to be added to the fuzzy system.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.set_output_function">
+<code class="sig-name descname">set_output_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">function</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.set_output_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new output function to the fuzzy system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – string containing the identifying name of the output function.</p></li>
+<li><p><strong>function</strong> – string containing the output function to be added to the fuzzy system.</p></li>
+<li><p><strong>function specified in the string must use the names of linguistic variables contained in the fuzzy system object.</strong> (<em>The</em>) – </p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.FuzzySystem.set_variable">
+<code class="sig-name descname">set_variable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.FuzzySystem.set_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the numerical value of a linguistic variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the linguistic variables to be set.</p></li>
+<li><p><strong>value</strong> – numerical value to be set.</p></li>
+<li><p><strong>verbose</strong> – True/False, toggles verbose mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="simpful.simpful.LinguisticVariable">
+<em class="property">class </em><code class="sig-prename descclassname">simpful.simpful.</code><code class="sig-name descname">LinguisticVariable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">FS_list</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">concept</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">universe_of_discourse</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.LinguisticVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates a new linguistic variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>FS_list</strong> – a list of FuzzySet instances.</p></li>
+<li><p><strong>concept</strong> – a string providing a brief description of the concept represented by the linguistic variable (optional).</p></li>
+<li><p><strong>universe_of_discourse</strong> – a list of two elements, specifying min and max of the universe of discourse. Optional, but it must be specified to exploit plotting facilities.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="simpful.simpful.LinguisticVariable.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">TGT</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.LinguisticVariable.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> – the axis to plot to.</p></li>
+<li><p><strong>TGT</strong> – show the memberships of a specific element of discourse TGT in the figure.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A matplotlib axis, representing all fuzzy sets contained in the liguistic variable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.LinguisticVariable.get_universe_of_discourse">
+<code class="sig-name descname">get_universe_of_discourse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.LinguisticVariable.get_universe_of_discourse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method provides the leftmost and rightmost values of the universe of discourse of the linguistic variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the two extreme values of the universe of discourse</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="simpful.simpful.LinguisticVariable.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">TGT</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.LinguisticVariable.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a plot representing all fuzzy sets contained in the liguistic variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>TGT</strong> – show the memberships of a specific element of discourse TGT in the figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="simpful.simpful.UndefinedUniverseOfDiscourseError">
+<em class="property">exception </em><code class="sig-prename descclassname">simpful.simpful.</code><code class="sig-name descname">UndefinedUniverseOfDiscourseError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="headerlink" href="#simpful.simpful.UndefinedUniverseOfDiscourseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, M.S. Nobile, S. Spolaor
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
