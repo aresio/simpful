@@ -220,7 +220,7 @@ class FuzzySystem(object):
 		print(" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
 		print()
 		print(" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
-		print(" and Simone Spolaor (simone.spolaor@disco.unimib.it)")
+		print(" and Simone Spolaor (simone.spolaor@unimib.it)")
 		print()
 
 

@@ -1,0 +1,7 @@
+simpful
+=======
+
+.. toctree::
+   :maxdepth: 4
+
+   simpful

@@ -1,0 +1,17 @@
+simpful package
+===============
+
+simpful.fuzzy\_sets module
+--------------------------
+
+.. automodule:: simpful.fuzzy_sets
+   :members:
+   :show-inheritance:
+
+
+simpful.simpful module
+----------------------
+
+.. automodule:: simpful.simpful
+   :members:
+   :show-inheritance:
