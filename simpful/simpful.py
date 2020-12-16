@@ -340,8 +340,7 @@ class FuzzySystem(object):
 
 		Args:
 			name: string containing the identifying name of the output function.
-			function: string containing the output function to be added to the fuzzy system.
-			The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
+			function: string containing the output function to be added to the fuzzy system. The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
 			verbose: True/False, toggles verbose mode.
 		"""
 		if self._sanitize_input: name = self._sanitize(name)
