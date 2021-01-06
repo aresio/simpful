@@ -402,7 +402,12 @@ class FuzzySystem(object):
 					else:
 						string_to_evaluate = self._outputfunctions[outterm]
 						for k,v in self._variables.items():
-							string_to_evaluate = string_to_evaluate.replace(k,str(v))
+							# old version
+							# string_to_evaluate = string_to_evaluate.replace(k,str(v))
+
+							# match a variable name preceeded or followed by non-alphanumeric and _ characters
+							# substitute it with its numerical value
+							string_to_evaluate = re.sub(r"(?P<front>\W|^)"+k+r"(?P<end>\W|$)", r"\g<front>"+str(v)+r"\g<end>", string_to_evaluate)
 						crispvalue = eval(string_to_evaluate)						
 
 					try:
