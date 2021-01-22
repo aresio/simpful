@@ -5,7 +5,7 @@ from .rule_parsing import preparse, postparse
 import itertools
 import random
 from random import randint, randrange
-
+import copy
 from simpful import rules
 
 
