@@ -1,3 +1,4 @@
+from .rules import proba_generator
 import operator
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
 from .rule_parsing import curparse, preparse, postparse
@@ -7,6 +8,10 @@ from scipy.interpolate import interp1d
 from scipy.optimize import least_squares
 from copy import deepcopy
 from collections import defaultdict
+from sklearn.metrics import confusion_matrix
+from itertools import combinations
+from skfuzzy import cmeans
+from random import randint
 import random
 import numpy as np
 import re
@@ -21,6 +26,8 @@ linestyles= ["-", "--", ":", "-."]
 
 # for sanitization
 valid_characters = string.ascii_letters + string.digits + "()_ "
+
+
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -198,7 +205,7 @@ class FuzzySystem(object):
 			verbose: True/False, toggles verbose mode.
 	"""
 
-	def __init__(self,  operators=None, show_banner=True, sanitize_input=False, verbose=False):
+	def __init__(self,  operators=None, show_banner=False, sanitize_input=False, verbose=False):
 
 		self._rules = []
 		self._lvs = {}
@@ -334,7 +341,8 @@ class FuzzySystem(object):
 		if self._detected_type == "inconsistent": return
 		if self._detected_type is  None:
 			self._detected_type = model_type
-			print (" * Detected %s model type" % model_type )
+			pass
+#			print (" * Detected %s model type" % model_type )
 		elif self._detected_type != model_type:
 			print("WARNING: model type is unclear (simpful detected %s, but I received a %s output)" % (self._detected_type, model_type))
 			self._detected_type = 'inconsistent'
@@ -589,42 +597,145 @@ class FuzzySystem(object):
 
 class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
-	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
-              X=None,  y=None, probas=None, threshold=None, generateprobas=False,
-              operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
-              all_var_names=None):
 
-		FuzzySystem.__init__(self,  operators=None, show_banner=True,
-		                     sanitize_input=False, verbose=False)
-		RuleGen.__init__(self, cluster_centers=centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
-                   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names)
+	"""
+
+
+	Module with implementation of the probabilistic fuzzy systems as described in
+	the paper by Fialho et al. (2016) in the Applied Soft Computing journal.
+
+
+	"""	
+
+	def __init__(self, _return_class = False, consequents=None, var_names=None, centers=None, widths=None,
+			  X=None,  X_test=None, y=None, y_test=None,probas=None, threshold=None, generateprobas=False,
+			  operators=['AND_p', 'OR', 'AND', 'NOT'], ops=['AND_p', 'OR', 'AND'],
+			  all_var_names=None, pred_test = False, numb_rules=None, unique_vars=None):
+		
+		"""
+		Args:
+			self.raw_rules=None: By default set to None. None indicates you want the probabilities estimated.
+			self.y = y: Preferably a list with class label (e.g. 0, 1 in the case of binary classification)
+			self._y_test = y_test: test set with target variable values.
+			self.var_names = var_names: The variable names of the predictor variables.
+			self.widths = widths: Essentially these will be estimated automatically based on the data. 
+									Keep in mind that they are not tuned, therefore the widths in diferrent clusters will be the same.
+			self.A = []: Helper matrix, containing rule activations
+			self.just_beta = None: Helper matrix, containing rule weigths.
+			self.probas_ = None: After the probabilities were either estimated or given they are saved here.
+			self.__estimate = False: Helper variable for knowing whether or not to estimate probabilities.
+			self._return_class = _return_class: If set to true probabilities for the corresponding classes will be returned.
+			self.predict_test = pred_test: Wheter or not to predict on the test set.
+			self.preds = None: Helper variable, for saving predictions.
+			self.accuracy_ = None: The accuracy of the model.
+			self.fitness_ = None: Helper variable, for genetic programming and rule discovery.
+			self._X = X: The dataset containing train predictors.
+			self._X_test = X_test:  The dataset containing test predictors.
+			self.seed = None: For debugging purposes (to know exact clustering seed).
+
+		"""		
+
+		self.numb_rules = [2,7] if numb_rules is None else numb_rules
+		self.centers = centers
+		if self.centers is None:
+			self.centers = self.placeholder()
+
+			"""
+				
+				The variables for the superclasses can be communicated through the init defined above (above, but right under ProbaFuzzySystem).
+
+			"""
+
+		RuleGen.__init__(self, cluster_centers=self.centers, var_names=var_names, n_consequents=consequents, threshold=threshold,
+				   probas=probas, generateprobas=generateprobas, operators=operators, ops=ops, all_var_names=all_var_names,
+                   var_len=True, unique_vars=unique_vars)
+		
+
+		FuzzySystem.__init__(self,  operators=None, show_banner=False,
+					   sanitize_input=False, verbose=False)
 
 		self.raw_rules=None
-		self._X = X
 		self.y = y
+		self._y_test = y_test
 		self.var_names = var_names
-		self.centers = centers
 		self.widths = widths
 		self.A = []
 		self.just_beta = None
 		self.probas_ = None
 		self.__estimate = False
 		self._return_class = _return_class
+		self.predict_test = pred_test
+		self.preds = None
+		self.accuracy_ = None
+		self.fitness_ = None
+		self._X = X
+		self._X_test = X_test
+		self.seed = None
 #		self._probas = self.estimate_probas() if probas is None else probas
 	
+	def placeholder(self):
+
+
+		"""Helper method for for automatically finding rules using Genetic Programming.
+			If a number of rules was specified by the used that number will be used, otherwise
+			a random number of rules (between 2 and 7, defined above) will be used.
+
+		Returns:
+			[integer]: integer containing number of rules
+		"""		
+
+		if not isinstance(self.numb_rules, int):
+			min_rules = self.numb_rules[0]
+			max_rules = self.numb_rules[1]
+			return randint(min_rules, max_rules)
+		else:
+			return self.numb_rules
+
+	def X_reformatter(self):
+
+		"""
+
+		Helper method for finding rules automatically using Genetic Programming. Will format the dataset to be in the correct
+		format given a (random/ user specified) list of variables.
+
+		"""
+
+		if self.unique_vars is not None:
+			var_pointer = {}
+			for i, var in enumerate(self.all_var_names):
+				var_pointer[var] = i
+			selected_indixes = [var_pointer[i] for i in self.unique_vars]
+			self._X = self._X[0:, selected_indixes]
+			self._X_test = self._X_test[0:, selected_indixes]
+		else:
+			pass
+	
 	def router(self):
+
+		"""
+		
+		Helper Function for handling control flow. The goal is to know whether estimation of probabilities is necessary.
+		This is checked using the argument after the if statement. If estimation is necessary, self.estimate is set to True.
+
+		"""
+
 		if self._rules[0][1][0] > 0 and self._rules[0][1][1]==True:
 			self.__estimate = True
 
 	def add_proba_rules(self, rules, verbose=False):
-		""" Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
+		
+		""" 
+		
+		Works in a similarly to the normal add_rules method. Will take a list of rules and extract its Clauses.
 		In addition to this it will also extract the probabilities of each rule.
 
 		Args:
 			rules (list): Need to respect probabilistic Syntax. E.g. sum of probabilities should be close to 1. 
 			For an example please refer to the readme file.
 			verbose (bool, optional): Will print out the parsed antecedent and consequent. Defaults to False.
+		
 		"""
+		
 		self.raw_rules = rules
 
 		for rule in rules:
@@ -639,13 +750,93 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		self._set_model_type('probabilistic')
 		if verbose:
 			print(" * Added rule IF", parsed_antecedent,
-			      "THEN", parsed_consequent, '\n')
+				  "THEN", parsed_consequent, '\n')
 		if verbose:
 			print(" * %d rules successfully added" % len(rules))
+	
+	def estimate_centers(self):
+
+		"""
+		
+		Helper method for finding centers when using automatic modelling (designed for Genetic Programming in this case).
+
+
+		"""		
+
+		self.seed = randint(1, 10)
+		cluster_centers,_,_,_,_,p,fpc = cmeans(self._X.T,
+											 c=self.centers,
+											 m=1.75,
+											 error=0.005,
+											 maxiter=1000,
+											 seed=self.seed)
+		self.centers = cluster_centers
+
+	def estimate_widths(self):
+		
+		"""
+		
+		Calculate the widths of the membership functions as in equation (6).
+		Replicate across each dimension (convenient for later tuning with 
+		gradient descent).
+
+		Output shape: (n_rules, n_features).
+		
+		"""
+
+		#Enumerate all combinations of two centers + calculate euclidean dist
+		center_indices = [i for i in range(len(self.centers))]
+		combs = [comb for comb in combinations(center_indices, 2)]
+		comb_coords = np.array([
+			[self.centers[i], self.centers[j]]
+			for i, j in combs
+		])
+
+		dists = []
+		for comb, coord in zip(combs, comb_coords):
+			euc_dist = np.linalg.norm(coord[0] - coord[1])
+			dists.append([comb[0], comb[1], euc_dist])
+
+		#Enter everything in a matrix for minimum finding
+		dist_matrix = np.full(
+			shape=(len(self.centers), len(self.centers)),
+			fill_value=np.inf
+		)
+		for i, j, dist in dists:
+			dist_matrix[i, j] = dist
+
+		#Find the minimum distances for each center
+		min_ver = dist_matrix.min(axis=0)
+		min_hor = dist_matrix.min(axis=1)
+		widths = np.vstack((min_ver, min_hor)).min(axis=0)
+		widths = np.vstack(
+			[widths for i in range(self.centers.shape[1])]
+		)  # Replicate for each dimension in the data
+
+		self.widths = widths.T
 
 	def add_linguistic_variables(self):
+
+		"""
+		
+		Convenience method for adding all necessary linguistic variables at once.
+
+		"""		
+		
+		# check for unique vars
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		else:
+			var_names = self.var_names
+		
+		# check if centers need to be estimated
+		if isinstance(self.centers, (np.ndarray)) is True:
+			pass
+		else:
+			self.estimate_centers()
+			self.estimate_widths()
+
 		#Setup fuzzysets
-		var_names = self.var_names
 		for i, ling_var in enumerate(var_names):
 			#Construct fuzzy sets
 			fuzzysets = []
@@ -664,11 +855,13 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			self.add_linguistic_variable(ling_var, MF_ling_var)
 
 	def proba_zero_order(self):
+		
 		for i in range(len(self._probas)):
 			self.set_crisp_output_value('fun{}'.format(i), self._probas[i])
 
 
 	def mediate_probabilistic(self):
+		
 		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
 		and normalizes these outputs. This way we can see how much
 		more an instance triggers each rule. It will return the probabilities for each class. 
@@ -679,13 +872,22 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
 		"""
+		
 		probs = self.probas_
 		rule_outputs = np.array(self.get_firing_strengths())
 		normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+		
+		# identified exception handling; class zero division
+		if np.isnan(np.min(normalized_activation_rule)):
+			normalized_activation_rule = np.divide(rule_outputs, 0.01)
+		
 		return np.matmul(normalized_activation_rule, probs)
 
 	def prepare_a(self):
-		""" Performs probabilistic inference. This method gets the firing strengths of each rule 
+		
+		"""
+		
+		Performs probabilistic inference. This method gets the firing strengths of each rule 
 		and normalizes these outputs. This way we can see how much
 		more an instance triggers each rule. It will return the probabilities for each class. 
 
@@ -694,20 +896,44 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 		Returns:
 			<class 'numpy.ndarray'>: An ndarray containing the probabilties for each class.
+		
 		"""
+		
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		
+		else:
+			var_names = self.var_names
 
 		for instance in self._X:
-			for var_name, feat_val in zip(self.var_names, instance):
+			for var_name, feat_val in zip(var_names, instance):
 				self.set_variable(var_name, feat_val)
 			rule_outputs = np.array(self.get_firing_strengths())
 			normalized_activation_rule = np.divide(rule_outputs, np.sum(rule_outputs))
+			
+			if np.isnan(np.min(normalized_activation_rule)):
+				normalized_activation_rule = np.divide(rule_outputs, 0.01)
+
 			# save rule outputs for estimating probas later
 			self.A.append(normalized_activation_rule)
+		
+		#fake copy (meaning not a deepcopy)
 		copy_of_A = self.A
+		
 		return copy_of_A
 
 
 	def loss(self, b, x=None, y=None):
+
+		"""
+
+		loss function for estimating probabilities
+
+		Returns:
+			[ndarray]: cost value.
+		
+		"""		
+		
 		if x is None:
 			x = self.A
 		if y is None:
@@ -716,32 +942,70 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 
 	
 	def estimate_probas(self):
+
+		"""
+		The probabilities are estimated using ordinary least squares using scipy. At this moment only binary classification is supported.
+
+		NOTE:
+		
+		One could implement multiclass estimation of probabilities by remodelling the class of interest as 1 and setting the other classes to 0.
+		After this just use the same logic as for the binary case.
+
+		Raises:
+			NotImplementedError: Only the binary case is supported right now. 
+
+		Returns:
+			[ndarray]: ndarray containing probabilities.
+		"""		
+		
 		A = self.prepare_a()
-		init_mat = np.full((len(self._rules),), random.uniform(0, 1), dtype=float)
-		res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
-		probas = res.x
+		
+		init_mat = np.full((len(self._rules),), random.uniform(0.01, 1), dtype=float)
+		
+		try:
+			res = least_squares(self.loss, x0=init_mat, bounds=[0, 1])
+			probas = res.x
+		
+		except ValueError:
+			probas = proba_generator(len(self.n_consequents))
+		
 		probas = probas.T
+		
 		if len(np.unique(self.y)) == 2:
 			binary_case = np.vstack((1-probas, probas))
 			binary_case = binary_case.T
 			probas = binary_case
+		
+		if len(np.unique(self.y)) >2:
+			raise NotImplementedError
+
+
 		return probas
 
 	def get_probas(self):
-		""" Will get the probabilities from a probabilistic rule base.
+		
+		""" 
+		
+		Will get the probabilities from a probabilistic rule base.
 
 		Returns:
 			<class 'numpy.ndarray'>: The probabilities of a probabilistic fuzzy rulebase.
+		
 		"""
+		
 		probas = []
+		
 		for proba in self._rules:
 			probas.append(proba[1])
+		
 		return np.vstack(probas) 
 
 	def set_proba_to_none(self):
+		
 		self._probas = None
 
 	def probabilistic_inference(self, ignore_errors=False, verbose=False, return_class=None):
+		
 		""" A zero-order TS fuzzy system can produce the same output as the expected output of 
 		a probabilistic fuzzy system provided that its consequent parameters are selected as the 
 		conditional expectation of the defuzzified output membership functions. This approach
@@ -765,33 +1029,110 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			<class 'numpy.ndarray'>: The probabilities for a given system. Shape: (n_samples, n_classes)
 
 		"""
+		
 		if return_class is None:
-			return_class is self._return_class
+			return_class = self._return_class
 		result = self.mediate_probabilistic()
 		if return_class == True:
 			return np.argmax(result)
 		return result
+	
+	# alternative to sklearn but slower in performance. Would eliminate the need for sklearn dependency.
+	
+	# def perf_measure(y_actual, y_hat):
+	#     TP = 0
+	#     FP = 0
+	#     TN = 0
+	#     FN = 0
 
+	#     for i in range(len(y_hat)):
+	#         if y_actual[i]==y_hat[i]==1:
+	#            TP += 1
+	#         if y_hat[i]==1 and y_actual[i]!=y_hat[i]:
+	#            FP += 1
+	#         if y_actual[i]==y_hat[i]==0:
+	#            TN += 1
+	#         if y_hat[i]==0 and y_actual[i]!=y_hat[i]:
+	#            FN += 1
+
+	#     return(TP, FP, TN, FN)
+
+	def evaluate_fitness(self):
+		
+		tn, fp, fn, tp = confusion_matrix(self._y_test, self.preds).ravel()
+		
+		self.fitness_ = self.fitness(tn, fp, fn, tp)
+		
+		return self.fitness(tn, fp, fn, tp)
+	
+	def evaluate_accuracy(self):
+		
+		tn, fp, fn, tp = confusion_matrix(self._y_test, self.preds).ravel()
+		
+		self.accuracy_ = self.accuracy(tn, fp, fn, tp)
+		
+		return self.accuracy(tn, fp, fn, tp)
+
+	@staticmethod
+	def fitness(tn, fp, fn, tp):
+		
+		return(((tp)/(tp+fn))*((tn)/(fp+tn)))
+	
+	@staticmethod
+	def accuracy(tn, fp, fn, tp):
+		
+		return (tn+tp)/(tn+fp+fn+tp)
 
 	def predict_pfs(self):
-		"""Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
+		
+		"""
+		
+		Given a list of variables and a numpy matrix with (n_samples, n_variables) return predictions.
 
 		Returns:
 			[ndarray]: a list of predictions.
+		
 		"""
+
+		if self.unique_vars is not None:
+			var_names = self.unique_vars
+		
+		else:
+			var_names = self.var_names
+
+		
 		if self.__estimate == False:
+			
 			if self.probas_ is None:
 				self.probas_ = self.get_probas()
+		
 		else:
+			
 			self.probas_ = self.estimate_probas()
 			self.__estimate = False
+		
+		if self.predict_test is False:
+			
+			preds_ = []
+			
+			for instance in self._X:
+				for var_name, feat_val in zip(var_names, instance):
+					self.set_variable(var_name, feat_val)
+				preds_.append(self.probabilistic_inference())
+			return preds_
+		
+		else:
+			
+			preds_ = []
+			
+			for instance in self._X_test:
+				for var_name, feat_val in zip(var_names, instance):
+					self.set_variable(var_name, feat_val)
+				preds_.append(self.probabilistic_inference())
+			self.preds = preds_
+			return preds_
 
-		preds_ = []
-		for instance in self._X:
-			for var_name, feat_val in zip(self.var_names, instance):
-				self.set_variable(var_name, feat_val)
-			preds_.append(self.probabilistic_inference())
-		return preds_
+
 
 if __name__ == '__main__':
 	pass
