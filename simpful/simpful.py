@@ -620,7 +620,7 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			  all_var_names=None, pred_test = False, numb_rules=None, unique_vars=None):
 		
 
-		self.numb_rules = [2,4] if numb_rules is None else numb_rules
+		self.numb_rules = [2,7] if numb_rules is None else numb_rules
 		self.centers = centers
 		if self.centers is None:
 			self.centers = self.placeholder()
@@ -963,6 +963,8 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 				preds_.append(self.probabilistic_inference())
 			self.preds = preds_
 			return preds_
+
+
 
 if __name__ == '__main__':
 	pass
