@@ -9,6 +9,26 @@ from random import randint, randrange
 from simpful import rules
 
 
+def swap_none(rules, probas_):
+    numb_none = [re.findall(r"None", rule) for rule in rules]
+    rules_numb = len(numb_none)
+    probas_numb = len(numb_none[0])
+    swapped = []
+    cont = None
+    for rule in range(rules_numb):
+        up_next = rules[rule]
+        for proba in range(probas_numb):
+            if cont is None:
+                probab = round(probas_[rule][proba], 3)
+                updated_rule = up_next.replace('None', '{}'.format(probab), 1)
+            else:
+                probab = round(probas_[rule][proba], 3)
+                updated_rule = cont.replace('None', '{}'.format(probab), 1)
+            cont = copy.deepcopy(updated_rule)
+        cont = None
+        swapped.append(updated_rule)
+    return swapped
+
 def proba_generator(n):
     """
     Global method for generating a list of probabilities (uniformly distributed).
