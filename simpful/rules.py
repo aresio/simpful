@@ -183,6 +183,12 @@ class RuleGen:
         return models2
 
     def get_ts_probas(self):
+
+        """Helper method for getting probabilities.
+
+        Returns:
+            [type]: [description]
+        """        
         zero_order_probas = {}
         for model, rules in self.models.items():
             holder = []
@@ -221,6 +227,8 @@ class RuleGen:
         can easily be updated. The end result will be of shape (n_clusters, n_outcomes). 
         In laymans terms: this method will generate a rule for every cluster partition. The probabilities will 
         sum up to one and are either given or they can be randomly generated (uniformly distributed).
+        They can also be intentionally set to None. This is useful for finding rules automatically using the 
+        Genetic Programming which will be published in the future.
         """
         if select is True:
             self.var_selector()
@@ -291,7 +299,7 @@ class RuleGen:
                             self.n_consequents[k], self.genprobas[k])
                 else:
 
-                    # usefull for estiamting probabilties
+                    # useful for estimating probabilties
                     if self.probas is None:
 
                         if self.generateprobas is False:
