@@ -77,7 +77,7 @@ class LinguisticVariable(object):
 		return min(mins), max(maxs)
 
 
-	def draw(self, ax, TGT=None):
+	def draw(self, ax, TGT=None, highlight=None):
 		"""
 		This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 
@@ -90,21 +90,34 @@ class LinguisticVariable(object):
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
 
-		linestyles= ["-", "--", ":", "-."]
+		
+		if highlight is None:
+			linestyles= ["-", "--", ":", "-."]
+		else:
+			linestyles= ["-"]*4
+
 
 		for nn, fs in enumerate(self._FSlist):
 			if fs._type == "function":
 				y = [fs.get_value(xx) for xx in x]
-				ax.plot(x,y, linestyles[nn%4], label=fs._term, )
+				color = None
+				lw = 1
+
+				if highlight==fs._term: 
+					color="red"
+					lw =5 
+				elif highlight is not None:
+					color="lightgray"
+				ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
 			else:
 				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
-				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
+				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))				
 				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
 				if TGT is not None:
 					ax.plot(TGT, f(TGT), "*", ms=10, label="x")
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
-		ax.legend(loc="best")
+		if highlight is None: ax.legend(loc="best")
 		return ax
 
 
