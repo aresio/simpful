@@ -19,7 +19,7 @@ class FuzzyAggregator(object):
 		Adds variables and their fuzzy sets to perform fuzzy aggregation.
 
 		Args:
-			FuzzySet objects, whose 'term' is the name of the variable.
+			*args: 'FuzzySet' objects, whose 'term' argument is the name of the variable.
 		"""
 		for v in args:
 			if isinstance(v, FuzzySet):
