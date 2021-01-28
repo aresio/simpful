@@ -10,6 +10,7 @@ from simpful import rules
 
 
 def swap_none(rules, probas_):
+    
     numb_none = [re.findall(r"None", rule) for rule in rules]
     rules_numb = len(numb_none)
     probas_numb = len(numb_none[0])
