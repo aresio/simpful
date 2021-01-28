@@ -85,34 +85,8 @@ print(tip)
 
 ### Example 3: Probabilistic Classification based on a Takagi Sugeno approach.
 
-Simpful now supports classification using conditional probabilities. Please keep in mind that these probabilities can not be estimated automatically yet and have to be fed to the system when defining the rules. The implementation is based on the following paper: [Function approximation using probabilistic fuzzy systems](https://research.tue.nl/en/publications/function-approximation-using-probabilistic-fuzzy-systems).
+Simpful now supports classification using conditional probabilities. Please keep in mind that these probabilities can not be estimated automatically yet and have to be fed to the system when defining the rules. The implementation is based on the following paper: [Function approximation using probabilistic fuzzy systems](https://research.tue.nl/en/publications/function-approximation-using-probabilistic-fuzzy-systems). For a detailed example please view: https://github.com/Nikhilrs1993/PFS_Walkthrough_Example
 
-```
-
-import simpful as sf
-
-# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
-
-# Initialize class
-FS = sf.FuzzySystem()
-
-# Define a linguistic variable.
-S_1 = sf.FuzzySet( points=[[0, 1.],  [1., 1.],  [1.5, 0]],          term="low_flow" )
-S_2 = sf.FuzzySet( points=[[0.5, 0], [1.5, 1.], [2.5, 1], [3., 0]], term="medium_flow" )
-S_3 = sf.FuzzySet( points=[[2., 0],  [2.5, 1.], [3., 1.]],          term="high_flow" )
-FS.add_linguistic_variable("OXI", sf.LinguisticVariable( [S_1, S_2, S_3] ))
-
-# Define fuzzy rules.
-RULE1 = "IF (OXI IS low_flow) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
-RULE2 = "IF (OXI IS medium_flow) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
-RULE3 = "IF (NOT (OXI IS low_flow)) THEN P(POWER IS LOW_POWER)=0.33, P(POWER IS MEDIUM_POWER)=0.33, P(POWER IS HIGH_POWER)=0.34"
-FS.add_proba_rules([RULE1, RULE2, RULE3])
-
-# Set Variable, perform probabilistic inference and print output values.
-FS.set_variable("OXI", .51)
-print(FS.inference())
-
-```
 ## Additional examples
 
 Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
