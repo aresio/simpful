@@ -88,7 +88,7 @@ class LinguisticVariable(object):
 		return min(mins), max(maxs)
 
 
-	def draw(self, ax, TGT=None):
+	def draw(self, ax, TGT=None, highlight=None):
 		"""
 		This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 
@@ -101,21 +101,34 @@ class LinguisticVariable(object):
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
 
-		linestyles= ["-", "--", ":", "-."]
+		
+		if highlight is None:
+			linestyles= ["-", "--", ":", "-."]
+		else:
+			linestyles= ["-"]*4
+
 
 		for nn, fs in enumerate(self._FSlist):
 			if fs._type == "function":
 				y = [fs.get_value(xx) for xx in x]
-				ax.plot(x,y, linestyles[nn%4], label=fs._term, )
+				color = None
+				lw = 1
+
+				if highlight==fs._term: 
+					color="red"
+					lw =5 
+				elif highlight is not None:
+					color="lightgray"
+				ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
 			else:
 				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
-				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(0,0))
+				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(fs.boundary_values[0], fs.boundary_values[1]))
 				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
 				if TGT is not None:
 					ax.plot(TGT, f(TGT), "*", ms=10, label="x")
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
-		ax.legend(loc="best")
+		if highlight is None: ax.legend(loc="best")
 		return ax
 
 
@@ -199,9 +212,9 @@ class FuzzySystem(object):
 		Creates a new fuzzy system.
 
 		Args:
-			operators: a list of strings, specifying fuzzy operators to be used instead of defaults.
-			Currently supported operators: 'AND_PRODUCT'.
+			operators: a list of strings, specifying fuzzy operators to be used instead of defaults. Currently supported operators: 'AND_PRODUCT'.
 			show_banner: True/False, toggles display of banner.
+			sanitize_input: sanitize variables' names to eliminate non-accepted characters (under development).
 			verbose: True/False, toggles verbose mode.
 	"""
 
@@ -213,12 +226,16 @@ class FuzzySystem(object):
 		self._crispvalues = {}
 		self._outputfunctions = {}
 		self._outputfuzzysets = {}
-		if show_banner: self._banner()
+
+		self._constants = []
+		
 		self._operators = operators
 		self._sanitize_input = sanitize_input
 		self._detected_type = None
 		if sanitize_input and verbose:
 			print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
+
+		if show_banner: self._banner()
 
 	def _banner(self):
 		import pkg_resources
@@ -229,7 +246,7 @@ class FuzzySystem(object):
 		print(" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
 		print()
 		print(" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
-		print(" and Simone Spolaor (simone.spolaor@disco.unimib.it)")
+		print(" and Simone Spolaor (simone.spolaor@unimib.it)")
 		print()
 
 
@@ -250,6 +267,23 @@ class FuzzySystem(object):
 		except ValueError:
 			raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
+	def set_constant(self, name, value, verbose=False):
+		"""
+		Sets the numerical value of a linguistic variable to a constant value (i.e. ignore fuzzy inference).
+
+		Args:
+			name: name of the linguistic variables to be set to a constant value.
+			value: numerical value to be set.
+			verbose: True/False, toggles verbose mode.
+		"""
+		if self._sanitize_input: name = self._sanitize(name)
+		try: 
+			value = float(value)
+			self._variables[name] = value
+			self._constants.append(name)
+			if verbose: print(" * Variable %s set to a constant value %f" % (name, value))
+		except ValueError:
+			raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
 	def add_rules_from_file(self, path, verbose=False):
 		"""
@@ -329,7 +363,7 @@ class FuzzySystem(object):
 		Args:
 			name: string containing the identifying name of the output function.
 			function: string containing the output function to be added to the fuzzy system.
-			The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
+				The function specified in the string must use the names of linguistic variables contained in the fuzzy system object.
 			verbose: True/False, toggles verbose mode.
 		"""
 		if self._sanitize_input: name = self._sanitize(name)
@@ -390,7 +424,12 @@ class FuzzySystem(object):
 					else:
 						string_to_evaluate = self._outputfunctions[outterm]
 						for k,v in self._variables.items():
-							string_to_evaluate = string_to_evaluate.replace(k,str(v))
+							# old version
+							# string_to_evaluate = string_to_evaluate.replace(k,str(v))
+
+							# match a variable name preceeded or followed by non-alphanumeric and _ characters
+							# substitute it with its numerical value
+							string_to_evaluate = re.sub(r"(?P<front>\W|^)"+k+r"(?P<end>\W|$)", r"\g<front>"+str(v)+r"\g<end>", string_to_evaluate)
 						crispvalue = eval(string_to_evaluate)						
 
 					try:
@@ -495,15 +534,26 @@ class FuzzySystem(object):
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
-		# default: inference on ALL rules/terms
 		if self._sanitize and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
+		
+		# default: inference on ALL rules/terms
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
 
 		array_rules = array(self._rules, dtype='object')
-		result = self.mediate(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
+		if len(self._constants)==0:
+			result = self.mediate(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
+		else:
+			#remove constant variables from list of variables to infer
+			ncost_terms = [t for t in terms if t not in self._constants]
+			result = self.mediate(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
+			#add values of constant variables
+			cost_terms = [t for t in terms if t in self._constants]
+			for name in cost_terms:
+				result[name] = self._variables[name]
+		
 		return result
 
 
@@ -520,20 +570,34 @@ class FuzzySystem(object):
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
-
-		# default: inference on ALL rules/terms
 		if self._sanitize and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
+		
+		# default: inference on ALL rules/terms
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
 
 		array_rules = array(self._rules, dtype=object)
-		result = self.mediate_Mamdani( terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+		if len(self._constants)==0:
+			result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+		else:
+			#remove constant variables from list of variables to infer
+			ncost_terms = [t for t in terms if t not in self._constants]
+			result = self.mediate_Mamdani(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+			#add values of constant variables
+			cost_terms = [t for t in terms if t in self._constants]
+			for name in cost_terms:
+				result[name] = self._variables[name]
+
 		return result
 
 
-	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000, return_class = False):
+	def probabilistic_inference(self, terms=None, ignore_errors=False, verbose=False):
+		raise NotImplementedError()
+
+
+	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
 		"""
 		Performs the fuzzy inference, trying to automatically choose the correct inference engine.
 
@@ -1133,6 +1197,23 @@ class ProbaFuzzySystem(FuzzySystem, RuleGen):
 			return preds_
 
 
+	def aggregate(self, list_variables, function):
+		"""
+		Performs a fuzzy aggregation of linguistic variables contained in a FuzzySystem object.
+
+		Args:
+			list_variables: list of linguistic variables names in the FuzzySystem object to aggregate.
+			function: pointer to an aggregation function. The function must accept as an argument a list of membership values.
+
+		Returns:
+			the aggregated membership values.
+		""" 
+		memberships = []
+		for variable, fuzzyset in list_variables.items():
+			value = self._variables[variable]
+			result = self._lvs[variable].get_values(value)[fuzzyset]
+			memberships.append(result)
+		return function(memberships)
 
 if __name__ == '__main__':
 	pass

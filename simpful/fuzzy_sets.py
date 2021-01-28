@@ -18,6 +18,7 @@ class MF_object(object):
 def _gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
+
 class Triangular_MF(MF_object):
 	"""
 		Creates a normalized triangular membership function.
@@ -203,8 +204,32 @@ class DoubleGaussian_MF(MF_object):
 	def _execute(self, x):
 		first = _gaussian(x, self._mu1, self._sigma1)
 		second = _gaussian(x, self._mu2, self._sigma2)
-		return first*second
 
+		if x <= self._mu1:
+			return first
+		elif x>= self._mu2:
+			return second
+		else:
+			return 1.0
+
+
+class Crisp_MF(MF_object):
+	"""
+		Creates a crisp membership function.
+
+		Args:
+			a: left extreme value of the set.
+			b: right extreme value of the set.
+	"""
+	
+	def __init__(self, a, b):
+		self._left = a
+		self._right = b
+
+	def _execute(self, x):
+		if x<self._left: return 0
+		if x>self._right: return 0
+		return 1
 
 class FuzzySet(object):
 	"""
@@ -233,6 +258,8 @@ class FuzzySet(object):
 			raise Exception("ERROR: more than one point required")
 		if term=="":
 			raise Exception("ERROR: please specify a linguistic term")
+		for p in points:
+			if len(p)>2: raise Exception("ERROR: one fuzzy set named \""+self._term+"\" has more than two coordinates.")
 		self._type = "pointbased"
 		self._high_quality_interpolate = high_quality_interpolate
 		self._points = array(points)
@@ -259,7 +286,6 @@ class FuzzySet(object):
 			Returns: 
 				The membership value of v to this Fuzzy Set.
 		"""
-
 		if self._type == "function":
 			return self._funpointer(v)
 
@@ -303,7 +329,6 @@ class FuzzySet(object):
 		return self.boundary_values[1] # fallback for values outside the Universe of the discourse
 
 	def _fast_interpolate(self, x0, y0, x1, y1, x):
-		#print(x0, y0, x1, y1, x); exit()
 		return y0 + (x-x0) * ((y1-y0)/(x1-x0))
 
 
@@ -413,8 +438,23 @@ class DoubleGaussianFuzzySet(FuzzySet):
 			sigma1: standard deviation of the first distribution.
 			mu2: mean of the second distribution.
 			sigma2: standard deviation of the second distribution.
+			term: string representing the linguistic term to be associated to the fuzzy set.
 	"""
 
 	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
-		super().__init__(function=doublegaussian_MF, term=term)
+		super().__init__(function=doublegaussian_MF, term=term)	
+
+class CrispSet(FuzzySet):
+	"""
+		Creates a new crisp set.
+		
+		Args:
+			a: left extreme value of the set.
+			b: right extreme value of the set.
+			term: string representing the linguistic term to be associated to the crisp set.
+	"""
+
+	def __init__(self, a, b, term):
+		crisp_MF = Crisp_MF(a, b)
+		super().__init__(function=crisp_MF, term=term)
