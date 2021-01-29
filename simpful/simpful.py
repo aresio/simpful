@@ -83,7 +83,8 @@ class LinguisticVariable(object):
 
 		Args:
 			ax: the axis to plot to.
-			TGT: show the memberships of a specific element of discourse TGT in the figure. 
+			TGT: show the memberships of a specific element of discourse TGT in the figure.
+			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
 		Returns:
 			A matplotlib axis, representing all fuzzy sets contained in the liguistic variable.
 		"""
@@ -532,7 +533,13 @@ class FuzzySystem(object):
 		# default: inference on ALL rules/terms
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
-			terms= list(set(temp))
+			terms = list(set(temp))
+		else:
+			# get rid of duplicates in terms to infer
+			terms = list(set(terms))
+			for t in terms:
+				if t not in set([rule[1][0] for rule in self._rules]):
+					raise Exception("ERROR: Variable "+t+" does not appear in any consequent.")
 
 		array_rules = array(self._rules, dtype='object')
 		if len(self._constants)==0:
@@ -569,6 +576,12 @@ class FuzzySystem(object):
 		if terms == None:
 			temp = [rule[1][0] for rule in self._rules] 
 			terms= list(set(temp))
+		else:
+			# get rid of duplicates in terms to infer
+			terms = list(set(terms))
+			for t in terms:
+				if t not in set([rule[1][0] for rule in self._rules]):
+					raise Exception("ERROR: Variable "+t+" does not appear in any consequent.")
 
 		array_rules = array(self._rules, dtype=object)
 		if len(self._constants)==0:
