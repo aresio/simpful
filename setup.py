@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
   name = 'simpful',
   packages = ['simpful'], # this must be the same as the name above
-  version = '2.4.2',
+  version = '2.4.3',
   description = 'A user-friendly Python library for fuzzy logic',
   author = 'Marco S. Nobile',
   author_email = 'm.s.nobile@tue.nl',
