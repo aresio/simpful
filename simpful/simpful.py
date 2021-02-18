@@ -625,7 +625,7 @@ class FuzzySystem(object):
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
 
-	def produce_figure(self, outputfile='output.pdf'):
+	def produce_figure(self, outputfile='output.pdf', max_figures_per_row=4):
 		"""
 		Plots the membership functions of each linguistic variable contained in the fuzzy system.
 
@@ -637,9 +637,12 @@ class FuzzySystem(object):
 
 		num_ling_variables = len(self._lvs)
 		#print(" * Detected %d linguistic variables" % num_ling_variables)
-		columns = min(num_ling_variables, 4)
-		if num_ling_variables>4:
-			rows = num_ling_variables//4 + 1
+		columns = min(num_ling_variables, max_figures_per_row)
+		if num_ling_variables>max_figures_per_row:
+			if num_ling_variables%max_figures_per_row==0:
+				rows = num_ling_variables//max_figures_per_row 
+			else:
+				rows = num_ling_variables//max_figures_per_row + 1
 		else:
 			rows = 1
 
@@ -650,15 +653,15 @@ class FuzzySystem(object):
 
 		n = 0
 		for k, v in self._lvs.items():
-			r = n%4
-			c = n//4
+			r = n%max_figures_per_row
+			c = n//max_figures_per_row
 			v.draw(ax[c][r])
 			ax[c][r].set_ylim(0,1)
 			n+=1
 
 		for m in range(n, columns*rows):
-			r = m%4
-			c = m//4
+			r = m%max_figures_per_row
+			c = m//max_figures_per_row
 			ax[c][r].axis('off')
 
 		fig.tight_layout()
