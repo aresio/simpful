@@ -461,7 +461,7 @@ class FuzzySystem(object):
 				print(" * Processing output for variable '%s'" %  output)
 				print("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
 				print("   contains the following fuzzy sets:", self._lvs[output]._FSlist )
-			cuts_list = defaultdict()
+			cuts_list = defaultdict(list)
 
 			x0, x1 = self._lvs[output].get_universe_of_discourse()
 
@@ -482,7 +482,7 @@ class FuzzySystem(object):
 						+ " --- PROBLEMATIC RULE:\n"
 						+ "IF " + str(ant) + " THEN " + str(res) + "\n")
 
-					cuts_list[outterm] = value
+					cuts_list[outterm].append(value)
 
 			values = []
 			weightedvalues = []
@@ -494,14 +494,13 @@ class FuzzySystem(object):
 			if verbose: print ( " * Indices:", convenience_dict)
 
 			for u in integration_points:
-				#print ("x=%.1f" % u)
 				comp_values = []
-				for k,v in cuts_list.items():
-					# result = float(self._outputfuzzysets[k].get_value_cut(u, cut=v))
-					n = convenience_dict[k]					
-					fs_term = self._lvs[output]._FSlist[n]
-					result = float(fs_term.get_value_cut(u, cut=v))
-					comp_values.append(result)
+				for k, v_list in cuts_list.items():
+					for v in v_list:
+						n = convenience_dict[k]					
+						fs_term = self._lvs[output]._FSlist[n]
+						result = float(fs_term.get_value_cut(u, cut=v))
+						comp_values.append(result)
 				keep = max(comp_values)
 				values.append(keep)
 				weightedvalues.append(keep*u)
