@@ -114,20 +114,22 @@ class LinguisticVariable(object):
 				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
 				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(fs.boundary_values[0], fs.boundary_values[1]))
 				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
-				if TGT is not None:
-					ax.plot(TGT, f(TGT), "*", ms=10, label="x")
+		if TGT is not None:
+			ax.axvline(x=TGT, ymin=0.0, ymax=1.0, color="red", linestyle="--", linewidth=2.0)
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
 		if highlight is None: ax.legend(loc="best")
 		return ax
 
 
-	def plot(self, TGT=None):
+	def plot(self, outputfile="", TGT=None, highlight=None):
 		"""
 		Shows a plot representing all fuzzy sets contained in the liguistic variable.
 
 		Args:
-			TGT: show the memberships of a specific element of discourse TGT in the figure. 
+			outputfile: path and filename where the plot must be saved.
+			TGT: show the memberships of a specific element of discourse TGT in the figure.
+			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
 		"""
 		try:
 			from matplotlib.pyplot import plot, show, title, subplots, legend
@@ -139,7 +141,11 @@ class LinguisticVariable(object):
 			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		fig, ax = subplots(1,1)
-		self.draw(ax=ax, TGT=TGT)
+		self.draw(ax=ax, TGT=TGT, highlight=highlight)
+
+		if outputfile != "":
+			fig.savefig(outputfile)
+
 		show()
 		
 		
@@ -505,8 +511,15 @@ class FuzzySystem(object):
 				values.append(keep)
 				weightedvalues.append(keep*u)
 
-			sumwv = sum(weightedvalues); sumv = sum(values)
-			CoG = sumwv/sumv
+			sumwv = sum(weightedvalues)
+			sumv = sum(values)
+			
+			if sumv == 0.0:
+				CoG = 0
+				print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Mamdani inference was set to 0." % output)
+			else:
+				CoG = sumwv/sumv
+			
 			if verbose: print (" * Weighted values: %.2f\tValues: %.2f\tCoG: %.2f"% (sumwv, sumv, CoG))
 			
 			final_result[output] = CoG 
@@ -623,6 +636,19 @@ class FuzzySystem(object):
 		else:
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
+
+	def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None):
+		"""
+		Plots all fuzzy sets contained in a liguistic variable. An option for saving the figure is provided.
+
+		Args:
+			var_name: string containing the name of the linguistic variable to plot.
+			outputfile: path and filename where the plot must be saved.
+			TGT: a specific element of the universe of discourse to be highlighted in the figure. 
+			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot. 
+		"""
+		self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight)
+
 
 	def produce_figure(self, outputfile='output.pdf', max_figures_per_row=4):
 		"""
