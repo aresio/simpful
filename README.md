@@ -17,7 +17,7 @@ If you find Simpful useful for your research, please cite our work as follows:
 Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful: a user-friendly Python library for fuzzy logic, International Journal of Computational Intelligence Systems, 13(1):1687–1698, 2020
 [DOI:10.2991/ijcis.d.201012.002](https://doi.org/10.2991/ijcis.d.201012.002)
 
-## Usage example 1: tipping with Sugeno
+## Usage example 1: controlling a gas burner with a Takagi-Sugeno fuzzy system
 
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
 
@@ -51,7 +51,7 @@ FS.set_variable("OXI", .51)
 print (FS.Sugeno_inference(['POWER']))
 ```
 
-## Usage example 2: tipping with Mamdani 
+## Usage example 2: tipping with a Mamdani fuzzy system 
 
 This second example shows how to model a FIS using Mamdani inference. It also shows some facilities 
 that make modeling more concise and clear: automatic Triangles (i.e., pre-baked linguistic variables 
@@ -84,7 +84,7 @@ tip = FS.inference()
 ```
 ## Additional examples
 
-Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
+Additional example scripts are available in the [examples folder](https://github.com/aresio/simpful/tree/master/examples) of this GitHub and in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
 
 ## Further info
 Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
