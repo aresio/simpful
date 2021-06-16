@@ -681,7 +681,7 @@ class FuzzySystem(object):
 			r = n%max_figures_per_row
 			c = n//max_figures_per_row
 			v.draw(ax[c][r])
-			ax[c][r].set_ylim(0,1)
+			ax[c][r].set_ylim(0,1.05)
 			n+=1
 
 		for m in range(n, columns*rows):
