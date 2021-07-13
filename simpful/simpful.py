@@ -3,7 +3,7 @@ from .rule_parsing import curparse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import re
 import string
 try:
@@ -217,11 +217,11 @@ class FuzzySystem(object):
 	def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True):
 
 		self._rules = []
-		self._lvs = {}
-		self._variables = {}
-		self._crispvalues = {}
-		self._outputfunctions = {}
-		self._outputfuzzysets = {}
+		self._lvs = OrderedDict()
+		self._variables = OrderedDict()
+		self._crispvalues = OrderedDict()
+		self._outputfunctions = OrderedDict()
+		self._outputfuzzysets = OrderedDict()
 
 		self._constants = []
 		
