@@ -42,12 +42,12 @@ class FuzzyAggregator(object):
 		except ValueError:
 			raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
-	def aggregate(self, variables, aggregation_fun="product"):
+	def aggregate(self, variables=None, aggregation_fun="product"):
 		"""
 		Performs fuzzy aggregation.
 
 		Args:
-			variables: list of variables names to be aggregated.
+			variables: list of variables names to be aggregated.  If empty, all added variables are aggregated.
 			aggregation_fun: pointer to a fuzzy aggregation function or string name of an implemented aggregation method. Default method is "product".
 				Currently implemented methods: product, min, max, arit_mean
 		Returns:
@@ -55,6 +55,10 @@ class FuzzyAggregator(object):
 		"""
 		# In development
 		
+		# default: aggregate ALL variables
+		if variables == None:
+			variables = list(set(self._variables.keys()))
+
 		if len(variables) > len(set(variables)):
 			raise Exception("ERROR: provided list of variables to aggregate contains two or more repetitions, terminating.")
 
