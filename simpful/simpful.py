@@ -155,7 +155,7 @@ class LinguisticVariable(object):
 			text = "N/A"
 		else:
 			text = self._concept
-		return "L.V.: "+text
+		return "<Linguistic variable '"+text+"', contains fuzzy sets %s, universe of discourse: %s>" % (str(self._FSlist), str(self._universe_of_discourse))
 
 
 class AutoTriangle(LinguisticVariable):
@@ -246,6 +246,26 @@ class FuzzySystem(object):
 		print(" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
 		print(" and Simone Spolaor (simone.spolaor@unimib.it)")
 		print()
+
+
+	# EXPERIMENTAL GETTERS
+
+	def get_fuzzy_sets(self, variable_name): 
+		try:
+			return self._lvs[variable_name]
+		except ValueError:
+			raise Exception("ERROR: linguistic variable %s does not exist" % variable_name)
+
+	def get_fuzzy_set(self, variable_name, fs_name): 
+		try:
+			LV =  self._lvs[variable_name]
+		except ValueError:
+			raise Exception("ERROR: linguistic variable %s does not exist" % (variable_name))
+
+		for fs in LV._FSlist:
+			if fs._term==fs_name:		return fs
+
+		raise Exception("ERROR: fuzzy set %s of linguistic variable %s does not exist" % (fs_name, variable_name))
 
 
 	def set_variable(self, name, value, verbose=False):
