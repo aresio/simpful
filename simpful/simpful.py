@@ -111,7 +111,7 @@ class LinguisticVariable(object):
 					color="lightgray"
 				ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
 			else:
-				sns.regplot(fs._points.T[0], fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
+				sns.regplot(x=fs._points.T[0], y=fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
 				f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(fs.boundary_values[0], fs.boundary_values[1]))
 				ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
 		if TGT is not None:
@@ -247,8 +247,6 @@ class FuzzySystem(object):
 		print(" and Simone Spolaor (simone.spolaor@unimib.it)")
 		print()
 
-
-	# EXPERIMENTAL GETTERS
 
 	def get_fuzzy_sets(self, variable_name):
 		"""
