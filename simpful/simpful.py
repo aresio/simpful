@@ -252,7 +252,7 @@ class FuzzySystem(object):
 
 	def get_fuzzy_sets(self, variable_name): 
 		try:
-			return self._lvs[variable_name]
+			return self._lvs[variable_name]._FSlist
 		except ValueError:
 			raise Exception("ERROR: linguistic variable %s does not exist" % variable_name)
 
