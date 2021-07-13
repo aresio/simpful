@@ -316,6 +316,20 @@ class FuzzySet(object):
 		result = integrate.quad(self.get_value_cut, x0, x1, args=(cut))
 		return result[0]
 
+	def set_params():
+		print("Attention: this is a virtual method for setting parameters of pre-baked fuzzy sets.")
+
+	def set_points(self, points):
+		if len(points)<2: 
+			raise Exception("ERROR: more than one point required")
+		if self._type == "function":
+			print("WARNING: the fuzzy set named \""+self._term+"\" was converted from function-based to point-based.")
+		for p in points:
+			if len(p)>2: raise Exception("ERROR: one point in \""+self._term+"\" has more than two coordinates.")
+		self._type = "pointbased"
+		self._high_quality_interpolate = False
+		self._points = array(points)
+		self.boundary_values = [self._points.T[1][0], self._points.T[1][-1]]
 
 ###############################
 # USEFUL PRE-BAKED FUZZY SETS #
@@ -334,7 +348,20 @@ class TriangleFuzzySet(FuzzySet):
 
 	def __init__(self, a, b, c, term):
 		triangle_MF = Triangular_MF(a,b,c)
-		super().__init__(function=triangle_MF, term=term)	
+		super().__init__(function=triangle_MF, term=term)
+
+	def set_params(self, a=None, b=None, c=None):
+		"""
+		Changes parameters of the triangular fuzzy set.
+
+		Args:
+			a: universe of discourse coordinate of the leftmost vertex.
+			b: universe of discourse coordinate of the upper vertex.
+			c: universe of discourse coordinate of the rightmost vertex.
+		"""
+		if a is not None: self._funpointer._a = a
+		if b is not None: self._funpointer._b = b
+		if c is not None: self._funpointer._c = c
 
 class TrapezoidFuzzySet(FuzzySet):
 	"""
@@ -350,7 +377,22 @@ class TrapezoidFuzzySet(FuzzySet):
 
 	def __init__(self, a, b, c, d, term):
 		trapezoid_MF = Trapezoidal_MF(a,b,c,d)
-		super().__init__(function=trapezoid_MF, term=term)	
+		super().__init__(function=trapezoid_MF, term=term)
+
+	def set_params(self, a=None, b=None, c=None, d=None):
+		"""
+		Changes parameters of the trapezoidal fuzzy set.
+
+		Args:
+			a: universe of discourse coordinate of the leftmost vertex.
+			b: universe of discourse coordinate of the upper left vertex.
+			c: universe of discourse coordinate of the upper right vertex.
+			d: universe of discourse coordinate of the rightmost vertex.
+		"""
+		if a is not None: self._funpointer._a = a
+		if b is not None: self._funpointer._b = b
+		if c is not None: self._funpointer._c = c
+		if d is not None: self._funpointer._d = d
 
 class SigmoidFuzzySet(FuzzySet):
 	"""
@@ -364,7 +406,18 @@ class SigmoidFuzzySet(FuzzySet):
 
 	def __init__(self, c, a, term):
 		sigmoid_MF = Sigmoid_MF(c,a)
-		super().__init__(function=sigmoid_MF, term=term)	
+		super().__init__(function=sigmoid_MF, term=term)
+
+	def set_params(self, c=None, a=None):
+		"""
+		Changes parameters of the sigmoidal fuzzy set.
+
+		Args:
+			c: universe of discourse coordinate of inflection point.
+			a: steepness of the curve.
+		"""
+		if c is not None: self._funpointer._c = c
+		if a is not None: self._funpointer._a = a
 
 class InvSigmoidFuzzySet(FuzzySet):
 	"""
@@ -378,7 +431,18 @@ class InvSigmoidFuzzySet(FuzzySet):
 
 	def __init__(self, c, a, term):
 		invsigmoid_MF = InvSigmoid_MF(c,a)
-		super().__init__(function=invsigmoid_MF, term=term)	
+		super().__init__(function=invsigmoid_MF, term=term)
+
+	def set_params(self, c=None, a=None):
+		"""
+		Changes parameters of the inversed sigmoidal fuzzy set.
+
+		Args:
+			c: universe of discourse coordinate of inflection point.
+			a: steepness of the curve.
+		"""
+		if c is not None: self._funpointer._c = c
+		if a is not None: self._funpointer._a = a
 
 class GaussianFuzzySet(FuzzySet):
 	"""
@@ -392,7 +456,18 @@ class GaussianFuzzySet(FuzzySet):
 	
 	def __init__(self, mu, sigma, term):
 		gaussian_MF = Gaussian_MF(mu,sigma)
-		super().__init__(function=gaussian_MF, term=term)	
+		super().__init__(function=gaussian_MF, term=term)
+
+	def set_params(self, mu=None, sigma=None):
+		"""
+		Changes parameters of the Gaussian fuzzy set.
+
+		Args:
+			mu: mean of the distribution.
+			sigma: standard deviation of the distribution.
+		"""
+		if mu is not None: self._funpointer._mu = mu
+		if sigma is not None: self._funpointer._sigma = sigma
 
 class InvGaussianFuzzySet(FuzzySet):
 	"""
@@ -406,7 +481,18 @@ class InvGaussianFuzzySet(FuzzySet):
 	
 	def __init__(self, mu, sigma, term):
 		invgaussian_MF = InvGaussian_MF(mu,sigma)
-		super().__init__(function=invgaussian_MF, term=term)	
+		super().__init__(function=invgaussian_MF, term=term)
+
+	def set_params(self, mu=None, sigma=None):
+		"""
+		Changes parameters of the inversed Gaussian fuzzy set.
+
+		Args:
+			mu: mean of the distribution.
+			sigma: standard deviation of the distribution.
+		"""
+		if mu is not None: self._funpointer._mu = mu
+		if sigma is not None: self._funpointer._sigma = sigma
 
 class DoubleGaussianFuzzySet(FuzzySet):
 	"""
@@ -422,7 +508,22 @@ class DoubleGaussianFuzzySet(FuzzySet):
 
 	def __init__(self, mu1, sigma1, mu2, sigma2,  term):
 		doublegaussian_MF = DoubleGaussian_MF(mu1, sigma1, mu2, sigma2)
-		super().__init__(function=doublegaussian_MF, term=term)	
+		super().__init__(function=doublegaussian_MF, term=term)
+
+	def set_params(self, mu1=None, sigma1=None, mu2=None, sigma2=None):
+		"""
+		Changes parameters of the double Gaussian fuzzy set.
+
+		Args:
+			mu1: mean of the first distribution.
+			sigma1: standard deviation of the first distribution.
+			mu2: mean of the second distribution.
+			sigma2: standard deviation of the second distribution.
+		"""
+		if mu1 is not None: self._funpointer._mu1 = mu1
+		if sigma1 is not None: self._funpointer._sigma1 = sigma1
+		if mu2 is not None: self._funpointer._mu2 = mu2
+		if sigma2 is not None: self._funpointer._sigma2 = sigma2
 
 class CrispSet(FuzzySet):
 	"""
@@ -437,3 +538,14 @@ class CrispSet(FuzzySet):
 	def __init__(self, a, b, term):
 		crisp_MF = Crisp_MF(a, b)
 		super().__init__(function=crisp_MF, term=term)
+
+	def set_params(self, a=None, b=None):
+		"""
+		Changes parameters of the crisp set.
+
+		Args:
+			a: left extreme value of the set.
+			b: right extreme value of the set.
+		"""
+		if a is not None: self._funpointer._left = a
+		if b is not None: self._funpointer._right = b

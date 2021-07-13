@@ -62,7 +62,7 @@ class LinguisticVariable(object):
 		This method provides the leftmost and rightmost values of the universe of discourse of the linguistic variable.
 
 		Returns:
-			the two extreme values of the universe of discourse
+			the two extreme values of the universe of discourse.
 		"""
 		if self._universe_of_discourse is not None:
 			return self._universe_of_discourse
@@ -250,13 +250,32 @@ class FuzzySystem(object):
 
 	# EXPERIMENTAL GETTERS
 
-	def get_fuzzy_sets(self, variable_name): 
+	def get_fuzzy_sets(self, variable_name):
+		"""
+			Returns the list of FuzzySet objects associated to one linguistic variable.
+			
+			Args:
+				variable_name: name of the linguistic variable.
+
+			Returns:
+				a list containing FuzzySet objects.
+		"""
 		try:
 			return self._lvs[variable_name]._FSlist
 		except ValueError:
 			raise Exception("ERROR: linguistic variable %s does not exist" % variable_name)
 
-	def get_fuzzy_set(self, variable_name, fs_name): 
+	def get_fuzzy_set(self, variable_name, fs_name):
+		"""
+			Returns a FuzzySet object associated to a linguistic variable.
+			
+			Args:
+				variable_name: name of the linguistic variable.
+				fs_name: linguistic term associated to the fuzzy set.
+
+			Returns:
+				a FuzzySet object.
+		"""
 		try:
 			LV =  self._lvs[variable_name]
 		except ValueError:
@@ -326,7 +345,7 @@ class FuzzySystem(object):
 
 		Args:
 			rules: list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful's syntax.
-			sanitize: True/False, automatically removes non alphanumeric symbols from rules
+			sanitize: True/False, automatically removes non alphanumeric symbols from rules.
 			verbose: True/False, toggles verbose mode.
 		"""
 		for rule in rules:
@@ -400,11 +419,11 @@ class FuzzySystem(object):
 
 	def get_firing_strengths(self):
 		"""
-			This method returns a list of the firing strengths of the the rules, 
+			Returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
 
 			Returns:
-				a list containing rules' firing strengths
+				a list containing rules' firing strengths.
 		"""
 		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
 		return results
