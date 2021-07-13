@@ -215,7 +215,7 @@ class FuzzySet(object):
 		Creates a new fuzzy set.
 
 		Args:
-			points: list of points to define a polygonal fuzzy sets. Each point is defined  as a list of two coordinates in the universe of discourse/membership degree space.
+			points: list of points to define a polygonal fuzzy sets. Each point is defined as a list of two coordinates in the universe of discourse/membership degree space.
 			function: function to define a non-polygonal fuzzy set. Supports pre-implemented membership functions Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangle_MF, Trapezoidal_MF or user-defined functions.
 			term: string representing the linguistic term to be associated to the fuzzy set.
 			high_quality_interpolate: True/False, toggles high quality interpolation for point-based fuzzy sets. Default value is set to False.
@@ -320,6 +320,12 @@ class FuzzySet(object):
 		print("Attention: this is a virtual method for setting parameters of pre-baked fuzzy sets.")
 
 	def set_points(self, points):
+		"""
+		Changes points of the point-based fuzzy set.
+
+		Args:
+			points: a list of points to define a polygonal fuzzy sets. Each point is defined as a list of two coordinates in the universe of discourse/membership degree space.
+		"""
 		if len(points)<2: 
 			raise Exception("ERROR: more than one point required")
 		if self._type == "function":
