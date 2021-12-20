@@ -412,7 +412,7 @@ class FuzzySystem(object):
 			self._detected_type = model_type
 			print (" * Detected %s model type" % model_type )
 		elif self._detected_type != model_type:
-			print("WARNING: model type is unclear (simpful detected %s, but I received a %s output)" % (self._detected_type, model_type))
+			print("WARNING: model type is unclear (simpful detected %s, but a %s output was specified)" % (self._detected_type, model_type))
 			self._detected_type = 'inconsistent'
 
 	def get_firing_strengths(self):
@@ -428,7 +428,7 @@ class FuzzySystem(object):
 
 
 
-	def mediate(self, outputs, antecedent, results, ignore_errors=False):
+	def mediate(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False):
 
 		final_result = {}
 
@@ -436,6 +436,11 @@ class FuzzySystem(object):
 		list_output_funs  = [x[0] for x in self._outputfunctions.items()]
 
 		for output in outputs:
+			if verbose:
+				print(" * Processing output for variable '%s'" %  output)
+				print("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
+				print("   contains the following fuzzy sets:", self._lvs[output]._FSlist )
+
 			num = 0
 			den = 0
 			
@@ -481,12 +486,13 @@ class FuzzySystem(object):
 			try:
 				if den == 0.0:
 					final_result[output] = 0.0
-					print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Sugeno inference was set to 0." % output)
+					if not ignore_warnings:
+						print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Sugeno inference was set to 0." % output)
 				else:
 					final_result[output] = num / den
 
 			except ArithmeticError:
-				if ignore_errors==True:
+				if ignore_errors:
 					print("WARNING: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
 				else:
 					raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
@@ -494,7 +500,7 @@ class FuzzySystem(object):
 		return final_result
 
 
-	def mediate_Mamdani(self, outputs, antecedent, results, ignore_errors=False, verbose=False, subdivisions=1000):
+	def mediate_Mamdani(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False, subdivisions=1000):
 
 		final_result = {}
 
@@ -551,26 +557,34 @@ class FuzzySystem(object):
 			sumwv = sum(weightedvalues)
 			sumv = sum(values)
 			
-			if sumv == 0.0:
-				CoG = 0
-				print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Mamdani inference was set to 0." % output)
-			else:
-				CoG = sumwv/sumv
+			try:
+				if sumv == 0.0:
+					CoG = 0
+					if not ignore_warnings:
+						print("WARNING: the sum of rules' firing for variable '%s' is equal to 0. The result of the Mamdani inference was set to 0." % output)
+				else:
+					CoG = sumwv/sumv
 			
+			except ArithmeticError:
+				if ignore_errors:
+					print("WARNING: cannot perform Mamdani inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
+				else:
+					raise Exception("ERROR: cannot perform Mamdani inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
+
 			if verbose: print (" * Weighted values: %.2f\tValues: %.2f\tCoG: %.2f"% (sumwv, sumv, CoG))
-			
 			final_result[output] = CoG 
 
 		return final_result
 
 
-	def Sugeno_inference(self, terms=None, ignore_errors=False, verbose=False):
+	def Sugeno_inference(self, terms=None, ignore_errors=False, ignore_warnings=False, verbose=False):
 		"""
 		Performs Sugeno fuzzy inference.
 
 		Args:
 			terms: list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
 			ignore_errors: True/False, toggles the raising of errors during the inference.
+			ignore_warnings: True/False, toggles the raising of warnings during the inference.
 			verbose: True/False, toggles verbose mode.
 
 		Returns:
@@ -592,11 +606,11 @@ class FuzzySystem(object):
 
 		array_rules = array(self._rules, dtype='object')
 		if len(self._constants)==0:
-			result = self.mediate(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
+			result = self.mediate(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
 		else:
 			#remove constant variables from list of variables to infer
 			ncost_terms = [t for t in terms if t not in self._constants]
-			result = self.mediate(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors)
+			result = self.mediate(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
 			#add values of constant variables
 			cost_terms = [t for t in terms if t in self._constants]
 			for name in cost_terms:
@@ -605,7 +619,7 @@ class FuzzySystem(object):
 		return result
 
 
-	def Mamdani_inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+	def Mamdani_inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False):
 		"""
 		Performs Mamdani fuzzy inference.
 
@@ -613,6 +627,7 @@ class FuzzySystem(object):
 			terms: list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
 			subdivisions: the number of integration steps to be performed (default: 1000).
 			ignore_errors: True/False, toggles the raising of errors during the inference.
+			ignore_warnings: True/False, toggles the raising of warnings during the inference.
 			verbose: True/False, toggles verbose mode.
 
 		Returns:
@@ -634,11 +649,11 @@ class FuzzySystem(object):
 
 		array_rules = array(self._rules, dtype=object)
 		if len(self._constants)==0:
-			result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+			result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions)
 		else:
 			#remove constant variables from list of variables to infer
 			ncost_terms = [t for t in terms if t not in self._constants]
-			result = self.mediate_Mamdani(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, verbose=verbose , subdivisions=subdivisions)
+			result = self.mediate_Mamdani(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions)
 			#add values of constant variables
 			cost_terms = [t for t in terms if t in self._constants]
 			for name in cost_terms:
@@ -647,29 +662,30 @@ class FuzzySystem(object):
 		return result
 
 
-	def probabilistic_inference(self, terms=None, ignore_errors=False, verbose=False):
+	def probabilistic_inference(self, terms=None, ignore_errors=False, ignore_warnings=False, verbose=False):
 		raise NotImplementedError()
 
 
-	def inference(self, terms=None, ignore_errors=False, verbose=False, subdivisions=1000):
+	def inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False):
 		"""
 		Performs the fuzzy inference, trying to automatically choose the correct inference engine.
 
 		Args:
 			terms: list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
-			ignore_errors: True/False, toggles the raising of errors during the inference.
-			verbose: True/False, toggles verbose mode.
 			subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
+			ignore_errors: True/False, toggles the raising of errors during the inference.
+			ignore_warnings: True/False, toggles the raising of warnings during the inference.
+			verbose: True/False, toggles verbose mode.
 
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		""" 
 		if self._detected_type == "Sugeno":
-			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
+			return self.Sugeno_inference(terms=terms, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
 		elif self._detected_type == "probabilistic":
-			return self.probabilistic_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose)
+			return self.probabilistic_inference(terms=terms, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
 		elif self._detected_type is None: # default
-			return self.Mamdani_inference(terms=terms, ignore_errors=ignore_errors, verbose=verbose, subdivisions=subdivisions)
+			return self.Mamdani_inference(terms=terms, subdivisions=subdivisions, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
 		else:
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
