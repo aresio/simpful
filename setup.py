@@ -8,10 +8,10 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
   name = 'simpful',
   packages = ['simpful'], # this must be the same as the name above
-  version = '2.5.0',
+  version = '2.5.1',
   description = 'A user-friendly Python library for fuzzy logic',
   author = 'Marco S. Nobile',
-  author_email = 'm.s.nobile@tue.nl',
+  author_email = 'marco.nobile@unive.it',
   url = 'https://github.com/aresio/simpful', # use the URL to the github repo
   keywords = ['fuzzy logic', 'sugeno', 'mamdani', 'reasoner', 'python', 'modeling'], # arbitrary keywords
   license='LICENSE.txt',

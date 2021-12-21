@@ -89,4 +89,4 @@ Additional example scripts are available in the [examples folder](https://github
 ## Further info
 Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
 
-If you need further information, please write an e-mail at: m.s.nobile@tue.nl.
+If you need further information, please write an e-mail at: marco.nobile@unive.it.
