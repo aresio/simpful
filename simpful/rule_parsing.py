@@ -1,6 +1,9 @@
 import re
 from numpy import array
 
+regex_clause_with_parentheses = re.compile(r"^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
+regex_clause = re.compile(r"^[a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*$")
+
 class Clause(object):
 
 	def __init__(self, variable, term, verbose=False):
@@ -11,7 +14,7 @@ class Clause(object):
 		try:
 			ans = FuzzySystem._lvs[self._variable].get_values(FuzzySystem._variables[self._variable])
 		except KeyError:
-			raise Exception("ERROR: variable '" + self._variable + "' not defined.\n"
+			raise Exception("ERROR: variable '" + self._variable + "' not defined, or input value not given.\n"
 				+ " ---- PROBLEMATIC CLAUSE:\n"
 				+ str(self))
 		if verbose: 
@@ -35,6 +38,10 @@ class Functional(object):
 	def __init__(self, fun, A, B, operators=None):
 		self._A = A
 		self._B = B
+
+		if fun=="NOT":
+			if B == "": raise Exception("OMG")
+		elif A == "": raise Exception("OMG")
 
 		if operators is None:
 			self._fun = fun
@@ -100,54 +107,97 @@ def find_index_operator(string, verbose=False):
 		pos2+=1
 	return pos+1, pos2
 
-def curparse(STRINGA, verbose=False, operators=None):
+def recursive_parse(text, verbose=False, operators=None, allow_empty=True): 
+	# remove useless spaces around text
+	text = text.strip()
 
-	# base case
-	if STRINGA=="": return "" 
-
-	STRINGA = STRINGA.strip()
-	if STRINGA[0]!="(": STRINGA="("+STRINGA
-	if STRINGA[-1]!=")": STRINGA=STRINGA+")"
+	# case 0: empty string
+	if text=="" or text=="()": 
+		if verbose: print("WARNING: empty clause detected")
+		if not allow_empty:
+			raise Exception("ERROR: emtpy clauses not allowed") 
+		else:
+			return ""
 	
-	regex = re.compile(r"^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
-	if regex.match(STRINGA):
-		
-		if verbose:	print(" * Regular expression is matching with single atomic clause:", STRINGA)
+	# case 1: simple clause ("this IS that")
+	if regex_clause.match(text):
+		if verbose: 
+			print(" * Simple clause matched")
 
-		# base case
-		variable = STRINGA[1:STRINGA.find(" IS")].strip()
-		term	 = STRINGA[STRINGA.find(" IS")+3:-1].strip()
+		variable = text[:text.find(" IS")].strip()
+		term	 = text[text.find(" IS")+3:].strip()
 		ret_clause = Clause(variable, term, verbose=verbose)
-		if verbose:	print(" * Rule:", ret_clause)
+		if verbose:	
+			print(" * Rule:", ret_clause)
+		return ret_clause
+	
+	elif regex_clause_with_parentheses.match(text):
+		if verbose:
+			print(" * Simple clause with parentheses matched")
+
+		variable = text[1:text.find(" IS")].strip()
+		term	 = text[text.find(" IS")+3:-1].strip()
+		ret_clause = Clause(variable, term, verbose=verbose)
+		if verbose:	
+			print(" * Rule:", ret_clause)
 		return ret_clause
 
 	else:
+		if verbose:
+			print(" * Regular expression is not matching with single atomic clause")
 
-		# there can be two explanations: missing parentheses, or sub-expression
-		if verbose:	print(" * Regular expression is not matching with single atomic clause:", STRINGA)
-		
-		# try recursion
-		removed_parentheses = STRINGA[STRINGA.find("(")+1:STRINGA.rfind(")")].strip()
-		
-		# if (removed_parentheses.find("(")==-1): return curparse("("+removed_parentheses+")")
+		# possible valid cases: 
+		# 1) atomic clause
+		# 2) atomic clause OPERATOR atomic clause
+		# 3) NOT atomic clause
+		# 4) (clause OPERATOR clause)
+		# 5) ((...)) # experimental
 
-		if verbose: print("  - After parentheses removal:", removed_parentheses)
-
-		if removed_parentheses[:3]=="NOT":
+		if text[:3]=="NOT":
 			beginindop = 0
 			endindop = 3
-			#if verbose: print( " * Detected unary operator NOT")
+		elif text[:4]=="(NOT":
+			text = text[1:-1]
+			beginindop = 0
+			endindop = 3
 		else:
 			try:
-				beginindop, endindop = find_index_operator(removed_parentheses, verbose=verbose)
-			except IndexError:
-				raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
-					+ " ---- PROBLEMATIC RULE:\n"
-					+ STRINGA)
+				beginindop, endindop = find_index_operator(text, verbose=verbose)
 
-		firsthalf = removed_parentheses[:beginindop].strip()
-		secondhalf = removed_parentheses[endindop:].strip()
-		operator = removed_parentheses[beginindop:endindop].strip()
+			except IndexError:
+				# last attempt: remove parentheses (if any!)
+				try: 
+					if text[0] == "(" and text[-1] == ")": 
+						text = text[1:-1]
+						return recursive_parse(text, operators=operators, verbose=verbose, allow_empty=allow_empty)
+					else: 
+						raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+						+ " ---- PROBLEMATIC RULE:\n"
+						+ text)
+
+				except: 
+					raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+						+ " ---- PROBLEMATIC RULE:\n"
+						+ text)
+
+		firsthalf = text[:beginindop].strip()
+		secondhalf = text[endindop:].strip()
+		operator = text[beginindop:endindop].strip()
+		if operator.find(" ")>-1: 
+			if verbose: 
+				print("WARNING: space in operator '%s' detected" % operator)
+				print(" "*(28+operator.find(" "))+"^")
+			raise Exception("ERROR: operator %s invalid: cannot use spaces in operators" % operator)
+
 		if verbose:	print("  -- Found %s *%s* %s" % (firsthalf, operator, secondhalf))
-		
-		return Functional(operator, curparse(firsthalf, verbose=verbose, operators=operators), curparse(secondhalf, verbose=verbose, operators=operators), operators=operators)
+
+		try:
+			novel_fun = Functional(operator, 
+			recursive_parse(firsthalf, verbose=verbose, operators=operators, allow_empty=allow_empty), 
+			recursive_parse(secondhalf, verbose=verbose, operators=operators, allow_empty=allow_empty), 
+		operators=operators)
+		except:
+			raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
+					+ " ---- PROBLEMATIC RULE:\n"
+					+ text)
+		return novel_fun

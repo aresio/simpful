@@ -1,5 +1,5 @@
 from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
-from .rule_parsing import curparse, preparse, postparse
+from .rule_parsing import recursive_parse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
 from copy import deepcopy
@@ -351,7 +351,7 @@ class FuzzySystem(object):
 			# optional: remove invalid symbols
 			if self._sanitize_input: rule = self._sanitize(rule)
 
-			parsed_antecedent = curparse(preparse(rule), verbose=verbose, operators=self._operators)
+			parsed_antecedent = recursive_parse(preparse(rule), verbose=verbose, operators=self._operators)
 			parsed_consequent = postparse(rule, verbose=verbose)
 			self._rules.append( [parsed_antecedent, parsed_consequent] )
 			if verbose:
