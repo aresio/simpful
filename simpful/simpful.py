@@ -8,12 +8,10 @@ import re
 import string
 try:
 	from matplotlib.pyplot import plot, show, title, subplots, legend
-	try:
-		import seaborn as sns
-	except ImportError:
-		pass
+	import seaborn as sns
+	matplotlib = True
 except ImportError:
-	raise Exception("ERROR: please, install matplotlib for plotting facilities")
+	matplotlib = False
 
 # constant values
 linestyles= ["-", "--", ":", "-."]
@@ -92,6 +90,9 @@ class LinguisticVariable(object):
 		Returns:
 			A matplotlib axis, representing all fuzzy sets contained in the liguistic variable.
 		"""
+		if matplotlib == False:
+			raise Exception("ERROR: please, install matplotlib for plotting facilities")
+
 		mi, ma = self.get_universe_of_discourse()
 		x = linspace(mi, ma, 10000)
 
@@ -135,6 +136,9 @@ class LinguisticVariable(object):
 			TGT: show the memberships of a specific element of discourse TGT in the figure.
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
 		"""
+		if matplotlib == False:
+			raise Exception("ERROR: please, install matplotlib for plotting facilities")
+
 		fig, ax = subplots(1,1)
 		self.draw(ax=ax, TGT=TGT, highlight=highlight)
 
@@ -696,6 +700,9 @@ class FuzzySystem(object):
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot. 
 			ax: a matplotlib ax where the variable will be plotted.
 		"""
+		if matplotlib == False:
+			raise Exception("ERROR: please, install matplotlib for plotting facilities")
+
 		if ax != None:
 			ax = self._lvs[var_name].draw(ax=ax, TGT=TGT, highlight=highlight)
 			return ax
@@ -710,6 +717,8 @@ class FuzzySystem(object):
 			outputfile: string containing path and filename where the plot must be saved.
 			max_figures_per_row: maximum number of figures per row in the plot.
 		"""
+		if matplotlib == False:
+			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		num_ling_variables = len(self._lvs)
 		#print(" * Detected %d linguistic variables" % num_ling_variables)
