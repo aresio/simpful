@@ -123,6 +123,7 @@ class LinguisticVariable(object):
 			ax.axvline(x=TGT, ymin=0.0, ymax=1.0, color="red", linestyle="--", linewidth=2.0)
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
+		ax.set_ylim(bottom=-0.05)
 		if highlight is None: ax.legend(loc="best")
 		return ax
 
