@@ -7,9 +7,13 @@ from collections import defaultdict, OrderedDict
 import re
 import string
 try:
-	import seaborn as sns
+	from matplotlib.pyplot import plot, show, title, subplots, legend
+	try:
+		import seaborn as sns
+	except ImportError:
+		pass
 except ImportError:
-	pass
+	raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 # constant values
 linestyles= ["-", "--", ":", "-."]
@@ -82,7 +86,7 @@ class LinguisticVariable(object):
 		This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 
 		Args:
-			ax: the axis to plot to.
+			ax: the matplotlib axis to plot to.
 			TGT: show the memberships of a specific element of discourse TGT in the figure.
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
 		Returns:
@@ -131,15 +135,6 @@ class LinguisticVariable(object):
 			TGT: show the memberships of a specific element of discourse TGT in the figure.
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
 		"""
-		try:
-			from matplotlib.pyplot import plot, show, title, subplots, legend
-			try:
-				import seaborn as sns
-			except ImportError:
-				pass
-		except ImportError:
-			raise Exception("ERROR: please, install matplotlib for plotting facilities")
-
 		fig, ax = subplots(1,1)
 		self.draw(ax=ax, TGT=TGT, highlight=highlight)
 
@@ -690,28 +685,31 @@ class FuzzySystem(object):
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
 
-	def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None):
+	def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None, ax=None):
 		"""
-		Plots all fuzzy sets contained in a liguistic variable. An option for saving the figure is provided.
+		Plots all fuzzy sets contained in a liguistic variable. Options for saving the figure and draw on a matplotlib ax are provided.
 
 		Args:
 			var_name: string containing the name of the linguistic variable to plot.
-			outputfile: path and filename where the plot must be saved.
+			outputfile: string containing path and filename where the plot must be saved.
 			TGT: a specific element of the universe of discourse to be highlighted in the figure. 
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot. 
+			ax: a matplotlib ax where the variable will be plotted.
 		"""
+		if ax != None:
+			ax = self._lvs[var_name].draw(ax=ax, TGT=TGT, highlight=highlight)
+			return ax
 		self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight)
 
 
-	def produce_figure(self, outputfile='output.pdf', max_figures_per_row=4):
+	def produce_figure(self, outputfile="", max_figures_per_row=4):
 		"""
 		Plots the membership functions of each linguistic variable contained in the fuzzy system.
 
 		Args:
-			outputfile: path and filename where the plot must be saved.
+			outputfile: string containing path and filename where the plot must be saved.
+			max_figures_per_row: maximum number of figures per row in the plot.
 		"""
-
-		from matplotlib.pyplot import subplots
 
 		num_ling_variables = len(self._lvs)
 		#print(" * Detected %d linguistic variables" % num_ling_variables)
@@ -743,7 +741,11 @@ class FuzzySystem(object):
 			ax[c][r].axis('off')
 
 		fig.tight_layout()
-		fig.savefig(outputfile)
+
+		if outputfile != "":
+			fig.savefig(outputfile)
+		else:
+			show()
 
 
 	def aggregate(self, list_variables, function):
