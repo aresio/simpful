@@ -49,3 +49,8 @@ def fun2(x):
 F_1 = sf.FuzzySet(function=fun1, term="low")
 F_2 = sf.FuzzySet(function=fun2, term="high")
 sf.LinguisticVariable([F_1, F_2], universe_of_discourse=[0, 10]).plot()
+
+# Singletons set
+Ss_1 = sf.SingletonsSet(pairs=[[1.0, 0.2], [2.0, 0.8], [3.0, 0.4]], term="low")
+Ss_2 = sf.SingletonsSet(pairs=[[3.0, 0.3], [5.0, 0.9], [6.0, 0.1]], term="high")
+sf.LinguisticVariable([Ss_1, Ss_2], universe_of_discourse=[0, 10]).plot()
