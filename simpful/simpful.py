@@ -424,9 +424,11 @@ class FuzzySystem(object):
 		"""
 			If "input_values" is not provided, it returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
-			"input_values" is an optional argument, in the form of a dictionary where the keys are names
-			of linguistic variables and the values are a list of input values for that variable.
+			"input_values" is an optional argument, in the form of a dictionary containing a list of input states for each variable.
 			In this second case, it returns a 2D list of firing strengths of the given states.
+
+			Args:
+				input_values: dictionary where the keys are names of linguistic variables and the values are a list of input values for that variable.
 
 			Returns:
 				a list containing rules' firing strengths, or a 2D list containing rules' firing strengths for each given input state.
