@@ -1,4 +1,4 @@
-from .fuzzy_sets import FuzzySet, MF_object, Sigmoid_MF, InvSigmoid_MF, Gaussian_MF, InvGaussian_MF, DoubleGaussian_MF, Triangular_MF, Trapezoidal_MF
+from .fuzzy_sets import FuzzySet, MF_object, Triangular_MF, SingletonsSet
 from .rule_parsing import recursive_parse, preparse, postparse
 from numpy import array, linspace
 from scipy.interpolate import interp1d
@@ -104,7 +104,12 @@ class LinguisticVariable(object):
 
 
 		for nn, fs in enumerate(self._FSlist):
-			if fs._type == "function":
+			if isinstance(fs, SingletonsSet):
+				print(fs._funpointer._pairs)
+				xs = [pair[0] for pair in fs._funpointer._pairs]
+				ys = [pair[1] for pair in fs._funpointer._pairs]
+				ax.vlines(x=xs, ymin=0.0, ymax=ys, linestyles=linestyles[nn%4], color=next(ax._get_lines.prop_cycler)['color'], label=fs._term)
+			elif fs._type == "function":
 				y = [fs.get_value(xx) for xx in x]
 				color = None
 				lw = 1
@@ -415,18 +420,28 @@ class FuzzySystem(object):
 			print("WARNING: model type is unclear (simpful detected %s, but a %s output was specified)" % (self._detected_type, model_type))
 			self._detected_type = 'inconsistent'
 
-	def get_firing_strengths(self):
+	def get_firing_strengths(self, input_values=None):
 		"""
-			Returns a list of the firing strengths of the the rules, 
+			If "input_values" is not provided, it returns a list of the firing strengths of the the rules, 
 			given the current state of input variables.
+			"input_values" is an optional argument, in the form of a dictionary where the keys are names
+			of linguistic variables and the values are a list of input values for that variable.
+			In this second case, it returns a 2D list of firing strengths of the given states.
 
 			Returns:
-				a list containing rules' firing strengths.
+				a list containing rules' firing strengths, or a 2D list containing rules' firing strengths for each given input state.
 		"""
-		results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
-		return results
-
-
+		if input_values is None:
+			results = [float(antecedent[0].evaluate(self)) for antecedent in self._rules]
+			return results
+		else:
+			firings = []
+			for i in range(0, len(list(input_values.values())[0])):
+				for var in input_values.keys():
+					self.set_variable(var, input_values[var][i])
+				res = self.get_firing_strengths()
+				firings.append(res)
+			return firings
 
 	def mediate(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False):
 

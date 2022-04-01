@@ -210,6 +210,23 @@ class Crisp_MF(MF_object):
 		if x>self._right: return 0
 		return 1
 
+class Singletons_MF(MF_object):
+	"""
+		Creates a membership function composed of singletons.
+
+		Args:
+			pairs: a list of pairs [x, y], where x is an element of the universe of discourse and y its membership degree.
+	"""
+	
+	def __init__(self, pairs):
+		self._pairs = pairs
+
+	def _execute(self, x):
+		for pair in self._pairs:
+			if pair[0] == x:
+				return pair[1]
+		return 0
+
 class FuzzySet(object):
 	"""
 		Creates a new fuzzy set.
@@ -555,3 +572,25 @@ class CrispSet(FuzzySet):
 		"""
 		if a is not None: self._funpointer._left = a
 		if b is not None: self._funpointer._right = b
+
+class SingletonsSet(FuzzySet):
+	"""
+		Creates a set composed of singletons.
+
+		Args:
+			pairs: a list of pairs [x, y], where x is an element of the universe of discourse and y its membership degree.
+			term: string representing the linguistic term to be associated to the singletons set.
+	"""
+	
+	def __init__(self, pairs, term):
+		singletons = Singletons_MF(pairs)
+		super().__init__(function=singletons, term=term)
+
+	def set_params(self, pairs=None):
+		"""
+		Changes the pairs of the singletons set.
+
+		Args:
+			pairs: a list of pairs [x, y], where x is an element of the universe of discourse and y its membership degree.
+		"""
+		if pairs is not None: self._funpointer._pairs = pairs
