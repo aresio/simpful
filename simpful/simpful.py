@@ -1,6 +1,6 @@
 from .fuzzy_sets import FuzzySet, MF_object, Triangular_MF, SingletonsSet
 from .rule_parsing import recursive_parse, preparse, postparse
-from numpy import array, linspace
+from numpy import array, linspace, logspace, log10, finfo, float64
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict, OrderedDict
@@ -79,7 +79,7 @@ class LinguisticVariable(object):
 		return min(mins), max(maxs)
 
 
-	def draw(self, ax, TGT=None, highlight=None):
+	def draw(self, ax, TGT=None, highlight=None, xscale="linear"):
 		"""
 		This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 
@@ -87,6 +87,7 @@ class LinguisticVariable(object):
 			ax: the matplotlib axis to plot to.
 			TGT: show the memberships of a specific element of discourse TGT in the figure.
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
+			xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
 		Returns:
 			A matplotlib axis, representing all fuzzy sets contained in the liguistic variable.
 		"""
@@ -94,7 +95,17 @@ class LinguisticVariable(object):
 			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		mi, ma = self.get_universe_of_discourse()
-		x = linspace(mi, ma, 10000)
+		if xscale == "linear":
+			x = linspace(mi, ma, 10000)
+		elif xscale == "log":
+			if mi < 0:
+				raise Exception("ERROR: cannot plot in log scale with negative universe of discourse")
+			elif mi == 0:
+				x = logspace(log10(finfo(float64).eps), log10(ma), 10000)
+			else:
+				x = logspace(log10(mi), log10(ma), 10000)
+		else:
+			raise Exception("ERROR: scale "+xscale+" not supported.")
 
 		
 		if highlight is None:
@@ -129,11 +140,14 @@ class LinguisticVariable(object):
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
 		ax.set_ylim(bottom=-0.05)
+		if xscale == "log":
+			ax.set_xscale("symlog")
+			ax.set_xlim(x[0], x[-1])
 		if highlight is None: ax.legend(loc="best")
 		return ax
 
 
-	def plot(self, outputfile="", TGT=None, highlight=None):
+	def plot(self, outputfile="", TGT=None, highlight=None, xscale="linear"):
 		"""
 		Shows a plot representing all fuzzy sets contained in the liguistic variable.
 
@@ -141,12 +155,13 @@ class LinguisticVariable(object):
 			outputfile: path and filename where the plot must be saved.
 			TGT: show the memberships of a specific element of discourse TGT in the figure.
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
+			xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
 		"""
 		if matplotlib == False:
 			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		fig, ax = subplots(1,1)
-		self.draw(ax=ax, TGT=TGT, highlight=highlight)
+		self.draw(ax=ax, TGT=TGT, highlight=highlight, xscale=xscale)
 
 		if outputfile != "":
 			fig.savefig(outputfile)
@@ -707,7 +722,7 @@ class FuzzySystem(object):
 			raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
 			
 
-	def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None, ax=None):
+	def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None, ax=None, xscale="linear"):
 		"""
 		Plots all fuzzy sets contained in a liguistic variable. Options for saving the figure and draw on a matplotlib ax are provided.
 
@@ -717,14 +732,15 @@ class FuzzySystem(object):
 			TGT: a specific element of the universe of discourse to be highlighted in the figure. 
 			highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot. 
 			ax: a matplotlib ax where the variable will be plotted.
+			xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
 		"""
 		if matplotlib == False:
 			raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
 		if ax != None:
-			ax = self._lvs[var_name].draw(ax=ax, TGT=TGT, highlight=highlight)
+			ax = self._lvs[var_name].draw(ax=ax, TGT=TGT, highlight=highlight, xscale=xscale)
 			return ax
-		self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight)
+		self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight, xscale=xscale)
 
 
 	def produce_figure(self, outputfile="", max_figures_per_row=4):
