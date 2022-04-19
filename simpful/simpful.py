@@ -1,6 +1,6 @@
 from .fuzzy_sets import FuzzySet, MF_object, Triangular_MF, SingletonsSet
 from .rule_parsing import recursive_parse, preparse, postparse
-from numpy import array, linspace, logspace, log10, finfo, float64
+from numpy import array, linspace, geomspace, log10, finfo, float64
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict, OrderedDict
@@ -98,12 +98,13 @@ class LinguisticVariable(object):
 		if xscale == "linear":
 			x = linspace(mi, ma, 10000)
 		elif xscale == "log":
-			if mi < 0:
-				raise Exception("ERROR: cannot plot in log scale with negative universe of discourse")
+			if mi < 0 and ma > 0:
+				x = geomspace(mi, -finfo(float64).eps, 5000) + geomspace(finfo(float64).eps, ma, 5000)
+				# raise Exception("ERROR: cannot plot in log scale with negative universe of discourse")
 			elif mi == 0:
-				x = logspace(log10(finfo(float64).eps), log10(ma), 10000)
+				x = geomspace(finfo(float64).eps, ma, 10000)
 			else:
-				x = logspace(log10(mi), log10(ma), 10000)
+				x = geomspace(mi, ma, 10000)
 		else:
 			raise Exception("ERROR: scale "+xscale+" not supported.")
 
@@ -141,7 +142,7 @@ class LinguisticVariable(object):
 		ax.set_ylabel("Membership degree")
 		ax.set_ylim(bottom=-0.05)
 		if xscale == "log":
-			ax.set_xscale("symlog")
+			ax.set_xscale("symlog", linthresh=10e-2)
 			ax.set_xlim(x[0], x[-1])
 		if highlight is None: ax.legend(loc="best")
 		return ax
