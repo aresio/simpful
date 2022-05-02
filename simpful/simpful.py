@@ -8,10 +8,13 @@ import re
 import string
 try:
 	from matplotlib.pyplot import plot, show, title, subplots, legend
-	import seaborn as sns
 	matplotlib = True
 except ImportError:
 	matplotlib = False
+try:
+	import seaborn as sns
+except:
+	pass
 
 # constant values
 linestyles= ["-", "--", ":", "-."]
