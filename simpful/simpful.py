@@ -120,7 +120,6 @@ class LinguisticVariable(object):
 
 		for nn, fs in enumerate(self._FSlist):
 			if isinstance(fs, SingletonsSet):
-				print(fs._funpointer._pairs)
 				xs = [pair[0] for pair in fs._funpointer._pairs]
 				ys = [pair[1] for pair in fs._funpointer._pairs]
 				ax.vlines(x=xs, ymin=0.0, ymax=ys, linestyles=linestyles[nn%4], color=next(ax._get_lines.prop_cycler)['color'], label=fs._term)
@@ -143,7 +142,7 @@ class LinguisticVariable(object):
 			ax.axvline(x=TGT, ymin=0.0, ymax=1.0, color="red", linestyle="--", linewidth=2.0)
 		ax.set_xlabel(self._concept)
 		ax.set_ylabel("Membership degree")
-		ax.set_ylim(bottom=-0.05)
+		ax.set_ylim(bottom=-0.05, top=1.05)
 		if xscale == "log":
 			ax.set_xscale("symlog", linthresh=10e-2)
 			ax.set_xlim(x[0], x[-1])
@@ -626,7 +625,7 @@ class FuzzySystem(object):
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
-		if self._sanitize and terms is not None: 
+		if self._sanitize_input and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
 		
 		# default: inference on ALL rules/terms
@@ -669,7 +668,7 @@ class FuzzySystem(object):
 		Returns:
 			a dictionary, containing as keys the variables' names and as values their numerical inferred values.
 		"""
-		if self._sanitize and terms is not None: 
+		if self._sanitize_input and terms is not None: 
 			terms = [self._sanitize(term) for term in terms]
 		
 		# default: inference on ALL rules/terms
