@@ -1,8 +1,8 @@
 import re
 from numpy import array
 
-regex_clause_with_parentheses = re.compile(r"^\([a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*\)$")
-regex_clause = re.compile(r"^[a-z,_,A-Z,0-9]*\s*IS\s*[a-z,_,A-Z,0-9]*$")
+regex_clause_with_parentheses = re.compile(r"^\(\w*\s*IS\s*\w*\)$")
+regex_clause = re.compile(r"^\w*\s*IS\s*\w*$")
 
 class Clause(object):
 
