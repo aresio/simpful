@@ -1,9 +1,7 @@
-import pytest
-
 from simpful import rule_parsing
 
 def test_postparse():
-    """Check that the output is equal to our expected output"""
+    """Check that the output is equal to the expected output"""
     normal_rule = "IF (OXI IS low_flow) THEN (POWER IS LOW_POWER)"
     expected_out_normal = ('POWER', 'LOW_POWER')
     output = rule_parsing.postparse(normal_rule)
