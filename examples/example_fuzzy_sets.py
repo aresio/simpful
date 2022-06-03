@@ -42,9 +42,9 @@ sf.LinguisticVariable([S_1, S_2], universe_of_discourse=[0, 10]).plot()
 # Function-based fuzzy set
 import numpy as np
 def fun1(x):
-	return 0.5*np.cos(0.314*x)+0.5
+    return 0.5*np.cos(0.314*x)+0.5
 def fun2(x):
-	return 0.5*np.sin(0.314*x-1.5)+0.5
+    return 0.5*np.sin(0.314*x-1.5)+0.5
 
 F_1 = sf.FuzzySet(function=fun1, term="low")
 F_2 = sf.FuzzySet(function=fun2, term="high")

@@ -29,13 +29,13 @@ ys = []
 zs = []
 DIVs = 20
 for x in linspace(0,10,DIVs):
-	for y in linspace(0,10,DIVs):
-		FS.set_variable("Food", x)
-		FS.set_variable("Service", y)
-		tip = FS.inference()['Tip']
-		xs.append(x)
-		ys.append(y)
-		zs.append(tip)
+    for y in linspace(0,10,DIVs):
+        FS.set_variable("Food", x)
+        FS.set_variable("Service", y)
+        tip = FS.inference()['Tip']
+        xs.append(x)
+        ys.append(y)
+        zs.append(tip)
 xs = array(xs)
 ys = array(ys)
 zs = array(zs)

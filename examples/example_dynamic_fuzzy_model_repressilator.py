@@ -37,9 +37,9 @@ dynamics.append(deepcopy(FS._variables))
 
 # At each simulation step, perform Sugeno inference, update state and save the results
 for i in range(steps):
-	new_values  = FS.inference()
-	FS._variables.update(new_values)
-	dynamics.append(new_values)
+    new_values  = FS.inference()
+    FS._variables.update(new_values)
+    dynamics.append(new_values)
 
 
 import seaborn as sns

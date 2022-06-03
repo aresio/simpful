@@ -27,8 +27,8 @@ FS.set_variable("Var2", 0.7)
 print(FS.get_firing_strengths())
 
 input_values = {
-	"Var1": [0.2, 0.4, 0.6],
-	"Var2": [0.7, 0.5, 0.3],
+    "Var1": [0.2, 0.4, 0.6],
+    "Var2": [0.7, 0.5, 0.3],
 }
 
 print(FS.get_firing_strengths(input_values=input_values))
