@@ -26,7 +26,7 @@ def test_mam():
     # Perform Mamdani inference
     mam = FS.Mamdani_inference(["Tip"])
     mam_true = {'Tip': 14.17223614042091}
-    assert mam == mam_true
+    assert abs(mam["Tip"] - mam_true["Tip"]) < 1e-10
     print("Mamdani passed")
 
 def test_mam_min():    
@@ -84,7 +84,7 @@ def test_sug():
     # Perform Sugeno inference
     sug = FS.Sugeno_inference(["Tip"])
     sug_true = {'Tip': 14.777777777777779}
-    assert sug == sug_true
+    assert abs(sug["Tip"] - sug_true["Tip"]) < 1e-10
     print("Sugeno passed")
 
 def test_firing():    
@@ -132,7 +132,7 @@ def test_agg():
     #Perform aggregation. Available methods: product, min, max, arit_mean. Accepts pointer to an aggregation function.
     agg = A.aggregate(["quality", "price"], aggregation_fun=fun1)
     agg_true = 0.27999999999999997
-    assert agg == agg_true
+    assert abs(agg - agg_true) < 1e-10
     print("Aggregation passed")
 
 def test_sepsis():    
@@ -174,7 +174,7 @@ def test_sepsis():
     # Perform Sugeno inference
     sepsis = FS.Sugeno_inference(["Sepsis"])
     sepsis_true = {'Sepsis': 68.90324203600152}
-    assert sepsis == sepsis_true
+    assert abs(sepsis["Sepsis"] - sepsis_true["Sepsis"]) < 1e-10
     print("Sepsis passed")
 
 if __name__ == "__main__":
