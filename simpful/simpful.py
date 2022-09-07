@@ -537,7 +537,16 @@ class FuzzySystem(object):
         return final_result
 
 
-    def mediate_Mamdani(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False, subdivisions=1000):
+    def mediate_Mamdani(self, 
+        outputs, 
+        antecedent, 
+        results, 
+        ignore_errors=False, 
+        ignore_warnings=False, 
+        verbose=False, 
+        subdivisions=1000,
+        aggregation_function=max,
+        ):
 
         final_result = {}
 
@@ -587,7 +596,8 @@ class FuzzySystem(object):
                         fs_term = self._lvs[output]._FSlist[n]
                         result = float(fs_term.get_value_cut(u, cut=v))
                         comp_values.append(result)
-                keep = max(comp_values)
+                #keep = max(comp_values)
+                keep = aggregation_function(comp_values)
                 values.append(keep)
                 weightedvalues.append(keep*u)
 
@@ -662,7 +672,7 @@ class FuzzySystem(object):
         return result
 
 
-    def Mamdani_inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False):
+    def Mamdani_inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False, aggregation_function=max):
         """
         Performs Mamdani fuzzy inference.
 
@@ -692,11 +702,11 @@ class FuzzySystem(object):
 
         array_rules = array(self._rules, dtype=object)
         if len(self._constants)==0:
-            result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions)
+            result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions, aggregation_function=aggregation_function)
         else:
             #remove constant variables from list of variables to infer
             ncost_terms = [t for t in terms if t not in self._constants]
-            result = self.mediate_Mamdani(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions)
+            result = self.mediate_Mamdani(ncost_terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions, aggregation_function=aggregation_function)
             #add values of constant variables
             cost_terms = [t for t in terms if t in self._constants]
             for name in cost_terms:
@@ -709,7 +719,7 @@ class FuzzySystem(object):
         raise NotImplementedError()
 
 
-    def inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False):
+    def inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False, aggregation_function=max):
         """
         Performs the fuzzy inference, trying to automatically choose the correct inference engine.
 
@@ -728,7 +738,7 @@ class FuzzySystem(object):
         elif self._detected_type == "probabilistic":
             return self.probabilistic_inference(terms=terms, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
         elif self._detected_type is None: # default
-            return self.Mamdani_inference(terms=terms, subdivisions=subdivisions, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose)
+            return self.Mamdani_inference(terms=terms, subdivisions=subdivisions, ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, aggregation_function=aggregation_function)
         else:
             raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
             
