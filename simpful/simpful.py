@@ -535,7 +535,14 @@ class FuzzySystem(object):
                     raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
         
         return final_result
+    
+    def probor(*args):
+        y = args[1]
+        res=y[0]
+        for i in range(1, len(y)):
+            res = res + y[i] - res * y[i]
 
+        return res
 
     def mediate_Mamdani(self, 
         outputs, 
@@ -571,7 +578,15 @@ class FuzzySystem(object):
                 if outname==output:
 
                     try:
-                        value = ant.evaluate(self) 
+                        weight = float(res[2])
+                        value = ant.evaluate(self)
+                        value=value*weight
+
+                    except IndexError:
+                        weight = 1
+                        value = ant.evaluate(self)
+                        value = value * weight
+
                     except RuntimeError: 
                         raise Exception("ERROR: one rule could not be evaluated\n"
                         + " --- PROBLEMATIC RULE:\n"
@@ -686,6 +701,9 @@ class FuzzySystem(object):
         Returns:
             a dictionary, containing as keys the variables' names and as values their numerical inferred values.
         """
+        if aggregation_function=="probor":
+            aggregation_function=self.probor
+            
         if self._sanitize_input and terms is not None: 
             terms = [self._sanitize(term) for term in terms]
         
