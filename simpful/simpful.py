@@ -535,13 +535,12 @@ class FuzzySystem(object):
                     raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
         
         return final_result
-    
+    #"Probabilistic Or" or probor function from MATLAB.
     def probor(*args):
         y = args[1]
         res=y[0]
         for i in range(1, len(y)):
             res = res + y[i] - res * y[i]
-
         return res
 
     def mediate_Mamdani(self, 
@@ -576,7 +575,7 @@ class FuzzySystem(object):
                     print(" ** Rule composition:", ant, "->", res, ", output variable: '%s'" % outname, "with term: '%s'" % outterm)            
 
                 if outname==output:
-
+                    #Weighted rule application from MATLAB. Under test scenerios, obtained results were the same.
                     try:
                         weight = float(res[2])
                         value = ant.evaluate(self)
@@ -701,6 +700,7 @@ class FuzzySystem(object):
         Returns:
             a dictionary, containing as keys the variables' names and as values their numerical inferred values.
         """
+        #If the value of aggregation function is inputted as probor in string format, this part switches aggregation function to probor method.
         if aggregation_function=="probor":
             aggregation_function=self.probor
             
