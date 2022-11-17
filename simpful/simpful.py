@@ -6,6 +6,7 @@ from copy import deepcopy
 from collections import defaultdict, OrderedDict
 import re
 import string
+from math import prod
 try:
     from matplotlib.pyplot import plot, show, title, subplots, legend
     matplotlib = True
@@ -42,8 +43,7 @@ class LinguisticVariable(object):
     def __init__(self, FS_list=[], concept=None, universe_of_discourse=None):
         
         if FS_list==[]:
-            print("ERROR: please specify at least one fuzzy set")
-            exit(-2)
+            raise Exception("ERROR: please specify at least one fuzzy set")
         self._universe_of_discourse = universe_of_discourse
         self._FSlist = FS_list
         self._concept = concept
@@ -485,6 +485,9 @@ class FuzzySystem(object):
                 weight = float(res[2])
                 crisp = True
 
+                if verbose: 
+                    print(" ** Rule composition:", ant, "->", res, ", output variable: '%s'" % outname, "with term: '%s'" % outterm)            
+
                 if outname==output:
                     if outterm not in list_crisp_values:
                         crisp = False
@@ -535,13 +538,6 @@ class FuzzySystem(object):
                     raise Exception("ERROR: cannot perform Sugeno inference for variable '%s'. The variable appears only as antecedent in the rules or an arithmetic error occurred." % output)
         
         return final_result
-    #"Probabilistic Or" or probor function from MATLAB.
-    def probor(*args):
-        y = args[1]
-        res=y[0]
-        for i in range(1, len(y)):
-            res = res + y[i] - res * y[i]
-        return res
 
     def mediate_Mamdani(self, 
         outputs, 
@@ -551,13 +547,11 @@ class FuzzySystem(object):
         ignore_warnings=False, 
         verbose=False, 
         subdivisions=1000,
-        aggregation_function=max,
-        ):
+        aggregation_function=max):
 
         final_result = {}
 
         for output in outputs:
-
             if verbose:
                 print(" * Processing output for variable '%s'" %  output)
                 print("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
@@ -567,25 +561,16 @@ class FuzzySystem(object):
             x0, x1 = self._lvs[output].get_universe_of_discourse()
 
             for (ant, res) in zip(antecedent, results):
-
                 outname = res[0]
                 outterm = res[1]
+                weight = float(res[2])
 
                 if verbose: 
                     print(" ** Rule composition:", ant, "->", res, ", output variable: '%s'" % outname, "with term: '%s'" % outterm)            
 
                 if outname==output:
-                    #Weighted rule application from MATLAB. Under test scenerios, obtained results were the same.
                     try:
-                        weight = float(res[2])
                         value = ant.evaluate(self)
-                        value=value*weight
-
-                    except IndexError:
-                        weight = 1
-                        value = ant.evaluate(self)
-                        value = value * weight
-
                     except RuntimeError: 
                         raise Exception("ERROR: one rule could not be evaluated\n"
                         + " --- PROBLEMATIC RULE:\n"
@@ -686,13 +671,14 @@ class FuzzySystem(object):
         return result
 
 
-    def Mamdani_inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False, aggregation_function=max):
+    def Mamdani_inference(self, terms=None, subdivisions=1000, aggregation_function=max, ignore_errors=False, ignore_warnings=False, verbose=False):
         """
         Performs Mamdani fuzzy inference.
 
         Args:
-            terms: list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
-            subdivisions: the number of integration steps to be performed (default: 1000).
+            terms: list of the names of the variables on which inference must be performed.If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
+            subdivisions: the number of integration steps to be performed for calculating fuzzy set area (default: 1000).
+            aggregation_function: pointer to function used to aggregate fuzzy sets during Mamdani inference, default is max. Use Python sum function, or simpful's probor function for sum and probabilistic OR, respectively.
             ignore_errors: True/False, toggles the raising of errors during the inference.
             ignore_warnings: True/False, toggles the raising of warnings during the inference.
             verbose: True/False, toggles verbose mode.
@@ -700,10 +686,6 @@ class FuzzySystem(object):
         Returns:
             a dictionary, containing as keys the variables' names and as values their numerical inferred values.
         """
-        #If the value of aggregation function is inputted as probor in string format, this part switches aggregation function to probor method.
-        if aggregation_function=="probor":
-            aggregation_function=self.probor
-            
         if self._sanitize_input and terms is not None: 
             terms = [self._sanitize(term) for term in terms]
         
@@ -737,13 +719,14 @@ class FuzzySystem(object):
         raise NotImplementedError()
 
 
-    def inference(self, terms=None, subdivisions=1000, ignore_errors=False, ignore_warnings=False, verbose=False, aggregation_function=max):
+    def inference(self, terms=None, subdivisions=1000, aggregation_function=max, ignore_errors=False, ignore_warnings=False, verbose=False):
         """
         Performs the fuzzy inference, trying to automatically choose the correct inference engine.
 
         Args:
             terms: list of the names of the variables on which inference must be performed. If empty, all variables appearing in the consequent of a fuzzy rule are inferred.
-            subdivisions: set the number of integration steps to be performed by Mamdani inference (default: 1000).
+            subdivisions: the number of integration steps to be performed for calculating fuzzy set area (default: 1000).
+            aggregation_function: pointer to function used to aggregate fuzzy sets during Mamdani inference, default is max. Use Python sum function, or simpful's probor function for sum and probabilistic OR, respectively.
             ignore_errors: True/False, toggles the raising of errors during the inference.
             ignore_warnings: True/False, toggles the raising of warnings during the inference.
             verbose: True/False, toggles verbose mode.
@@ -847,6 +830,36 @@ class FuzzySystem(object):
             result = self._lvs[variable].get_values(value)[fuzzyset]
             memberships.append(result)
         return function(memberships)
+
+# useful pre-implemented functions for aggregation or implication during fuzzy inference
+def prod(m_list):
+    """
+        Performs aggregation of membership values using the product operation.
+
+        Args:
+            m_list: list of membership values to aggregate.
+
+        Returns:
+            the aggregated membership value.
+    """ 
+    return prod(m_list)
+
+def probor(m_list):
+    """
+        Performs aggregation of membership values using the probabilistic OR operation.
+
+        Args:
+            m_list: list of membership values to aggregate.
+
+        Returns:
+            the aggregated membership value.
+    """
+    res = m_list[0]
+    if len(m_list) == 1:
+        return m_list[0]
+    for i in range(1, len(m_list)):
+        res = res + m_list[i] - res * m_list[i]
+    return res
 
 if __name__ == '__main__':
     pass
