@@ -576,7 +576,8 @@ class FuzzySystem(object):
                         + " --- PROBLEMATIC RULE:\n"
                         + "IF " + str(ant) + " THEN " + str(res) + "\n")
 
-                    cuts_list[outterm].append(value)
+                    #degree of satisfaction of the rule is multiplied by rule weight
+                    cuts_list[outterm].append(value*weight)
 
             values = []
             weightedvalues = []
@@ -701,6 +702,12 @@ class FuzzySystem(object):
                     raise Exception("ERROR: Variable "+t+" does not appear in any consequent.")
 
         array_rules = array(self._rules, dtype=object)
+        # cheking if the rule base is weighted, if not add dummy weights
+        for n, cons in enumerate(array_rules.T[1]):
+            if len(cons)<3:
+                cons = cons + ("1.0",)
+                array_rules.T[1][n] = cons
+        
         if len(self._constants)==0:
             result = self.mediate_Mamdani(terms, array_rules.T[0], array_rules.T[1], ignore_errors=ignore_errors, ignore_warnings=ignore_warnings, verbose=verbose, subdivisions=subdivisions, aggregation_function=aggregation_function)
         else:
