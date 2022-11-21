@@ -40,8 +40,8 @@ class Functional(object):
         self._B = B
 
         if fun=="NOT":
-            if B == "": raise Exception("OMG")
-        elif A == "": raise Exception("OMG")
+            if B == "": raise Exception("Second operand missing")
+        elif A == "": raise Exception("First operand missing")
 
         if operators is None:
             self._fun = fun
@@ -71,6 +71,7 @@ class Functional(object):
 
 # basic definitions of 
 def OR(x,y): return max(x, y)
+def OR_p(x,y): return x+y-(x*y)
 def AND(x,y): return min(x, y)
 def AND_p(x,y): return x*y
 def NOT(x): return 1.-x
