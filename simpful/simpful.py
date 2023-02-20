@@ -393,9 +393,10 @@ class FuzzySystem(object):
             verbose: True/False, toggles verbose mode.
         """
         if self._sanitize_input: name = self._sanitize(name)
-        if LV._concept is None: 
-            LV._concept = name
         self._lvs[name]=deepcopy(LV)
+        if self._lvs[name]._concept is None: 
+            self._lvs[name]._concept = name
+        # self._lvs[name]=deepcopy(LV)
         if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
 
@@ -784,6 +785,8 @@ class FuzzySystem(object):
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
         num_ling_variables = len(self._lvs)
+        if num_ling_variables == 0:
+            raise Exception("ERROR: no linguistic variables added. Please add at least one variable to plot")
         #print(" * Detected %d linguistic variables" % num_ling_variables)
         columns = min(num_ling_variables, max_figures_per_row)
         if num_ling_variables>max_figures_per_row:
