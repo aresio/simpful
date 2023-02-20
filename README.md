@@ -74,7 +74,7 @@ FS.add_linguistic_variable("tip", LinguisticVariable([O1, O2, O3], universe_of_d
 FS.add_rules([
 	"IF (quality IS poor) OR (service IS poor) THEN (tip IS low)",
 	"IF (service IS average) THEN (tip IS medium)",
-	"IF (quality IS good) OR (quality IS good) THEN (tip IS high)"
+	"IF (quality IS good) OR (service IS good) THEN (tip IS high)"
 	])
 
 FS.set_variable("quality", 6.5) 
