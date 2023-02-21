@@ -117,15 +117,22 @@ class LinguisticVariable(object):
         else:
             linestyles= ["-"]*4
 
+        if TGT is not None:
+            ax.plot([TGT, TGT], [0.0, 1], color="red", linestyle="--", linewidth=2.0, label="Value")
+        
 
         for nn, fs in enumerate(self._FSlist):
+            
+            # singleton
             if isinstance(fs, SingletonsSet):
                 xs = [pair[0] for pair in fs._funpointer._pairs]
                 ys = [pair[1] for pair in fs._funpointer._pairs]
                 ax.vlines(x=xs, ymin=0.0, ymax=ys, linestyles=linestyles[nn%4], color=next(ax._get_lines.prop_cycler)['color'], label=fs._term)
+            
+
             elif fs._type == "function":
                 y = [fs.get_value(xx) for xx in x]
-                color = None
+                color = next(ax._get_lines.prop_cycler)['color']
                 lw = 1
 
                 if highlight==fs._term: 
@@ -134,12 +141,19 @@ class LinguisticVariable(object):
                 elif highlight is not None:
                     color="lightgray"
                 ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
+                
+                # plot the membership degree on the fuzzy set
+                top = fs.get_value(TGT)
+                cut_y = [min(top, yy) for yy in y] 
+                ax.fill([x[0]]+list(x)+[x[-1]],[0]+cut_y+[0] ,  color=color, alpha=0.5,)
+
+
             else:
                 sns.regplot(x=fs._points.T[0], y=fs._points.T[1], marker="d", color="red", fit_reg=False, ax=ax)
                 f = interp1d(fs._points.T[0], fs._points.T[1], bounds_error=False, fill_value=(fs.boundary_values[0], fs.boundary_values[1]))
                 ax.plot(x, f(x), linestyles[nn%4], label=fs._term,)
-        if TGT is not None:
-            ax.axvline(x=TGT, ymin=0.0, ymax=1.0, color="red", linestyle="--", linewidth=2.0)
+               
+        
         ax.set_xlabel(self._concept)
         ax.set_ylabel("Membership degree")
         ax.set_ylim(bottom=-0.05, top=1.05)
