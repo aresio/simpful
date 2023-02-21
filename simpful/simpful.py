@@ -141,11 +141,12 @@ class LinguisticVariable(object):
                 elif highlight is not None:
                     color="lightgray"
                 ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
-                
+                 
                 # plot the membership degree on the fuzzy set
-                top = fs.get_value(TGT)
-                cut_y = [min(top, yy) for yy in y] 
-                ax.fill([x[0]]+list(x)+[x[-1]],[0]+cut_y+[0] ,  color=color, alpha=0.5,)
+                if TGT is not None:
+                    top = fs.get_value(TGT)
+                    cut_y = [min(top, yy) for yy in y] 
+                    ax.fill([x[0]]+list(x)+[x[-1]],[0]+cut_y+[0] ,  color=color, alpha=0.5,)
 
 
             else:
@@ -787,16 +788,21 @@ class FuzzySystem(object):
         self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight, xscale=xscale)
 
 
-    def produce_figure(self, outputfile="", max_figures_per_row=4):
+    def produce_figure(self, outputfile="", max_figures_per_row=4, TGT_dict=None):
         """
         Plots the membership functions of each linguistic variable contained in the fuzzy system.
 
         Args:
             outputfile: string containing path and filename where the plot must be saved.
             max_figures_per_row: maximum number of figures per row in the plot.
+            TGT_dict: dictionary of actual values whose membership must be plotted over the fuzzy sets.
         """
         if matplotlib == False:
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
+
+        # use a defaultdict in case no target was specified
+        if TGT_dict is None: 
+            TGT_dict = defaultdict(lambda: None)
 
         num_ling_variables = len(self._lvs)
         if num_ling_variables == 0:
@@ -820,7 +826,7 @@ class FuzzySystem(object):
         for k, v in self._lvs.items():
             r = n%max_figures_per_row
             c = n//max_figures_per_row
-            v.draw(ax[c][r])
+            v.draw(ax[c][r], TGT=TGT_dict[k])
             ax[c][r].set_ylim(0,1.05)
             n+=1
 
