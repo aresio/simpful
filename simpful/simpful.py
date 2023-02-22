@@ -82,14 +82,13 @@ class LinguisticVariable(object):
         return min(mins), max(maxs)
 
 
-    def draw(self, ax, TGT=None, element=None, highlight=None, xscale="linear"):
+    def draw(self, ax, TGT=None, highlight=None, xscale="linear"):
         """
         This method returns a matplotlib ax, representing all fuzzy sets contained in the liguistic variable.
 
         Args:
             ax: the matplotlib axis to plot to.
-            TGT: (deprecated) show the memberships of a specific element of discourse TGT in the figure.
-            element: show the memberships of a specific element of discourse in the figure.
+            TGT: show the memberships of a specific element of discourse TGT in the figure.
             highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
             xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
         Returns:
@@ -97,9 +96,6 @@ class LinguisticVariable(object):
         """
         if matplotlib == False:
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
-        if TGT is not None:
-            print("Warning: argument 'TGT' is deprecated and will be discontinued in future relseases. Please use 'element'")
-            element = TGT
 
         mi, ma = self.get_universe_of_discourse()
         if xscale == "linear":
@@ -121,8 +117,8 @@ class LinguisticVariable(object):
         else:
             linestyles= ["-"]*4
 
-        if element is not None:
-            ax.plot([element, element], [0.0, 1], color="red", linestyle="--", linewidth=2.0, label="Value")
+        if TGT is not None:
+            ax.plot([TGT, TGT], [0.0, 1], color="red", linestyle="--", linewidth=2.0, label="Value")
         
 
         for nn, fs in enumerate(self._FSlist):
@@ -147,8 +143,8 @@ class LinguisticVariable(object):
                 ax.plot(x,y, linestyles[nn%4], lw=lw, label=fs._term, color=color)
                  
                 # plot the membership degree on the fuzzy set
-                if element is not None:
-                    top = fs.get_value(element)
+                if TGT is not None:
+                    top = fs.get_value(TGT)
                     cut_y = [min(top, yy) for yy in y] 
                     ax.fill([x[0]]+list(x)+[x[-1]],[0]+cut_y+[0] ,  color=color, alpha=0.5,)
 
@@ -169,25 +165,21 @@ class LinguisticVariable(object):
         return ax
 
 
-    def plot(self, outputfile="", TGT=None, element=None, highlight=None, xscale="linear"):
+    def plot(self, outputfile="", TGT=None, highlight=None, xscale="linear"):
         """
         Shows a plot representing all fuzzy sets contained in the liguistic variable.
 
         Args:
             outputfile: path and filename where the plot must be saved.
-            TGT: (deprecated) show the memberships of a specific element of discourse TGT in the figure.
-            element: show the memberships of a specific element of discourse in the figure.
+            TGT: show the memberships of a specific element of discourse TGT in the figure.
             highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot.
             xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
         """
         if matplotlib == False:
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
-        if TGT is not None:
-            print("Warning: argument 'TGT' is deprecated and will be discontinued in future relseases. Please use 'element'")
-            element = TGT
 
         fig, ax = subplots(1,1)
-        self.draw(ax=ax, element=element, highlight=highlight, xscale=xscale)
+        self.draw(ax=ax, TGT=TGT, highlight=highlight, xscale=xscale)
 
         if outputfile != "":
             fig.savefig(outputfile)
@@ -775,46 +767,42 @@ class FuzzySystem(object):
             raise Exception("ERROR: simpful could not detect the model type, please use either Sugeno_inference() or Mamdani_inference() methods.")
             
 
-    def plot_variable(self, var_name, outputfile="", TGT=None, element=None, highlight=None, ax=None, xscale="linear"):
+    def plot_variable(self, var_name, outputfile="", TGT=None, highlight=None, ax=None, xscale="linear"):
         """
         Plots all fuzzy sets contained in a liguistic variable. Options for saving the figure and draw on a matplotlib ax are provided.
 
         Args:
             var_name: string containing the name of the linguistic variable to plot.
             outputfile: string containing path and filename where the plot must be saved.
-            TGT: (deprecated) show the memberships of a specific element of discourse TGT in the figure.
-            element: show the memberships of a specific element of discourse in the figure.
+            TGT: a specific element of the universe of discourse to be highlighted in the figure. 
             highlight: string, indicating the linguistic term/fuzzy set to highlight in the plot. 
             ax: a matplotlib ax where the variable will be plotted.
             xscale: default "linear", supported scales "log". Changes the scale of the xaxis.
         """
         if matplotlib == False:
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
-        if TGT is not None:
-            print("Warning: argument 'TGT' is deprecated and will be discontinued in future relseases. Please use 'element'")
-            element = TGT
 
         if ax != None:
-            ax = self._lvs[var_name].draw(ax=ax, element=element, highlight=highlight, xscale=xscale)
+            ax = self._lvs[var_name].draw(ax=ax, TGT=TGT, highlight=highlight, xscale=xscale)
             return ax
-        self._lvs[var_name].plot(outputfile=outputfile, element=element, highlight=highlight, xscale=xscale)
+        self._lvs[var_name].plot(outputfile=outputfile, TGT=TGT, highlight=highlight, xscale=xscale)
 
 
-    def produce_figure(self, outputfile="", max_figures_per_row=4, element_dict=None):
+    def produce_figure(self, outputfile="", max_figures_per_row=4, TGT_dict=None):
         """
         Plots the membership functions of each linguistic variable contained in the fuzzy system.
 
         Args:
             outputfile: string containing path and filename where the plot must be saved.
             max_figures_per_row: maximum number of figures per row in the plot.
-            element_dict: dictionary of elements of the universe of discourse whose membership must be plotted over the fuzzy sets.
+            TGT_dict: dictionary of actual values whose membership must be plotted over the fuzzy sets.
         """
         if matplotlib == False:
             raise Exception("ERROR: please, install matplotlib for plotting facilities")
 
         # use a defaultdict in case no target was specified
-        if element_dict is None: 
-            element_dict = defaultdict(lambda: None)
+        if TGT_dict is None: 
+            TGT_dict = defaultdict(lambda: None)
 
         num_ling_variables = len(self._lvs)
         if num_ling_variables == 0:
@@ -838,7 +826,7 @@ class FuzzySystem(object):
         for k, v in self._lvs.items():
             r = n%max_figures_per_row
             c = n//max_figures_per_row
-            v.draw(ax[c][r], element=element_dict[k])
+            v.draw(ax[c][r], TGT=TGT_dict[k])
             ax[c][r].set_ylim(0,1.05)
             n+=1
 
@@ -857,14 +845,16 @@ class FuzzySystem(object):
 
     def plot_surface(self, variables, output, detail=40, color_map="plasma"):
         """
-        Performs a fuzzy aggregation of linguistic variables contained in a FuzzySystem object.
+        Plots the surface induced by the rules.
 
         Args:
-            list_variables: list of linguistic variables names in the FuzzySystem object to aggregate.
-            function: pointer to an aggregation function. The function must accept as an argument a list of membership values.
+            variables: pair of linguistic variables for the x and y axis.
+            output: the output to be computed.
+            detail: number of subdivisions along each axis.
+            color_map: the color map to be used for the plot.
 
         Returns:
-            the aggregated membership values.
+            a matplotlib figure object.
         """ 
 
 
