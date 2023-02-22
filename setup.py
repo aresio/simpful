@@ -18,8 +18,10 @@ setup(
   install_requires=[
         "numpy >= 1.12.0",
         "scipy >= 1.0.0",
-        "requests",
     ],
+  extras_require={
+        "plotting": ["matplotlib>=3.5.1", "seaborn>=0.11.2"],
+    },
   classifiers = ['Programming Language :: Python :: 3.7'],
   long_description=long_description,
   long_description_content_type='text/markdown',
