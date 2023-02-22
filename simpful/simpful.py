@@ -843,6 +843,57 @@ class FuzzySystem(object):
             show()
 
 
+    def plot_surface(self, variables, output, detail=40, color_map="plasma"):
+        """
+        Performs a fuzzy aggregation of linguistic variables contained in a FuzzySystem object.
+
+        Args:
+            list_variables: list of linguistic variables names in the FuzzySystem object to aggregate.
+            function: pointer to an aggregation function. The function must accept as an argument a list of membership values.
+
+        Returns:
+            the aggregated membership values.
+        """ 
+
+
+        if len(variables)!=2: 
+            print("ERROR: please specify the two variables for the surface plot")
+            return None
+
+        v1, v2 = variables
+
+        min_v1, max_v1 = self._lvs[v1].get_universe_of_discourse()
+        min_v2, max_v2 = self._lvs[v2].get_universe_of_discourse()
+
+        A = np.linspace(min_v1, max_v1, detail)
+        B = np.linspace(min_v2, max_v2, detail)
+        C = []
+
+        for a in A:
+            temp = []
+            for b in B:
+                FS.set_variable(self._lvs[v1]._concept, a)
+                FS.set_variable(self._lvs[v2]._concept, b)
+                res = FS.Sugeno_inference()[output]
+                temp.append( res )
+            C.append(temp)
+        C = np.array(C)
+
+        A,B = np.meshgrid(A,B)
+
+        fig = plt.figure(figsize=(8,6))
+        ax = plt.axes(projection='3d')
+
+        v = ax.plot_surface(A,B,C, shade=True, cmap=color_map)
+        ax.set_xlabel(self._lvs[v1]._concept)
+        ax.set_ylabel(self._lvs[v2]._concept)
+        ax.set_zlabel(output)
+        plt.colorbar(v, ax=ax)
+        fig.tight_layout()
+        return fig
+
+
+
     def aggregate(self, list_variables, function):
         """
         Performs a fuzzy aggregation of linguistic variables contained in a FuzzySystem object.
