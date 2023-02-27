@@ -888,7 +888,7 @@ class FuzzySystem(object):
             for b in B:
                 self.set_variable(self._lvs[v1]._concept, a)
                 self.set_variable(self._lvs[v2]._concept, b)
-                res = FS.Sugeno_inference()[output]
+                res = self.Sugeno_inference()[output]
                 temp.append( res )
             C.append(temp)
         C = array(C)
