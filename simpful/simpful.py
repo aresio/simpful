@@ -8,7 +8,7 @@ import re
 import string
 from math import prod
 try:
-    from matplotlib.pyplot import plot, show, title, subplots, legend
+    from matplotlib.pyplot import figure, axes, plot, show, title, subplots, legend
     matplotlib = True
 except ImportError:
     matplotlib = False
@@ -857,14 +857,16 @@ class FuzzySystem(object):
 
     def plot_surface(self, variables, output, detail=40, color_map="plasma"):
         """
-        Performs a fuzzy aggregation of linguistic variables contained in a FuzzySystem object.
+        Plots the surface induced by the rules.
 
         Args:
-            list_variables: list of linguistic variables names in the FuzzySystem object to aggregate.
-            function: pointer to an aggregation function. The function must accept as an argument a list of membership values.
+            variables: a pair of linguistic variables for the x and y axis.
+            output: the output variable to be computed.
+            detail: number of subdivisions along each axis.
+            color_map: the color map to be used for the plot.
 
         Returns:
-            the aggregated membership values.
+            a matplotlib figure object.
         """ 
 
 
@@ -877,8 +879,8 @@ class FuzzySystem(object):
         min_v1, max_v1 = self._lvs[v1].get_universe_of_discourse()
         min_v2, max_v2 = self._lvs[v2].get_universe_of_discourse()
 
-        A = np.linspace(min_v1, max_v1, detail)
-        B = np.linspace(min_v2, max_v2, detail)
+        A = linspace(min_v1, max_v1, detail)
+        B = linspace(min_v2, max_v2, detail)
         C = []
 
         for a in A:
@@ -893,8 +895,8 @@ class FuzzySystem(object):
 
         A,B = np.meshgrid(A,B)
 
-        fig = plt.figure(figsize=(8,6))
-        ax = plt.axes(projection='3d')
+        fig = figure(figsize=(8,6))
+        ax = axes(projection='3d')
 
         v = ax.plot_surface(A,B,C, shade=True, cmap=color_map)
         ax.set_xlabel(self._lvs[v1]._concept)
@@ -903,7 +905,6 @@ class FuzzySystem(object):
         plt.colorbar(v, ax=ax)
         fig.tight_layout()
         return fig
-
 
 
     def aggregate(self, list_variables, function):
