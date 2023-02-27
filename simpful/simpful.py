@@ -8,7 +8,7 @@ import re
 import string
 from math import prod
 try:
-    from matplotlib.pyplot import figure, axes, plot, show, title, subplots, legend
+    from matplotlib.pyplot import figure, axes, plot, show, title, subplots, legend, colorbar
     matplotlib = True
 except ImportError:
     matplotlib = False
@@ -902,7 +902,7 @@ class FuzzySystem(object):
         ax.set_xlabel(self._lvs[v1]._concept)
         ax.set_ylabel(self._lvs[v2]._concept)
         ax.set_zlabel(output)
-        plt.colorbar(v, ax=ax)
+        colorbar(v, ax=ax)
         fig.tight_layout()
         return fig
 
