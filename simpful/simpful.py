@@ -1,6 +1,6 @@
 from .fuzzy_sets import FuzzySet, MF_object, Triangular_MF, SingletonsSet
 from .rule_parsing import recursive_parse, preparse, postparse
-from numpy import array, linspace, geomspace, log10, finfo, float64
+from numpy import array, linspace, meshgrid, geomspace, log10, finfo, float64
 from scipy.interpolate import interp1d
 from copy import deepcopy
 from collections import defaultdict, OrderedDict
@@ -886,14 +886,14 @@ class FuzzySystem(object):
         for a in A:
             temp = []
             for b in B:
-                FS.set_variable(self._lvs[v1]._concept, a)
-                FS.set_variable(self._lvs[v2]._concept, b)
+                self.set_variable(self._lvs[v1]._concept, a)
+                self.set_variable(self._lvs[v2]._concept, b)
                 res = FS.Sugeno_inference()[output]
                 temp.append( res )
             C.append(temp)
-        C = np.array(C)
+        C = array(C)
 
-        A,B = np.meshgrid(A,B)
+        A,B = meshgrid(A,B)
 
         fig = figure(figsize=(8,6))
         ax = axes(projection='3d')
