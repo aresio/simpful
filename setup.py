@@ -22,7 +22,10 @@ setup(
   extras_require={
         "plotting": ["matplotlib>=3.5.1", "seaborn>=0.11.2"],
     },
-  classifiers = ['Programming Language :: Python :: 3.7'],
+  classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",],
   long_description=long_description,
   long_description_content_type='text/markdown',
 )
