@@ -389,7 +389,6 @@ class FuzzySystem(object):
 
         Args:
             rules: list of fuzzy rules to be added. Rules must be specified as strings, respecting Simpful's syntax.
-            sanitize: True/False, automatically removes non alphanumeric symbols from rules.
             verbose: True/False, toggles verbose mode.
         """
         for rule in rules:
@@ -404,6 +403,33 @@ class FuzzySystem(object):
                 print(" * Added rule IF", parsed_antecedent, "THEN", parsed_consequent)
                 print()
         if verbose: print(" * %d rules successfully added" % len(rules))
+
+
+
+    def replace_rule(self, i, new_rule, verbose=False):
+        """
+        Replace the i-th rule in the fuzzy system.
+
+        Args:
+            i: index of the rule to be replaced in the fuzzy system.
+            new_rule: fuzzy rule to be used for the replacement.
+            verbose: True/False, toggles verbose mode.
+        """
+
+        if len(self._rules)<i or i<0: 
+            raise Exception("ERROR: rule number %d does not exist")
+
+        if self._sanitize_input: 
+            new_rule = self._sanitize(new_rule)
+        parsed_antecedent = recursive_parse(preparse(new_rule), verbose=verbose, operators=self._operators)
+        parsed_consequent = postparse(new_rule, verbose=verbose)
+        self._rules[i]=[parsed_antecedent, parsed_consequent] 
+        
+        if verbose:
+            print( " * Rule", i, "replaced with new rule: IF", parsed_antecedent, "THEN", parsed_consequent)
+            print()
+        #if verbose: print(" * Rule %d successfully replacd" % i)
+
 
 
     def add_linguistic_variable(self, name, LV, verbose=False):
