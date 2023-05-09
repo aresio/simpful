@@ -369,13 +369,17 @@ class FuzzySystem(object):
     def add_rules_from_file(self, path, verbose=False):
         """
         Imports new fuzzy rules by reading the strings from a text file.
+
+        Args:
+            path: path to the file containing the rules.
+            verbose: True/False, toggles verbose mode.
         """
         if path[-3:].lower()!=".xls" and path[-4:].lower()!=".xlsx":
             with open(path) as fi:
                 rules_strings = fi.readlines()
             self.add_rules(rules_strings, verbose=verbose)
         else:
-            raise NotImplementedError("Excel support not available yet.")
+            raise NotImplementedError("Excel support not available.")
 
 
     def _sanitize(self, rule):
@@ -404,11 +408,32 @@ class FuzzySystem(object):
                 print()
         if verbose: print(" * %d rules successfully added" % len(rules))
 
+    def get_rules(self):
+        """
+        Returns the rule base of the fuzzy system.
 
+        Returns:
+                a list containing the fuzzy rules as strings, in the same order they were added.
+        """
+        rule_base = []
+
+        for r in self._rules:
+            ant = str(r[0])
+            ant = ant.replace("c.(", "(")
+            ant = ant.replace("f.(", "(")
+            ant = "IF "+ant
+
+            cons = r[1]
+            cons = " THEN ("+cons[0]+" IS "+cons[1]+")"
+
+            rule = ant + cons
+            rule_base.append(rule)
+
+        return rule_base
 
     def replace_rule(self, i, new_rule, verbose=False):
         """
-        Replace the i-th rule in the fuzzy system.
+        Replaces the i-th rule in the FuzzySystem object. Rules are stored in the same order they were added. 
 
         Args:
             i: index of the rule to be replaced in the fuzzy system.
@@ -428,8 +453,6 @@ class FuzzySystem(object):
         if verbose:
             print( " * Rule", i, "replaced with new rule: IF", parsed_antecedent, "THEN", parsed_consequent)
             print()
-        #if verbose: print(" * Rule %d successfully replacd" % i)
-
 
 
     def add_linguistic_variable(self, name, LV, verbose=False):
