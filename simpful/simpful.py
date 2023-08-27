@@ -204,7 +204,7 @@ class LinguisticVariable(object):
         return "<Linguistic variable '"+text+"', contains fuzzy sets %s, universe of discourse: %s>" % (str(self._FSlist), str(self._universe_of_discourse))
 
 
-class AutoTriangle(LinguisticVariable):
+def AutoTriangle(n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False, concept=None):
     """
         Creates a new linguistic variable, whose universe of discourse is automatically divided in a given number of fuzzy sets.
         The sets are all symmetrical, normalized, and for each element of the universe their memberships sum up to 1.
@@ -215,37 +215,36 @@ class AutoTriangle(LinguisticVariable):
             universe_of_discourse: a list of two elements, specifying min and max of the universe of discourse.
             verbose: True/False, toggles verbose mode.
     """
+    if n_sets<2:
+        raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
 
-    def __init__(self, n_sets=3, terms=None, universe_of_discourse=[0,1], verbose=False):
-        
-        if n_sets<2:
-            raise Exception("Cannot create linguistic variable with less than 2 fuzzy sets.")
+    control_points = [x*1/(n_sets-1) for x in range(n_sets)]
+    low = universe_of_discourse[0]
+    high = universe_of_discourse[1]
+    control_points = [low + (high-low)*x for x in control_points]
+    
+    if terms is None:
+        terms = ['case%d' % (i+1) for i in range(n_sets)]
 
-        control_points = [x*1/(n_sets-1) for x in range(n_sets)]
-        low = universe_of_discourse[0]
-        high = universe_of_discourse[1]
-        control_points = [low + (high-low)*x for x in control_points]
-        
-        if terms is None:
-            terms = ['case %d' % (i+1) for i in range(n_sets)]
+    FS_list = []
 
-        FS_list = []
+    FS_list.append(FuzzySet(function=Triangular_MF(low,low,control_points[1]), term=terms[0]))
 
-        FS_list.append(FuzzySet(function=Triangular_MF(low,low,control_points[1]), term=terms[0]))
+    for n in range(1, n_sets-1):
+        FS_list.append(
+            FuzzySet(function=Triangular_MF(control_points[n-1], control_points[n], control_points[n+1]), 
+                term=terms[n])
+        )
 
-        for n in range(1, n_sets-1):
-            FS_list.append(
-                FuzzySet(function=Triangular_MF(control_points[n-1], control_points[n], control_points[n+1]), 
-                    term=terms[n])
-            )
+    FS_list.append( FuzzySet(function=Triangular_MF(control_points[-2], high, high), term=terms[-1] ))
 
-        FS_list.append( FuzzySet(function=Triangular_MF(control_points[-2], high, high), term=terms[-1] ))
+    lv = LinguisticVariable(FS_list, universe_of_discourse=universe_of_discourse, concept=concept)
 
-        super().__init__(FS_list, universe_of_discourse=universe_of_discourse)
+    if verbose:
+        for fs in FS_list:
+            print(fs, fs.get_term())
 
-        if verbose:
-            for fs in FS_list:
-                print(fs, fs.get_term())
+    return lv
 
 
 class FuzzySystem(object):
