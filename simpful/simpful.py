@@ -131,12 +131,12 @@ class LinguisticVariable(object):
             if isinstance(fs, SingletonsSet):
                 xs = [pair[0] for pair in fs._funpointer._pairs]
                 ys = [pair[1] for pair in fs._funpointer._pairs]
-                ax.vlines(x=xs, ymin=0.0, ymax=ys, linestyles=linestyles[nn%4], color=next(ax._get_lines.prop_cycler)['color'], label=fs._term)
+                ax.vlines(x=xs, ymin=0.0, ymax=ys, linestyles=linestyles[nn%4], color=ax._get_lines.get_next_color(), label=fs._term)
             
 
             elif fs._type == "function":
                 y = [fs.get_value(xx) for xx in x]
-                color = next(ax._get_lines.prop_cycler)['color']
+                color = ax._get_lines.get_next_color()
                 lw = 1
 
                 if highlight==fs._term: 
