@@ -23,34 +23,4 @@ R2 = "IF (Service IS good) THEN (Tip IS average)"
 R3 = "IF (Service IS excellent) OR (Food IS delicious) THEN (Tip IS generous)"
 FS.add_rules([R1, R2, R3])
 
-# Plotting surface
-xs = []
-ys = []
-zs = []
-DIVs = 20
-for x in linspace(0,10,DIVs):
-    for y in linspace(0,10,DIVs):
-        FS.set_variable("Food", x)
-        FS.set_variable("Service", y)
-        tip = FS.inference()['Tip']
-        xs.append(x)
-        ys.append(y)
-        zs.append(tip)
-xs = array(xs)
-ys = array(ys)
-zs = array(zs)
-
-from mpl_toolkits.mplot3d import Axes3D
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-xx, yy = plt.meshgrid(xs,ys)
-
-ax.plot_trisurf(xs,ys,zs, vmin=0, vmax=25, cmap='gnuplot2')
-ax.set_xlabel("Food")
-ax.set_ylabel("Service")
-ax.set_zlabel("Tip")
-ax.set_title("Simpful", pad=20)
-ax.set_zlim(0, 25)
-plt.tight_layout()
-plt.show()
+fig = FS.plot_surface(variables=['Service','Food'], output='Tip')
