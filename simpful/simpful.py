@@ -289,8 +289,7 @@ class FuzzySystem(object):
         print(" \\___ \\ )( / \\/ \\ ) __/ ) _) ) \\/ (/ (_/\\ ")
         print(" (____/(__)\\_)(_/(__)  (__)  \\____/\\____/")
         print()
-        print(" Created by Marco S. Nobile (m.s.nobile@tue.nl)")
-        print(" and Simone Spolaor (simone.spolaor@unimib.it)")
+        print(" https://github.com/aresio/simpful")
         print()
 
 
