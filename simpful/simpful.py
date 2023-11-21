@@ -904,15 +904,16 @@ class FuzzySystem(object):
             show()
 
 
-    def plot_surface(self, variables, output, detail=40, color_map="plasma"):
+    def plot_surface(self, variables, output, detail=40, color_map="plasma", outputfile=""):
         """
         Plots the surface induced by the rules.
 
         Args:
-            variables: a pair of linguistic variables for the x and y axis.
-            output: the output variable to be computed.
+            variables: a list containing a pair of linguistic variables' names (as strings) for the x and y axis.
+            output: the name of the output variable (as string) to be computed.
             detail: number of subdivisions along each axis.
             color_map: the color map to be used for the plot.
+            outputfile: string containing path and filename where the plot must be saved.
 
         Returns:
             a matplotlib figure object.
@@ -935,9 +936,9 @@ class FuzzySystem(object):
         for a in A:
             temp = []
             for b in B:
-                self.set_variable(self._lvs[v1]._concept, a)
-                self.set_variable(self._lvs[v2]._concept, b)
-                res = self.Sugeno_inference()[output]
+                self.set_variable(v1, a)
+                self.set_variable(v2, b)
+                res = self.inference()[output]
                 temp.append( res )
             C.append(temp)
         C = array(C)
@@ -953,6 +954,11 @@ class FuzzySystem(object):
         ax.set_zlabel(output)
         colorbar(v, ax=ax)
         fig.tight_layout()
+
+        if outputfile != "":
+            fig.savefig(outputfile)
+        else:
+            show()
         return fig
 
 
