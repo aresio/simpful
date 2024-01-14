@@ -23,6 +23,10 @@ linestyles= ["-", "--", ":", "-."]
 # for sanitization
 valid_characters = string.ascii_letters + string.digits + "()_ "
 
+# constants for templating system 
+TEMPLATES_ENGAGED = 0
+TEMPLATES_DISENGAGED = 1
+TEMPLATES_MISSING_INFO = 2
 
 class UndefinedUniverseOfDiscourseError(Exception):
 
@@ -275,6 +279,9 @@ class FuzzySystem(object):
 
         self._detected_type = None
 
+        self._replacement_dictionary = {}
+        self._templates_enabled = False
+
         self._sanitize_input = sanitize_input
         if sanitize_input and verbose:
             print (" * Warning: Simpful rules sanitization is enabled, please pay attention to possible collisions of symbols.")
@@ -307,6 +314,7 @@ class FuzzySystem(object):
             return self._lvs[variable_name]._FSlist
         except ValueError:
             raise Exception("ERROR: linguistic variable %s does not exist" % variable_name)
+
 
     def get_fuzzy_set(self, variable_name, fs_name):
         """
@@ -341,11 +349,13 @@ class FuzzySystem(object):
         """
         if self._sanitize_input: name = self._sanitize(name)
         try: 
-            value = float(value)
+            if type(value)==int: 
+                value = float(value)
             self._variables[name] = value
             if verbose: print(" * Variable %s set to %f" % (name, value))
         except ValueError:
             raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
+
 
     def set_constant(self, name, value, verbose=False):
         """
@@ -364,6 +374,33 @@ class FuzzySystem(object):
             if verbose: print(" * Variable %s set to a constant value %f" % (name, value))
         except ValueError:
             raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
+
+
+    def set_input_templates(self, replacement_dictionary={}):
+        """
+        Sets the current status of categorical values using a template system. The replacement
+        rules are specified as a dictionary. EXPERIMENTAL.
+        """
+        self._replacement_dictionary = replacement_dictionary
+        if self._check_templates() == TEMPLATES_ENGAGED:
+            print( " * Templates replacement set to:", self._replacement_dictionary)
+        else:
+            print( "WARNING: templates replacement set but no templates were found in the functions")
+            
+
+    def _check_templates(self):
+        # replacement dictionary filled and templates used in functions
+        if len(self._replacement_dictionary)>0 and self._templates_enabled: 
+            return TEMPLATES_ENGAGED
+
+        # no replacement set but templates are used in functions (not good)
+        elif len(self._replacement_dictionary)==0 and self._templates_enabled:
+            return TEMPLATES_MISSING_INFO
+        else:
+
+            # replacement not set or templates are disabled
+            return TEMPLATES_DISENGAGED
+
 
     def add_rules_from_file(self, path, verbose=False):
         """
@@ -407,6 +444,7 @@ class FuzzySystem(object):
                 print()
         if verbose: print(" * %d rules successfully added" % len(rules))
 
+
     def get_rules(self):
         """
         Returns the rule base of the fuzzy system.
@@ -429,6 +467,7 @@ class FuzzySystem(object):
             rule_base.append(rule)
 
         return rule_base
+
 
     def replace_rule(self, i, new_rule, verbose=False):
         """
@@ -498,8 +537,14 @@ class FuzzySystem(object):
         """
         if self._sanitize_input: name = self._sanitize(name)
         self._outputfunctions[name]=function
+        if "{" in function:
+            self._templates_enabled = True
+            if verbose: 
+                print(" * Template system engaged")
+
         if verbose: print(" * Output function for '%s' set to '%s'" % (name, function))
         self._set_model_type("Sugeno")
+
 
     def _set_model_type(self, model_type):
         if self._detected_type == "inconsistent": return
@@ -535,6 +580,43 @@ class FuzzySystem(object):
                 firings.append(res)
             return firings
 
+
+    def _replace_values(self, function, verbose=False):
+        res_string=function[:]
+        newstring = ""
+        while "{" in res_string:
+            
+            try:
+                prestring = res_string[:res_string.find("{")]
+                substring = res_string[res_string.find("{")+1:res_string.find("}")]
+                if verbose: print("Pre- and sub-strings:", prestring, substring)
+            except:
+                print("ERROR: missing curly brace in template, aborting.")
+                exit()
+
+            variable = substring[2: substring.find("IS")].strip()
+            case = substring[substring.find("IS")+2:substring.find("THEN")].strip()
+            value = substring[substring.find("THEN")+4:].strip()
+            if verbose: print("Analysing rule: IF %s IS %s THEN %s" % (variable, case, value))
+
+            # checking everything all the time is not a good idea, optimize later
+            detected = False
+            for k,v in self._replacement_dictionary.items():
+                if k==variable and v==case:
+                    if verbose: print(" - case detected for", k,v)
+                    newstring = newstring+prestring+ str(value)
+                    res_string = res_string[res_string.find("}")+1:]
+                    detected = True
+
+            if detected: continue
+
+            res_string = res_string[res_string.find("}")+1:]
+            newstring += prestring + "0"
+
+        newstring += res_string
+        return newstring
+       
+
     def mediate(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False):
 
         final_result = {}
@@ -543,10 +625,12 @@ class FuzzySystem(object):
         list_output_funs  = [x[0] for x in self._outputfunctions.items()]
 
         for output in outputs:
+            """
             if verbose:
                 print(" * Processing output for variable '%s'" %  output)
                 print("   whose universe of discourse is:", self._lvs[output].get_universe_of_discourse())
                 print("   contains the following fuzzy sets:", self._lvs[output]._FSlist )
+            """
 
             num = 0
             den = 0
@@ -575,6 +659,16 @@ class FuzzySystem(object):
                         raise Exception("ERROR in consequent of rule %s.\nSugeno reasoning does not support output fuzzy sets." % ("IF " + str(ant) + " THEN " + str(res)))
                     else:
                         string_to_evaluate = self._outputfunctions[outterm]
+                        
+                        # replacement here
+                        if self._check_templates() == TEMPLATES_ENGAGED:
+                            print(" * Replacing templates in function for '%s'" % res[0])
+                            print("   name of function: '%s'" % res[1])
+                            string_to_evaluate = self._replace_values(string_to_evaluate)
+                            print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
+                        #exit()
+
+
                         for k,v in self._variables.items():
                             # old version
                             # string_to_evaluate = string_to_evaluate.replace(k,str(v))
