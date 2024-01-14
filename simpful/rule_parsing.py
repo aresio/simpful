@@ -87,12 +87,16 @@ def postparse(STRINGA, verbose=False):
         raise Exception("ERROR: badly formatted rule, please check capitalization and syntax.\n"
                         + " ---- PROBLEMATIC RULE:\n"
                         + STRINGA)
+
+
     # Probabilistic fuzzy rule
     if re.match(r"P\(", stripped) is not None:
         return tuple(re.findall(r"\w+(?=\sis)|(?<=is\s)\w+|\d\.\d\d", stripped))
+
     # Weighted fuzzy rule
     elif re.search(r"WEIGHT\s*(\d|\.)", stripped) is not None:
         return tuple(re.findall(r"\w+(?=\sIS\s)|(?<=\sIS\s)\w+|\.?\d\.?\d*", stripped))
+
     # Normal fuzzy rule
     else:
         return tuple(re.findall(r"\w+(?=\sIS\s)|(?<=\sIS\s)\w+", stripped))
