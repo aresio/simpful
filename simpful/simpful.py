@@ -349,8 +349,13 @@ class FuzzySystem(object):
         """
         if self._sanitize_input: name = self._sanitize(name)
         try: 
-            if type(value)==int: 
+            if isinstance(value,str):
+                self._templates_enabled = TEMPLATES_ENGAGED
+            elif isinstance(value,bool):
+                self._templates_enabled = TEMPLATES_ENGAGED
+            else: 
                 value = float(value)
+
             self._variables[name] = value
             if verbose: print(" * Variable %s set to %f" % (name, value))
         except ValueError:
@@ -375,32 +380,8 @@ class FuzzySystem(object):
         except ValueError:
             raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
 
-
-    def set_input_templates(self, replacement_dictionary={}):
-        """
-        Sets the current status of categorical values using a template system. The replacement
-        rules are specified as a dictionary. EXPERIMENTAL.
-        """
-        self._replacement_dictionary = replacement_dictionary
-        if self._check_templates() == TEMPLATES_ENGAGED:
-            print( " * Templates replacement set to:", self._replacement_dictionary)
-        else:
-            print( "WARNING: templates replacement set but no templates were found in the functions")
-            
-
     def _check_templates(self):
-        # replacement dictionary filled and templates used in functions
-        if len(self._replacement_dictionary)>0 and self._templates_enabled: 
-            return TEMPLATES_ENGAGED
-
-        # no replacement set but templates are used in functions (not good)
-        elif len(self._replacement_dictionary)==0 and self._templates_enabled:
-            return TEMPLATES_MISSING_INFO
-        else:
-
-            # replacement not set or templates are disabled
-            return TEMPLATES_DISENGAGED
-
+        return self._templates_enabled
 
     def add_rules_from_file(self, path, verbose=False):
         """
@@ -589,7 +570,7 @@ class FuzzySystem(object):
             try:
                 prestring = res_string[:res_string.find("{")]
                 substring = res_string[res_string.find("{")+1:res_string.find("}")]
-                if verbose: print("Pre- and sub-strings:", prestring, substring)
+                if verbose: print("   Pre- and sub-strings:", prestring, substring)
             except:
                 print("ERROR: missing curly brace in template, aborting.")
                 exit()
@@ -597,21 +578,34 @@ class FuzzySystem(object):
             variable = substring[2: substring.find("IS")].strip()
             case = substring[substring.find("IS")+2:substring.find("THEN")].strip()
             value = substring[substring.find("THEN")+4:].strip()
-            if verbose: print("Analysing rule: IF %s IS %s THEN %s" % (variable, case, value))
+            if verbose: print(" * Analysing rule: IF %s IS %s THEN %s" % (variable, case, value))
 
             # checking everything all the time is not a good idea, optimize later
-            detected = False
+            #detected = False
+
+
+            candidate = self._variables[variable]
+            if candidate==case:
+                newstring  = newstring+prestring+ str(value)
+                res_string = res_string[res_string.find("}")+1:]
+                if verbose: print(" - case detected for '%s IS %s" % (variable, case))
+            else:
+                res_string = res_string[res_string.find("}")+1:]
+                newstring += prestring + "0"
+                if verbose: print(" - case NOT detected for '%s IS %s'" % (variable, case))
+
+            """
             for k,v in self._replacement_dictionary.items():
                 if k==variable and v==case:
                     if verbose: print(" - case detected for", k,v)
                     newstring = newstring+prestring+ str(value)
                     res_string = res_string[res_string.find("}")+1:]
                     detected = True
+            """
 
-            if detected: continue
+            #if detected: continue
 
-            res_string = res_string[res_string.find("}")+1:]
-            newstring += prestring + "0"
+            
 
         newstring += res_string
         return newstring
@@ -664,7 +658,7 @@ class FuzzySystem(object):
                         if self._check_templates() == TEMPLATES_ENGAGED:
                             print(" * Replacing templates in function for '%s'" % res[0])
                             print("   name of function: '%s'" % res[1])
-                            string_to_evaluate = self._replace_values(string_to_evaluate)
+                            string_to_evaluate = self._replace_values(string_to_evaluate, verbose=verbose)
                             print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
                         #exit()
 
