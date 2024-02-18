@@ -349,14 +349,7 @@ class FuzzySystem(object):
         """
         if self._sanitize_input: name = self._sanitize(name)
         try: 
-            if isinstance(value,str):
-                self._templates_enabled = TEMPLATES_ENGAGED
-            elif isinstance(value,bool):
-                self._templates_enabled = TEMPLATES_ENGAGED
-            else: 
-                value = float(value)
-
-            self._variables[name] = value
+            self._variables[name] = float(value)
             if verbose: print(" * Variable %s set to %f" % (name, value))
         except ValueError:
             raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
@@ -519,7 +512,7 @@ class FuzzySystem(object):
         if self._sanitize_input: name = self._sanitize(name)
         self._outputfunctions[name]=function
         if "{" in function:
-            self._templates_enabled = True
+            self._templates_enabled = TEMPLATES_ENGAGED
             if verbose: 
                 print(" * Template system engaged")
 
@@ -576,7 +569,7 @@ class FuzzySystem(object):
                 exit()
 
             variable = substring[2: substring.find("IS")].strip()
-            case = substring[substring.find("IS")+2:substring.find("THEN")].strip()
+            case = float(substring[substring.find("IS")+2:substring.find("THEN")].strip())
             value = substring[substring.find("THEN")+4:].strip()
             if verbose: print(" * Analysing rule: IF %s IS %s THEN %s" % (variable, case, value))
 
@@ -656,11 +649,11 @@ class FuzzySystem(object):
                         
                         # replacement here
                         if self._check_templates() == TEMPLATES_ENGAGED:
-                            print(" * Replacing templates in function for '%s'" % res[0])
-                            print("   name of function: '%s'" % res[1])
                             string_to_evaluate = self._replace_values(string_to_evaluate, verbose=verbose)
-                            print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
-                        #exit()
+                            if verbose:
+                                print(" * Replacing templates in function for '%s'" % res[0])
+                                print("   name of function: '%s'" % res[1])
+                                print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
 
 
                         for k,v in self._variables.items():
