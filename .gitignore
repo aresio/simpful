@@ -143,3 +143,9 @@ simpful/Testing_various
 # Docs
 docs/Makefile
 docs/make.bat
+
+# .DS_Store
+.DS_Store
+
+# Logs
+logs.txt

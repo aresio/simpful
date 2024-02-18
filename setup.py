@@ -16,9 +16,10 @@ setup(
   keywords = ['fuzzy logic', 'sugeno', 'mamdani', 'reasoner', 'python', 'modeling'], # arbitrary keywords
   license='LICENSE.txt',
   install_requires=[
-        "numpy >= 1.12.0",
-        "scipy >= 1.0.0",
-    ],
+    "numpy >= 1.12.0",
+    "scipy >= 1.0.0",
+    "pandas >= 1.0.0",
+],
   extras_require={
         "plotting": ["matplotlib>=3.5.1", "seaborn>=0.11.2"],
     },

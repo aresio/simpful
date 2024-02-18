@@ -51,6 +51,12 @@ class LinguisticVariable(object):
         self._universe_of_discourse = universe_of_discourse
         self._FSlist = FS_list
         self._concept = concept
+    
+    def get_terms(self):
+        """
+        Returns a list of all terms (labels) for the fuzzy sets in this linguistic variable.
+        """
+        return [fs._term for fs in self._FSlist]
 
 
     def get_values(self, v):
@@ -264,7 +270,7 @@ class FuzzySystem(object):
             verbose: True/False, toggles verbose mode.
     """
 
-    def __init__(self, operators=None, show_banner=True, sanitize_input=False, verbose=True):
+    def __init__(self, operators=None, show_banner=False, sanitize_input=False, verbose=False):
 
         self._rules = []
         self._lvs = OrderedDict()
@@ -349,14 +355,7 @@ class FuzzySystem(object):
         """
         if self._sanitize_input: name = self._sanitize(name)
         try: 
-            if isinstance(value,str):
-                self._templates_enabled = TEMPLATES_ENGAGED
-            elif isinstance(value,bool):
-                self._templates_enabled = TEMPLATES_ENGAGED
-            else: 
-                value = float(value)
-
-            self._variables[name] = value
+            self._variables[name] = float(value)
             if verbose: print(" * Variable %s set to %f" % (name, value))
         except ValueError:
             raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
@@ -490,6 +489,21 @@ class FuzzySystem(object):
         # self._lvs[name]=deepcopy(LV)
         if verbose: print(" * Linguistic variable '%s' successfully added" % name)
 
+    def remove_linguistic_variable(self, name, verbose=False):
+        """
+        Removes a linguistic variable from the fuzzy system.
+
+        Args:
+            name: string containing the name of the linguistic variable to be removed.
+            verbose: True/False, toggles verbose mode.
+        """
+        if name in self._lvs:
+            del self._lvs[name]
+            if verbose:
+                print(f" * Linguistic variable '{name}' successfully removed")
+        else:
+            if verbose:
+                print(f" * No linguistic variable named '{name}' found in the system")
 
     def set_crisp_output_value(self, name, value, verbose=False):
         """
@@ -519,7 +533,7 @@ class FuzzySystem(object):
         if self._sanitize_input: name = self._sanitize(name)
         self._outputfunctions[name]=function
         if "{" in function:
-            self._templates_enabled = True
+            self._templates_enabled = TEMPLATES_ENGAGED
             if verbose: 
                 print(" * Template system engaged")
 
@@ -576,7 +590,7 @@ class FuzzySystem(object):
                 exit()
 
             variable = substring[2: substring.find("IS")].strip()
-            case = substring[substring.find("IS")+2:substring.find("THEN")].strip()
+            case = float(substring[substring.find("IS")+2:substring.find("THEN")].strip())
             value = substring[substring.find("THEN")+4:].strip()
             if verbose: print(" * Analysing rule: IF %s IS %s THEN %s" % (variable, case, value))
 
@@ -611,7 +625,7 @@ class FuzzySystem(object):
         return newstring
        
 
-    def mediate(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=False, verbose=False):
+    def mediate(self, outputs, antecedent, results, ignore_errors=False, ignore_warnings=True, verbose=False):
 
         final_result = {}
 
@@ -656,11 +670,11 @@ class FuzzySystem(object):
                         
                         # replacement here
                         if self._check_templates() == TEMPLATES_ENGAGED:
-                            print(" * Replacing templates in function for '%s'" % res[0])
-                            print("   name of function: '%s'" % res[1])
                             string_to_evaluate = self._replace_values(string_to_evaluate, verbose=verbose)
-                            print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
-                        #exit()
+                            if verbose:
+                                print(" * Replacing templates in function for '%s'" % res[0])
+                                print("   name of function: '%s'" % res[1])
+                                print(" * Final version of the '%s' rule: %s" % (res[1], string_to_evaluate))
 
 
                         for k,v in self._variables.items():
@@ -704,7 +718,7 @@ class FuzzySystem(object):
         antecedent, 
         results, 
         ignore_errors=False, 
-        ignore_warnings=False, 
+        ignore_warnings=True, 
         verbose=False, 
         subdivisions=1000,
         aggregation_function=max):
@@ -784,7 +798,7 @@ class FuzzySystem(object):
         return final_result
 
 
-    def Sugeno_inference(self, terms=None, ignore_errors=False, ignore_warnings=False, verbose=False):
+    def Sugeno_inference(self, terms=None, ignore_errors=False, ignore_warnings=True, verbose=False):
         """
         Performs Sugeno fuzzy inference.
 
@@ -832,7 +846,7 @@ class FuzzySystem(object):
         return result
 
 
-    def Mamdani_inference(self, terms=None, subdivisions=1000, aggregation_function=max, ignore_errors=False, ignore_warnings=False, verbose=False):
+    def Mamdani_inference(self, terms=None, subdivisions=1000, aggregation_function=max, ignore_errors=False, ignore_warnings=True, verbose=False):
         """
         Performs Mamdani fuzzy inference.
 
