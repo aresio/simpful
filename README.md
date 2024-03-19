@@ -21,11 +21,12 @@ Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful:
 
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
 
+### Example 1: Modelling the heating power of a gas burner using oxygen supply (Takagi Sugeno)
+
+A simple fuzzy model (Takagi Sugeno) describing how the heating power of a gas burner depends on the oxygen supply. We use a point-based approach for defining the fuzzy sets. The consequents can either be crisp or functional. 
 
 ```
 import simpful as sf
-
-# A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
 
 FS = sf.FuzzySystem()
 
@@ -48,10 +49,11 @@ FS.add_rules([RULE1, RULE2, RULE3])
 
 # Set antecedents values, perform Sugeno inference and print output values.
 FS.set_variable("OXI", .51)
-print (FS.Sugeno_inference(['POWER']))
+print(FS.inference(['POWER']))
 ```
 
 ## Usage example 2: tipping with Mamdani 
+
 
 This second example shows how to model a FIS using Mamdani inference. It also shows some facilities 
 that make modeling more concise and clear: automatic Triangles (i.e., pre-baked linguistic variables 
@@ -81,12 +83,17 @@ FS.set_variable("quality", 6.5)
 FS.set_variable("service", 9.8) 
 
 tip = FS.inference()
+print(tip)
 ```
+
+### Example 3: Probabilistic Classification based on a Takagi Sugeno approach.
+
+Simpful now supports classification using conditional probabilities. Please keep in mind that these probabilities can not be estimated automatically yet and have to be fed to the system when defining the rules. The implementation is based on the following paper: [Function approximation using probabilistic fuzzy systems](https://research.tue.nl/en/publications/function-approximation-using-probabilistic-fuzzy-systems). For a detailed example please view: https://github.com/Nikhilrs1993/PFS_Walkthrough_Example
+
 ## Additional examples
 
 Additional example scripts are available in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
 
 ## Further info
-Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. 
-
+Created by Marco S. Nobile at the Eindhoven University of Technology and Simone Spolaor at the University of Milano-Bicocca. Usage information can be found on the [wiki page](https://github.com/aresio/simpful/wiki).
 If you need further information, please write an e-mail at: m.s.nobile@tue.nl.
