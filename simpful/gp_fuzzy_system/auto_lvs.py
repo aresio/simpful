@@ -4,6 +4,7 @@ import skfuzzy as fuzz
 from simpful import FuzzySet, Triangular_MF, LinguisticVariable
 from linguistic_variable_store import LocalLinguisticVariableStore
 import argparse
+import importlib.util
 
 def adjust_control_points(control_points, verbose=True):
     unique_points = sorted(set(control_points))
@@ -64,10 +65,18 @@ def create_linguistic_variable(column_data, column_name, terms, verbose=True):
         print(f"Failed to create linguistic variable for column '{column_name}' with at least 2 terms")
     return None
 
-def process_dataset(data, terms_dict, default_terms=['low', 'medium', 'high'], verbose=True):
+def process_dataset(data, terms_dict, exclude_columns=None, default_terms=['low', 'medium', 'high'], verbose=True):
     store = LocalLinguisticVariableStore()
 
+    if exclude_columns is None:
+        exclude_columns = []
+
     for column in data.columns:
+        if column in exclude_columns:
+            if verbose:
+                print(f"Excluding column '{column}'")
+            continue
+
         if data[column].dtype not in [np.float64, np.int64]:
             continue
         
@@ -79,32 +88,17 @@ def process_dataset(data, terms_dict, default_terms=['low', 'medium', 'high'], v
     
     return store
 
-def main(file_path, verbose):
+def load_terms_dict(terms_dict_path):
+    spec = importlib.util.spec_from_file_location("terms_dict", terms_dict_path)
+    terms_dict_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(terms_dict_module)
+    return terms_dict_module.terms_dict
+
+def main(file_path, terms_dict_path, verbose, exclude_columns):
     data = pd.read_csv(file_path)
-
-    terms_dict = {
-        'open': ['low', 'medium', 'high', 'very_high'],
-        'volume': ['low', 'medium', 'high'],
-        'sma_30': ['low', 'medium', 'high'],
-        'rsi': ['low', 'medium', 'high'],
-        'macd': ['low', 'medium', 'high'],
-        'dia_close': ['low', 'medium', 'high'],
-        'dia_volume': ['low', 'medium', 'high'],
-        'gld_close': ['low', 'medium', 'high'],
-        'gld_volume': ['low', 'medium', 'high'],
-        'spy_close': ['low', 'medium', 'high'],
-        'spy_volume': ['low', 'medium', 'high'],
-        'federal_funds_rate_daily': ['low', 'medium', 'high'],
-        'treasury_yield_daily': ['low', 'medium', 'high'],
-        'cpi_monthly': ['low', 'medium', 'high'],
-        'nonfarm_payroll_monthly': ['low', 'medium', 'high'],
-        'retail_sales_monthly': ['low', 'medium', 'high'],
-        'month': ['low', 'medium', 'high'],
-        'day': ['low', 'medium', 'high'],
-        'hour': ['low', 'medium', 'high'],
-    }
-
-    store = process_dataset(data, terms_dict, verbose=verbose)
+    terms_dict = load_terms_dict(terms_dict_path)
+    
+    store = process_dataset(data, terms_dict, exclude_columns=exclude_columns, verbose=verbose)
 
     for var_name, lv in store.get_all_variables().items():
         print(f"Linguistic Variable: {var_name}")
@@ -113,8 +107,10 @@ def main(file_path, verbose):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a dataset to create a linguistic variable store.")
     parser.add_argument("file_path", type=str, help="Path to the CSV file containing the dataset.")
+    parser.add_argument("terms_dict_path", type=str, help="Path to the terms_dict.py file.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output.")
+    parser.add_argument("-e", "--exclude", nargs='*', default=None, help="Columns to exclude from processing.")
     
     args = parser.parse_args()
     
-    main(args.file_path, args.verbose)
+    main(args.file_path, args.terms_dict_path, args.verbose, args.exclude)
