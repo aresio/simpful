@@ -12,7 +12,7 @@ Max: {stats['max']}
 Mean: {stats['mean']}
 Std: {stats['std']}
 
-Suggest appropriate fuzzy terms for this column in the format of a Python list, adhering to a Likert scale. Use terms like "VERY LOW", "LOW", "MEDIUM", "HIGH", "VERY HIGH". If the data suggests a constant or negligible change, suggest "CONSTANT". Consider using 1, 3, 4, or 5 terms based on the data distribution. Ensure the terms are ordered from smallest to largest.
+Suggest appropriate fuzzy terms for this column in the format of a Python list, adhering to a Likert scale. Use terms like "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH". If the data suggests a constant or negligible change, suggest "CONSTANT". Consider using 1, 3, 4, or 5 terms based on the data distribution. Ensure the terms are ordered from smallest to largest.
 """
     return prompt
 
@@ -51,7 +51,7 @@ def analyze_data_and_generate_terms(data, verbose=True):
     skip_columns = {'year', 'month', 'day', 'hour'}
     terms_dict = {}
     
-    term_order = {"CONSTANT": 0, "VERY LOW": 1, "LOW": 2, "MEDIUM": 3, "HIGH": 4, "VERY HIGH": 5}
+    term_order = {"CONSTANT": 0, "VERY_LOW": 1, "LOW": 2, "MEDIUM": 3, "HIGH": 4, "VERY_HIGH": 5}
     
     for column in data.columns:
         if column.lower() in skip_columns:
@@ -70,7 +70,7 @@ def analyze_data_and_generate_terms(data, verbose=True):
             if "CONSTANT" in terms and len(set(terms)) == 1:
                 terms = ["CONSTANT"]
             else:
-                valid_likert_terms = {"VERY LOW", "LOW", "MEDIUM", "HIGH", "VERY HIGH"}
+                valid_likert_terms = {"VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"}
                 terms = [term for term in terms if term in valid_likert_terms]
                 terms = list(dict.fromkeys(terms))  # Remove duplicates, preserving order
 
@@ -117,3 +117,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Usage
+# python generate_terms_dict.py tests/gp_data_x_train.csv sk-proj-token -v
