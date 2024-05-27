@@ -23,13 +23,9 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 
         # Set available features for economic_health based on test data columns
-        cls.available_features = cls.test_data.columns.tolist()
+        cls.available_features = cls.x_train.columns.tolist()
         # Assigning the available features to economic_health
         economic_health.available_features = cls.available_features
-
-        # Assigning the available features to economic_health
-        economic_health.available_features = cls.available_features
-
         # Load the training data into economic_health
         economic_health.load_data(x_train=cls.x_train, y_train=cls.y_train)
 
@@ -48,7 +44,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         extracted_features = economic_health.extract_features_from_rules(verbose=True)
 
         # Define the expected features based on the known rules in economic_health
-        expected_features = ['gdp_growth_annual_prcnt', 'unemployment_rate_value', 'foreign_direct_investment_value', 'trade_balance_value', 'inflation_rate_value']
+        expected_features = ['inflation_rate_value', 'spy_close']
 
         # Check that the extracted features match the expected features
         self.assertTrue(set(expected_features).issubset(set(extracted_features)), "Extracted features should include all expected features.")
@@ -78,7 +74,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         original_variables = set(economic_health._lvs.keys())
 
         # Simulate mutation with access to the variable store
-        economic_health.mutate_feature(self.variable_store, verbose=verbose)  # Verbose true to capture output if needed
+        economic_health.mutate_feature(self.__class__.variable_store, verbose=verbose)  # Verbose true to capture output if needed
 
         mutated_rules = economic_health.get_rules()
         mutated_variables = set(economic_health._lvs.keys())
@@ -124,7 +120,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
     def test_crossover(self):
         """Test crossover functionality with rule swapping checks."""
         partner_system = market_risk.clone()
-        offspring1, offspring2 = economic_health.crossover(partner_system, verbose=False)
+        offspring1, offspring2 = economic_health.crossover(partner_system, self.__class__.variable_store, verbose=False)
 
         self.assertIsNotNone(offspring1, "Offspring 1 should be successfully created.")
         self.assertIsNotNone(offspring2, "Offspring 2 should be successfully created.")
@@ -139,14 +135,14 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         self.assertTrue(rules_partner_after.issubset(rules_self_before.union(rules_partner_before)), "All offspring 2 rules should come from one of the parents.")
 
         # Check if the linguistic variables are complete post-crossover using the provided store
-        economic_health.post_crossover_linguistic_verification(offspring1, offspring2, self.variable_store)
+        economic_health.post_crossover_linguistic_verification(offspring1, offspring2, self.__class__.variable_store)
         self.assertTrue(all(feature in offspring1._lvs for feature in offspring1.extract_features_from_rules()), "Offspring 1 should have all necessary linguistic variables.")
         self.assertTrue(all(feature in offspring2._lvs for feature in offspring2.extract_features_from_rules()), "Offspring 2 should have all necessary linguistic variables.")
 
     def test_crossover_produces_different_offspring(self):
         """Test crossover functionality ensures different offspring."""
         partner_system = market_risk.clone()
-        offspring1, offspring2 = economic_health.crossover(partner_system, self.variable_store)
+        offspring1, offspring2 = economic_health.crossover(partner_system, self.__class__.variable_store)
 
         # Assert that both offspring are not None
         self.assertIsNotNone(offspring1, "First offspring should not be None")
@@ -177,7 +173,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         self.assertTrue(economic_health._rules, "economic_health should have rules initialized")
         
         # Call the evaluate_fitness function
-        fitness = economic_health.evaluate_fitness(variable_store=self.variable_store, verbose=False)
+        fitness = economic_health.evaluate_fitness(variable_store=self.__class__.variable_store, verbose=False)
         
         # Print the fitness score for debugging
         print(f"Fitness Score: {fitness}")

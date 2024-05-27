@@ -233,7 +233,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             if verbose:
                 print(f"An error occurred during the mutation process: {str(e)}")
 
-    def crossover(self, partner_system, verbose=False):
+    def crossover(self, partner_system, variable_store, verbose=False):
         # Similar setup, but now uses variable_store for linguistic variables
         if not self._rules or not partner_system._rules:
             if verbose:
@@ -250,6 +250,8 @@ class EvolvableFuzzySystem(FuzzySystem):
         new_self = self.clone()
         new_partner = partner_system.clone()
 
+        new_self.ensure_linguistic_variables(variable_store)
+        new_partner.ensure_linguistic_variables(variable_store)
 
         gp_utilities.swap_rules(new_self, new_partner, index_self, index_partner)
 
@@ -276,7 +278,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             raise ValueError("Verbose must be a boolean value")
 
         rule_features = self.extract_features_from_rules()
-        existing_variables = set(self._lvs.keys())
+        existing_variables = set(self._lvs.keys()) #this is empty with new var store. Why?
 
         missing_variables = [feat for feat in rule_features if feat not in existing_variables]
         for feature in missing_variables:
