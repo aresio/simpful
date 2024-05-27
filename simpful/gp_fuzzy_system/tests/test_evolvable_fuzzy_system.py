@@ -8,7 +8,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from instances import economic_health, market_risk, variable_store, investment_opportunity, inflation_prediction, market_sentiment, make_predictions_with_models
+from instances import economic_health, market_risk, variable_store
 
 
 class TestEvolvableFuzzySystem(unittest.TestCase):
