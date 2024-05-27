@@ -8,7 +8,9 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from instances import economic_health, market_risk, variable_store
+from instances import economic_health, market_risk #, variable_store
+from auto_lvs import FuzzyLinguisticVariableProcessor
+
 
 
 class TestEvolvableFuzzySystem(unittest.TestCase):
@@ -30,6 +32,15 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
 
         # Load the training data into economic_health
         economic_health.load_data(x_train=cls.x_train, y_train=cls.y_train)
+
+        # Create a variable store using the FuzzyLinguisticVariableProcessor
+        file_path = Path(__file__).resolve().parent / 'gp_data_x_train.csv'
+        terms_dict_path = Path(__file__).resolve().parent.parent / 'terms_dict.py'
+        exclude_columns = ['month', 'day', 'hour']
+        verbose = True
+
+        processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns)
+        cls.variable_store = processor.process_dataset()
 
     def test_extract_features_from_rules(self):
         """Test the extraction of features from the rules."""
@@ -67,7 +78,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         original_variables = set(economic_health._lvs.keys())
 
         # Simulate mutation with access to the variable store
-        economic_health.mutate_feature(variable_store, verbose=verbose)  # Verbose true to capture output if needed
+        economic_health.mutate_feature(self.variable_store, verbose=verbose)  # Verbose true to capture output if needed
 
         mutated_rules = economic_health.get_rules()
         mutated_variables = set(economic_health._lvs.keys())
@@ -128,14 +139,14 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         self.assertTrue(rules_partner_after.issubset(rules_self_before.union(rules_partner_before)), "All offspring 2 rules should come from one of the parents.")
 
         # Check if the linguistic variables are complete post-crossover using the provided store
-        economic_health.post_crossover_linguistic_verification(offspring1, offspring2, variable_store)
+        economic_health.post_crossover_linguistic_verification(offspring1, offspring2, self.variable_store)
         self.assertTrue(all(feature in offspring1._lvs for feature in offspring1.extract_features_from_rules()), "Offspring 1 should have all necessary linguistic variables.")
         self.assertTrue(all(feature in offspring2._lvs for feature in offspring2.extract_features_from_rules()), "Offspring 2 should have all necessary linguistic variables.")
 
     def test_crossover_produces_different_offspring(self):
         """Test crossover functionality ensures different offspring."""
         partner_system = market_risk.clone()
-        offspring1, offspring2 = economic_health.crossover(partner_system, variable_store)
+        offspring1, offspring2 = economic_health.crossover(partner_system, self.variable_store)
 
         # Assert that both offspring are not None
         self.assertIsNotNone(offspring1, "First offspring should not be None")
@@ -166,7 +177,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         self.assertTrue(economic_health._rules, "economic_health should have rules initialized")
         
         # Call the evaluate_fitness function
-        fitness = economic_health.evaluate_fitness(variable_store=variable_store, verbose=False)
+        fitness = economic_health.evaluate_fitness(variable_store=self.variable_store, verbose=False)
         
         # Print the fitness score for debugging
         print(f"Fitness Score: {fitness}")
