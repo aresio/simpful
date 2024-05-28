@@ -3,6 +3,7 @@ from gp_utilities import tournament_selection, roulette_wheel_selection, elitism
 import numpy as np
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import logging
+import tqdm
 
 # Configure logging
 logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR)
@@ -190,12 +191,15 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
                            selection_method='tournament', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
     # Initialize the population
-    available_features = x_train.columns.tolist()
+    available_features = variable_store.get_all_variables()
     population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
     
     # Initialize the backup population
     backup_population = initialize_population(population_size * 3, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
     
+    # Initialize the progress bar
+    progress_bar = tqdm(total=max_generations, desc="Generations", unit="gen")
+
     for generation in range(max_generations):
         # Evaluate the population
         fitness_scores = evaluate_population(variable_store, population, backup_population)
@@ -207,9 +211,15 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
                                             elitism_rate, tournament_size, selection_size, 
                                             backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
         
+        # Update the progress bar
+        progress_bar.update(1)
+        
         # Print the best fitness score of the current generation
         if verbose:
             print(f"Generation {generation}: Best Fitness = {max(fitness_scores)}")
+    
+    # Close the progress bar
+    progress_bar.close()
         
     # Return the best individual from the final population
     final_fitness_scores = evaluate_population(variable_store, population, backup_population)
