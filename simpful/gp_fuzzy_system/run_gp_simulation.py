@@ -1,5 +1,5 @@
-from .gp_evolution import genetic_algorithm_loop
-from .auto_lvs import FuzzyLinguisticVariableProcessor
+from simpful.gp_fuzzy_system.gp_evolution import genetic_algorithm_loop
+from simpful.gp_fuzzy_system.auto_lvs import FuzzyLinguisticVariableProcessor
 import argparse
 import pandas as pd
 

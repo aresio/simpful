@@ -1,6 +1,11 @@
-from .evolvable_fuzzy_system import EvolvableFuzzySystem
-from .gp_utilities import tournament_selection, roulette_wheel_selection
-from .rule_generator import RuleGenerator
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+
+from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
+from simpful.gp_fuzzy_system.gp_utilities import tournament_selection, roulette_wheel_selection
+from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import numpy as np
 import logging
 from tqdm import tqdm

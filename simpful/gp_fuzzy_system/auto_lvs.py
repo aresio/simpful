@@ -1,5 +1,9 @@
-from ..simpful import FuzzySet, Triangular_MF, LinguisticVariable
-from .linguistic_variable_store import LocalLinguisticVariableStore
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from simpful import FuzzySet, Triangular_MF, LinguisticVariable
+from simpful.gp_fuzzy_system.linguistic_variable_store import LocalLinguisticVariableStore
 import skfuzzy as fuzz
 import numpy as np
 import pandas as pd

@@ -1,7 +1,11 @@
-from ..simpful import FuzzySystem
-from .fitness_evaluation import evaluate_fitness
-from .rule_processor import format_rule, extract_feature_term
-from .gp_utilities import *
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from simpful import FuzzySystem
+from simpful.gp_fuzzy_system.fitness_evaluation import evaluate_fitness
+from simpful.gp_fuzzy_system.rule_processor import format_rule, extract_feature_term
+from simpful.gp_fuzzy_system.gp_utilities import *
 import numpy as np
 from copy import deepcopy
 import random
