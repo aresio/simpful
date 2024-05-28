@@ -16,16 +16,26 @@ class TestGPEvolution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Load the CSV data for training and predictions
-        cls.test_data = pd.read_csv(Path(__file__).resolve().parent / 'selected_variables_first_100.csv')
         cls.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 
-        # Set available features for economic_health based on test data columns
-        cls.available_features = cls.test_data.columns.tolist() # TODO: Pay extra attention to this later when expanding vars
-        economic_health.available_features = cls.available_features
+        # Use the instances from instances.py
+        cls.system = economic_health
+        cls.system.x_train = cls.x_train
+        cls.system.y_train = cls.y_train
 
-        # Load the training data into economic_health
-        economic_health.load_data(x_train=cls.x_train, y_train=cls.y_train)
+        # Initialize variable store
+        cls.variable_store = variable_store
+
+        # Set available features for economic_health based on variable store
+        cls.system.available_features = cls.variable_store.get_all_variables()
+        economic_health.available_features = cls.system.available_features
+
+        # Verify the dataset contains all required features
+        required_features = cls.system.extract_features_from_rules()
+        missing_features = [feature for feature in required_features if feature not in cls.x_train.columns]
+        if missing_features:
+            raise ValueError(f"Data is missing required features: {missing_features}")
 
     def test_predict_with_fis(self):
         """Test the predict_with_fis function to ensure it uses the rule-based features correctly."""
@@ -33,7 +43,7 @@ class TestGPEvolution(unittest.TestCase):
         self.assertTrue(economic_health._rules, "economic_health should have rules initialized")
         
         # Call the predict_with_fis function
-        predictions = economic_health.predict_with_fis()
+        predictions = economic_health.predict_with_fis(variable_store=self.variable_store)
         
         # Ensure predictions are returned as expected
         self.assertIsInstance(predictions, np.ndarray, "Should return a numpy array of predictions")
@@ -41,10 +51,10 @@ class TestGPEvolution(unittest.TestCase):
 
     def test_evaluate_fitness(self):
         """Test the evaluate_fitness function with loaded data."""
-        fitness_score = economic_health.evaluate_fitness()
+        fitness_score = economic_health.evaluate_fitness(variable_store=self.variable_store)
         self.assertIsNotNone(fitness_score, "Fitness score should not be None")
 
-
+        
 class TestGeneticAlgorithm(unittest.TestCase):
 
     @classmethod
@@ -67,8 +77,12 @@ class TestGeneticAlgorithm(unittest.TestCase):
         cls.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 
-        # Set available features instances based on test data columns
-        cls.available_features = cls.test_data.columns.tolist()
+        # Set available features using the variable store
+        cls.available_features = cls.variable_store.get_all_variables()
+        economic_health.available_features = cls.available_features
+
+        # Load the training data into economic_health
+        economic_health.load_data(x_train=cls.x_train, y_train=cls.y_train)
 
         cls.population = initialize_population(
             cls.population_size,
@@ -83,7 +97,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
 
         # Initialize backup population
         cls.backup_population = initialize_population(
-            cls.population_size*3,
+            cls.population_size * 3,
             cls.variable_store,
             cls.max_rules,
             cls.available_features,
@@ -94,7 +108,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
         )
 
     def setUp(self):
-        self.fitness_scores = evaluate_population(variable_store, self.population, self.backup_population)
+        self.fitness_scores = evaluate_population(self.variable_store, self.population, self.backup_population)
         self.assertIsNotNone(self.fitness_scores, "Fitness scores should not be None")
         self.assertEqual(len(self.fitness_scores), self.population_size, "Fitness scores should match population size")
 
@@ -142,6 +156,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
             elitism_rate=self.elitism_rate, max_rules=self.max_rules, min_rules=self.min_rules, verbose=True
         )
         self.assertIsNotNone(best_system.evaluate_fitness(self.variable_store), "The best system should have a fitness score")
+
 
 if __name__ == '__main__':
     unittest.main()
