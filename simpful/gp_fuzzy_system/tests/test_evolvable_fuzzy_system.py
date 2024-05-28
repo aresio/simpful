@@ -22,8 +22,12 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         cls.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 
-        # Set available features for economic_health based on test data columns
-        cls.available_features = cls.x_train.columns.tolist()
+        # Assuming variable_store is initialized somewhere before or passed as a parameter
+        cls.variable_store = variable_store
+
+        # Set available features for economic_health based on variable store
+        cls.available_features = cls.variable_store.get_all_variables()  # This method should return the list of feature names
+
         # Assigning the available features to economic_health
         economic_health.available_features = cls.available_features
         # Load the training data into economic_health
@@ -71,7 +75,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         # Assuming linguistic variable store is set up here or passed to the method that needs it.
         self.assertGreater(len(economic_health.get_rules()), 0, "There should be initial rules for mutation.")
         original_rules = economic_health.get_rules()
-        original_variables = set(economic_health._lvs.keys())
+        original_variables = set(economic_health._lvs.keys()) # problem might be here
 
         # Simulate mutation with access to the variable store
         economic_health.mutate_feature(self.__class__.variable_store, verbose=verbose)  # Verbose true to capture output if needed
