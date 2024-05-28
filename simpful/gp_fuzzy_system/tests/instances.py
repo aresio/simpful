@@ -1,4 +1,3 @@
-from simpful import *
 from ..rule_generator import RuleGenerator
 from ..evolvable_fuzzy_system import EvolvableFuzzySystem
 import sys

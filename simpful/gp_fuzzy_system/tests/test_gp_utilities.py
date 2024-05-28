@@ -1,8 +1,9 @@
 import unittest
-import sys
-from pathlib import Path
 from .instances import *
 from ..gp_utilities import *
+import sys
+from pathlib import Path
+
 
 # Add the parent directory to sys.path
 parent_dir = str(Path(__file__).resolve().parent.parent)

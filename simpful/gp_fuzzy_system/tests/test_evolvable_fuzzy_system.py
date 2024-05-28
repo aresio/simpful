@@ -1,14 +1,16 @@
+import unittest
 from .instances import economic_health, market_risk, variable_store
 from ..rule_generator import RuleGenerator
-import unittest
-import numpy as np
-import pandas as pd
 
 import sys
 from pathlib import Path
 # Add the parent directory to sys.path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
+
+import numpy as np
+import pandas as pd
+
 
 class TestEvolvableFuzzySystem(unittest.TestCase):
 

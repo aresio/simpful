@@ -1,6 +1,6 @@
-import skfuzzy as fuzz
-from simpful import FuzzySet, Triangular_MF, LinguisticVariable
+from ..simpful import FuzzySet, Triangular_MF, LinguisticVariable
 from .linguistic_variable_store import LocalLinguisticVariableStore
+import skfuzzy as fuzz
 import numpy as np
 import pandas as pd
 import argparse
