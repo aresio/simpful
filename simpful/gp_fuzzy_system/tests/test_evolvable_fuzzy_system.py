@@ -18,7 +18,6 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Load the CSV data
-        cls.test_data = pd.read_csv(Path(__file__).resolve().parent / 'selected_variables_first_100.csv')
         cls.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 

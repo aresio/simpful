@@ -15,7 +15,6 @@ class TestFitnessFunctions(unittest.TestCase):
 
     def setUp(self):
         # Load the dataset
-        self.test_data = pd.read_csv(Path(__file__).resolve().parent / 'selected_variables_first_100.csv')
         self.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         self.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 
