@@ -134,12 +134,15 @@ def evaluate_population(variable_store, population, backup_population):
                     except Exception as backup_e:
                         logging.error(f"Backup system also failed for system {i}: {backup_e}")
                         fitness_score = None
+                        fitness_scores.append(float('-inf'))  # Assign a very low fitness score
+                        break
                 else:
                     logging.error("Ran out of backup systems to replace failed ones.")
-                    fitness_score = None
-                    fitness_scores.append(None)
+                    fitness_score = float('-inf')
+                    fitness_scores.append(fitness_score)
                     break
     return fitness_scores
+
 def refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, population_size):
     """Refill the backup population if it becomes empty."""
     new_backup_population = initialize_population(population_size * 3, variable_store, max_rules, available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
