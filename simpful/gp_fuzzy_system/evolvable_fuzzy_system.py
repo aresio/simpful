@@ -250,8 +250,12 @@ class EvolvableFuzzySystem(FuzzySystem):
         new_self = self.clone()
         new_partner = partner_system.clone()
 
-        new_self.ensure_linguistic_variables(variable_store)
-        new_partner.ensure_linguistic_variables(variable_store)
+        new_self.cleanup_unused_linguistic_variables(verbose=verbose)  # Cleanup after cloning
+        new_partner.cleanup_unused_linguistic_variables(verbose=verbose)  # Cleanup after cloning
+
+
+        new_self.ensure_linguistic_variables(variable_store) # Ensure LVS after cloning
+        new_partner.ensure_linguistic_variables(variable_store) # Ensure LVS after cloning
 
         gp_utilities.swap_rules(new_self, new_partner, index_self, index_partner)
 
@@ -259,6 +263,8 @@ class EvolvableFuzzySystem(FuzzySystem):
             print("Completed linguistic verification post-crossover.")
             print("New self variables:", new_self._lvs.keys())
             print("New partner variables:", new_partner._lvs.keys())
+        new_self.ensure_linguistic_variables(variable_store)
+        new_partner.ensure_linguistic_variables(variable_store)
 
         # Remove this later
         verbose=True

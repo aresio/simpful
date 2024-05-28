@@ -8,7 +8,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from instances import economic_health, market_risk #, variable_store
+from instances import economic_health, market_risk
 from auto_lvs import FuzzyLinguisticVariableProcessor
 
 

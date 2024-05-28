@@ -154,7 +154,7 @@ for name, variable in linguistic_variables.items():
 
 # Economic Health
 economic_health.add_rule("IF (open IS LOW) AND (spy_close IS HIGH) THEN (PricePrediction IS PricePrediction)")
-economic_health.add_rule("IF (unemployment_monthly IS MEDIUM) OR (mobile_cellular_subscriptions_per_100_people IS HIGH) THEN (PricePrediction IS PricePrediction)")
+economic_health.add_rule("IF (unemployment_monthly IS MEDIUM) OR (rsi IS MEDIUM) THEN (PricePrediction IS PricePrediction)")
 
 # Market Risk Assessment
 market_risk.add_rule("IF (spy_close IS High) OR (volume IS Low) THEN (PricePrediction IS PricePrediction)")
