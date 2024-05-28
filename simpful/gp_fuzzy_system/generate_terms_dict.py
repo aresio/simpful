@@ -30,7 +30,7 @@ def extract_terms(response_text):
     return []
 
 # Function to query GPT-3.5-turbo-instruct-0914 for terms
-def query_gpt_for_terms(column_name, stats, verbose=True):
+def query_gpt_for_terms(column_name, stats, verbose=False):
     prompt = construct_prompt(column_name, stats)
     response = openai.Completion.create(
         model="gpt-3.5-turbo-instruct-0914",
@@ -47,7 +47,7 @@ def query_gpt_for_terms(column_name, stats, verbose=True):
     return terms
 
 # Function to analyze the data and generate fuzzy terms based on statistics
-def analyze_data_and_generate_terms(data, verbose=True):
+def analyze_data_and_generate_terms(data, verbose=False):
     skip_columns = {'year', 'month', 'day', 'hour'}
     terms_dict = {}
     
@@ -84,7 +84,7 @@ def analyze_data_and_generate_terms(data, verbose=True):
     return terms_dict
 
 # Main function to process dataset and generate terms dictionary
-def generate_terms_dict(file_path, api_key, verbose=True):
+def generate_terms_dict(file_path, api_key, verbose=False):
     openai.api_key = api_key
     data = pd.read_csv(file_path)
     

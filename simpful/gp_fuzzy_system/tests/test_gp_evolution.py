@@ -90,7 +90,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
             cls.max_rules,
             cls.available_features,
             min_clauses_per_rule=cls.min_clauses_per_rule,
-            verbose=True,
+            verbose=False,
             x_train=cls.x_train,
             y_train=cls.y_train
         )
@@ -102,7 +102,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
             cls.max_rules,
             cls.available_features,
             min_clauses_per_rule=cls.min_clauses_per_rule,
-            verbose=True,
+            verbose=False,
             x_train=cls.x_train,
             y_train=cls.y_train
         )
@@ -143,7 +143,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
             selection_method='tournament',  # Ensure the selection method is valid
             crossover_rate=1, mutation_rate=1, elitism_rate=0.05,
             tournament_size=3, selection_size=selection_size, 
-            backup_population=self.backup_population, verbose=True
+            backup_population=self.backup_population, verbose=False
         )
         self.assertEqual(len(new_population), self.population_size, "New population size is incorrect")
 
@@ -153,7 +153,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
             self.y_train, self.variable_store,
             selection_method=self.selection_method, tournament_size=self.tournament_size, 
             crossover_rate=self.crossover_rate, mutation_rate=self.mutation_rate, 
-            elitism_rate=self.elitism_rate, max_rules=self.max_rules, min_rules=self.min_rules, verbose=True
+            elitism_rate=self.elitism_rate, max_rules=self.max_rules, min_rules=self.min_rules, verbose=False
         )
         self.assertIsNotNone(best_system.evaluate_fitness(self.variable_store), "The best system should have a fitness score")
 

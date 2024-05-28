@@ -266,16 +266,13 @@ class EvolvableFuzzySystem(FuzzySystem):
         new_self.ensure_linguistic_variables(variable_store)
         new_partner.ensure_linguistic_variables(variable_store)
 
-        # Remove this later
-        verbose=True
-
-        new_self.cleanup_unused_linguistic_variables(verbose=verbose)  # Cleanup after crossover
-        new_partner.cleanup_unused_linguistic_variables(verbose=verbose)  # Cleanup after crossover
+        new_self.cleanup_unused_linguistic_variables(verbose=False)  # Cleanup after crossover
+        new_partner.cleanup_unused_linguistic_variables(verbose=False)  # Cleanup after crossover
 
 
         return new_self, new_partner
     
-    def ensure_linguistic_variables(self, variable_store, verbose=True):
+    def ensure_linguistic_variables(self, variable_store, verbose=False):
         """
         Ensure each rule's linguistic variables are present in the fuzzy system. If any are missing,
         add them from a variable store.
@@ -324,7 +321,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.fitness_score = evaluate_fitness(self, predictions, actual, weights)
         return self.fitness_score
 
-    def extract_features_from_rules(self, verbose=True):
+    def extract_features_from_rules(self, verbose=False):
         """Extract unique features from the current fuzzy rules."""
         current_rules = self.get_rules()
         if not current_rules:
@@ -429,7 +426,7 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         return np.array(prediction_values)  # Convert to numpy array
     
-    def cleanup_unused_linguistic_variables(self, verbose=True):
+    def cleanup_unused_linguistic_variables(self, verbose=False):
         """
         Removes linguistic variables that are no longer used in any of the current rules.
         

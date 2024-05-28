@@ -193,7 +193,7 @@ def swap_rules(system1, system2, index1, index2):
     """Swaps rules between two systems at specified indices."""
     system1._rules[index1], system2._rules[index2] = system2._rules[index2], system1._rules[index1]
 
-def extract_missing_variables(system, verbose=True):
+def extract_missing_variables(system, verbose=False):
     """Extracts missing variables from the system based on the rules, with optional verbose output."""
     rule_features = system.extract_features_from_rules()
     existing_variables = set(system._lvs.keys())
@@ -206,7 +206,7 @@ def extract_missing_variables(system, verbose=True):
     
     return missing_variables
 
-def add_variables_to_system(system, missing_variables, all_linguistic_variables, verbose=True):
+def add_variables_to_system(system, missing_variables, all_linguistic_variables, verbose=False):
     """Adds missing variables to the system from a predefined set of all_linguistic_variables."""
     for var in missing_variables:
         if var in all_linguistic_variables:
@@ -217,7 +217,7 @@ def add_variables_to_system(system, missing_variables, all_linguistic_variables,
             if verbose:
                 print(f"Warning: No predefined linguistic variable for '{var}'.")
 
-def add_variables_to_system(system, missing_variables, variable_store, verbose=True):
+def add_variables_to_system(system, missing_variables, variable_store, verbose=False):
     """Adds missing variables to the system from the variable_store."""
     for var in missing_variables:
         lv = variable_store.get_variable(var)

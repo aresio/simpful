@@ -60,7 +60,7 @@ def select_parents(population, fitness_scores, selection_size, tournament_size, 
     return parents
 
 
-def apply_crossover(parents, variable_store, verbose=True):
+def apply_crossover(parents, variable_store, verbose=False):
     offspring = []
     for i in range(0, len(parents), 2):
         parent1 = parents[i]
@@ -81,7 +81,7 @@ def apply_crossover(parents, variable_store, verbose=True):
     return offspring
 
 
-def apply_crossover(parents, variable_store, verbose=True):
+def apply_crossover(parents, variable_store, verbose=False):
     offspring = []
     for i in range(0, len(parents), 2):
         parent1 = parents[i]
@@ -101,7 +101,7 @@ def apply_crossover(parents, variable_store, verbose=True):
         print(f"Number of offspring produced: {len(offspring)}")
     return offspring
 
-def apply_mutation(offspring, mutation_rate, variable_store, verbose=True):
+def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
     """Applies mutation to the offspring."""
     for child in offspring:
         if np.random.rand() < mutation_rate:
@@ -147,7 +147,7 @@ def refill_backup_population(backup_population, variable_store, max_rules, avail
     if verbose:
         print(f"Refilled backup population with {len(new_backup_population)} new systems.")
 
-def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='tournament', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=True):
+def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='tournament', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False):
     if selection_method == 'tournament':
         parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
     elif selection_method == 'roulette':
@@ -185,7 +185,7 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
 
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='tournament', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
-                           elitism_rate=0.05, max_rules=10, min_rules=3, verbose=True):
+                           elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
     # Initialize the population
     available_features = x_train.columns.tolist()
     population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)

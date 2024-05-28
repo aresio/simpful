@@ -7,7 +7,7 @@ import argparse
 import importlib.util
 
 class FuzzyLinguisticVariableProcessor:
-    def __init__(self, file_path, terms_dict_path, verbose=True, exclude_columns=None):
+    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None):
         self.file_path = file_path
         self.terms_dict_path = terms_dict_path
         self.verbose = verbose

@@ -7,7 +7,7 @@ def fun1(a_list):
 if __name__ == "__main__":
 
     #Create FuzzyAggregator object and toggle verbose mode
-    A = FuzzyAggregator(verbose=True)
+    A = FuzzyAggregator(verbose=False)
     
     #Define some fuzzy sets for variables and set their name with "term"
     FS1 = FuzzySet(points=[[25,0], [100, 1]],   term="quality")
