@@ -1,8 +1,12 @@
-from ..rule_generator import RuleGenerator
-from ..evolvable_fuzzy_system import EvolvableFuzzySystem
 import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
+from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
+from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
+from simpful.gp_fuzzy_system.auto_lvs import FuzzyLinguisticVariableProcessor
+
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Initializing EvolvableFuzzySystem instances
 economic_health = EvolvableFuzzySystem()
@@ -13,13 +17,12 @@ market_sentiment = EvolvableFuzzySystem()
 sepsis_system = EvolvableFuzzySystem()
 
 # Load the CSV data
-file_path = 'gp_data_x_train.csv'  # Adjusted to reflect the correct path within the tests directory
-terms_dict_path = '../terms_dict.py'  # Adjusted to reflect the correct path within the current directory
+file_path = os.path.join(os.path.dirname(__file__), 'gp_data_x_train.csv')
+terms_dict_path = os.path.join(os.path.dirname(__file__), '..', 'terms_dict.py')
 exclude_columns = ['month', 'day', 'hour']
 verbose = False
 
 # Initialize the FuzzyLinguisticVariableProcessor
-from auto_lvs import FuzzyLinguisticVariableProcessor
 processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns)
 variable_store = processor.process_dataset()
 
