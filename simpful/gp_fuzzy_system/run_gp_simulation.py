@@ -19,7 +19,7 @@ def main(args):
     variable_store = processor.process_dataset()
 
     # Run the genetic algorithm loop with the provided command line arguments
-    best_system = genetic_algorithm_loop(
+    best_system, best_fitness_per_generation = genetic_algorithm_loop(
         population_size=args.population_size, 
         max_generations=args.max_generations, 
         x_train=x_train, 
@@ -34,10 +34,11 @@ def main(args):
         min_rules=args.min_rules,
         verbose=args.verbose
     )
-    
+        
     # Report the best system found
     print("Best system found:")
-    print(best_system)
+    print(best_system.get_rules())
+    print(best_system.fitness_score)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Genetic Programming Simulation for Evolving Fuzzy Systems")

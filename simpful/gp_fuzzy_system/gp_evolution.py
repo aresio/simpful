@@ -1,8 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-
+import pickle
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
 from simpful.gp_fuzzy_system.gp_utilities import tournament_selection, roulette_wheel_selection
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
@@ -181,6 +180,8 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     # Initialize the progress bar
     progress_bar = tqdm(total=max_generations, desc="Generations", unit="gen")
 
+    best_fitness_per_generation = []
+
     for generation in range(max_generations):
         # Evaluate the population
         fitness_scores = evaluate_population(variable_store, population, backup_population)
@@ -196,16 +197,25 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         progress_bar.update(1)
         
         # Print the best fitness score of the current generation
+        best_fitness = max(fitness_scores)
+        best_fitness_per_generation.append(best_fitness)
+        
         if verbose:
-            print(f"Generation {generation}: Best Fitness = {max(fitness_scores)}")
+            print(f"Generation {generation}: Best Fitness = {best_fitness}")
     
     # Close the progress bar
     progress_bar.close()
         
-    # Return the best individual from the final population
+    # Evaluate the final population and get the best system
     final_fitness_scores = evaluate_population(variable_store, population, backup_population)
     best_index = np.argmax(final_fitness_scores)
-    return population[best_index]
+    best_system = population[best_index]
+
+    # Pickle and save the best system
+    with open('best_system.pkl', 'wb') as f:
+        pickle.dump(best_system, f)
+    
+    return best_system, list(zip(range(max_generations), best_fitness_per_generation))
 
 # Example usage
 if __name__ == "__main__":
