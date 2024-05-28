@@ -1,9 +1,9 @@
-from simpful import FuzzySystem
+from ..simpful import FuzzySystem
+from .fitness_evaluation import evaluate_fitness
+from .rule_processor import format_rule, extract_feature_term
+from .gp_utilities import *
 import numpy as np
 from copy import deepcopy
-import gp_utilities
-from rule_processor import format_rule, extract_feature_term
-from fitness_evaluation import evaluate_fitness
 import random
 import re
 
@@ -158,7 +158,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         new_feature = random.choice([f for f in self.available_features if f != feature_to_replace])
 
         # Fetch a valid term for the new feature from the variable store
-        new_term = gp_utilities.get_valid_term(new_feature, current_term, variable_store)
+        new_term = get_valid_term(new_feature, current_term, variable_store)
         if new_term is None:
             if verbose:
                 print(f"No valid term found for the new feature '{new_feature}'.")
@@ -214,7 +214,7 @@ class EvolvableFuzzySystem(FuzzySystem):
 
             rule_index = random.randint(0, len(current_rules) - 1)
             original_rule = current_rules[rule_index]
-            mutated_rule, valid_operation = gp_utilities.mutate_logical_operator(original_rule)
+            mutated_rule, valid_operation = mutate_logical_operator(original_rule)
 
             if not valid_operation:
                 if verbose:
@@ -241,7 +241,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             return None, None
 
         # Select indices and perform cloning as before
-        index_self, index_partner = gp_utilities.select_rule_indices(self._rules, partner_system._rules)
+        index_self, index_partner = select_rule_indices(self._rules, partner_system._rules)
         if index_self is None or index_partner is None:
             if verbose:
                 print("Failed to select rule indices.")
@@ -257,7 +257,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         new_self.ensure_linguistic_variables(variable_store) # Ensure LVS after cloning
         new_partner.ensure_linguistic_variables(variable_store) # Ensure LVS after cloning
 
-        gp_utilities.swap_rules(new_self, new_partner, index_self, index_partner)
+        swap_rules(new_self, new_partner, index_self, index_partner)
 
         if verbose:
             print("Completed linguistic verification post-crossover.")
@@ -423,7 +423,7 @@ class EvolvableFuzzySystem(FuzzySystem):
                 print(pred)
 
         # Extract numerical values from the prediction dictionaries
-        prediction_values = gp_utilities.extract_prediction_values(predictions)
+        prediction_values = extract_prediction_values(predictions)
 
         return np.array(prediction_values)  # Convert to numpy array
     

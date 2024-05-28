@@ -1,8 +1,8 @@
+from .gp_evolution import genetic_algorithm_loop
+from .auto_lvs import FuzzyLinguisticVariableProcessor
 import argparse
 import pandas as pd
-from pathlib import Path
-from gp_evolution import genetic_algorithm_loop
-from auto_lvs import FuzzyLinguisticVariableProcessor
+
 
 def main(args):
     # Load the CSV data for training and predictions

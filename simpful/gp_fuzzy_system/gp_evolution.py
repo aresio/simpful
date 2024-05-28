@@ -1,7 +1,7 @@
-from evolvable_fuzzy_system import EvolvableFuzzySystem
-from gp_utilities import tournament_selection, roulette_wheel_selection
+from .evolvable_fuzzy_system import EvolvableFuzzySystem
+from .gp_utilities import tournament_selection, roulette_wheel_selection
+from .rule_generator import RuleGenerator
 import numpy as np
-from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import logging
 from tqdm import tqdm
 

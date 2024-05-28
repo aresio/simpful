@@ -1,8 +1,8 @@
-import numpy as np
-import pandas as pd
 import skfuzzy as fuzz
 from simpful import FuzzySet, Triangular_MF, LinguisticVariable
-from linguistic_variable_store import LocalLinguisticVariableStore
+from .linguistic_variable_store import LocalLinguisticVariableStore
+import numpy as np
+import pandas as pd
 import argparse
 import importlib.util
 
