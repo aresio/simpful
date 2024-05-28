@@ -60,4 +60,4 @@ if __name__ == "__main__":
     main(args)
 
 # Example Usage
-# python run_gp_simulation.py --x_train path/to/x_train.csv --y_train path/to/y_train.csv --terms_dict_path path/to/terms_dict.py --exclude_columns month,day,hour --population_size 100 --max_generations 50 --mutation_rate 0.01 --selection_method 'tournament' --crossover_rate 0.8 --elitism_rate 0.1 --max_rules 7 --min_rules 3 --verbose
+# python run_gp_simulation.py --x_train tests/gp_data_x_train.csv --y_train tests/gp_data_y_train.csv --terms_dict_path terms_dict.py --exclude_columns month,day,hour --population_size 100 --max_generations 50 --mutation_rate 0.01 --selection_method 'tournament' --crossover_rate 0.8 --elitism_rate 0.1 --max_rules 7 --min_rules 3 --verbose

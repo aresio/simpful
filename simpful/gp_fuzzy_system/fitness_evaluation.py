@@ -1,13 +1,14 @@
 # fitness_evaluation.py
 import numpy as np
 
-def weighted_rmse(actual, predicted):
+def weighted_rmse(actual, predicted, verbose=False):
     actual = np.array(actual)
     predicted = np.array(predicted)
 
-    # Debugging: Print the types and shapes of actual and predicted values
-    print(f"Inside weighted_rmse - Type of actual: {type(actual)}, shape: {actual.shape}")
-    print(f"Inside weighted_rmse - Type of predicted: {type(predicted)}, shape: {predicted.shape}")
+    if verbose:
+        # Debugging: Print the types and shapes of actual and predicted values
+        print(f"Inside weighted_rmse - Type of actual: {type(actual)}, shape: {actual.shape}")
+        print(f"Inside weighted_rmse - Type of predicted: {type(predicted)}, shape: {predicted.shape}")
 
     return np.sqrt(np.mean((actual - predicted) ** 2))
 

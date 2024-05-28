@@ -314,9 +314,10 @@ class EvolvableFuzzySystem(FuzzySystem):
         predictions = np.array(predictions)
         actual = self.y_train.values
 
-        # Debugging: Print types and shapes of predictions and actual values
-        print(f"Type of predictions: {type(predictions)}, shape: {predictions.shape}")
-        print(f"Type of actual: {type(actual)}, shape: {actual.shape}")
+        if verbose:
+            # Debugging: Print types and shapes of predictions and actual values
+            print(f"Type of predictions: {type(predictions)}, shape: {predictions.shape}")
+            print(f"Type of actual: {type(actual)}, shape: {actual.shape}")
 
         self.fitness_score = evaluate_fitness(self, predictions, actual, weights)
         return self.fitness_score
