@@ -1,5 +1,4 @@
 import random
-from tests.instances import variable_store # TODO: Load these based on dataset
 
 class RuleGenerator:
     def __init__(self, variable_store, verbose=False):
@@ -20,8 +19,9 @@ class RuleGenerator:
             print("Terms for variable:", terms)
         term = random.choice(terms)
         clause = f"({variable} IS {term})"
-        if random.random() < 0.3:  # 30% chance to add NOT
-            clause = f"(NOT ({variable} IS {term}))"
+        # TODO: fix not parsing in simpful. This will be left out of this project however.
+        # if random.random() < 0.3:  # 30% chance to add NOT
+        #     clause = f"(NOT ({variable} IS {term}))"
         return clause
     
     def generate_rule(self, num_clauses, verbose=False):
@@ -41,12 +41,3 @@ class RuleGenerator:
         if verbose:
             print(rules)
         return rules
-
-# Example usage:
-if __name__ == "__main__":
-    rg = RuleGenerator(variable_store, verbose=True)
-    
-    # Generate and print some rules
-    rules = rg.generate_rules(10)
-    for rule in rules:
-        print(rule)

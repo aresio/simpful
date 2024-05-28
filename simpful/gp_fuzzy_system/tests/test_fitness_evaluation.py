@@ -21,11 +21,11 @@ class TestFitnessFunctions(unittest.TestCase):
 
         # Use the instances from instances.py
         self.system = economic_health
-        self.system.x_train = self.x_train
+        self.system.x_train = self.x_train #TODO: drop vars unused in LV store, or just use LV store instead
         self.system.y_train = self.y_train
 
         # Set available features for economic_health based on test data columns
-        self.system.available_features = self.test_data.columns.tolist() # TODO: Pay extra attention to this later when expanding vars
+        self.system.available_features = self.x_train.columns.tolist() # TODO: Pay extra attention to this later when expanding vars
         economic_health.available_features = self.system.available_features
 
         # Verify the dataset contains all required features
