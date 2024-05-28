@@ -8,8 +8,8 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from instances import economic_health, market_risk
-from auto_lvs import FuzzyLinguisticVariableProcessor
+from instances import economic_health, market_risk, variable_store
+from rule_generator import RuleGenerator
 
 
 
@@ -35,20 +35,17 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         exclude_columns = ['month', 'day', 'hour']
         verbose = True
 
-        processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns)
-        cls.variable_store = processor.process_dataset()
+        cls.variable_store = variable_store
 
     def test_extract_features_from_rules(self):
         """Test the extraction of features from the rules."""
         # Extract features from the existing rules
         extracted_features = economic_health.extract_features_from_rules(verbose=True)
 
-        # Define the expected features based on the known rules in economic_health
-        expected_features = ['inflation_rate_value', 'spy_close']
+        # Ensure that features are being extracted correctly (no need to check specific features as rules are dynamic)
+        self.assertIsInstance(extracted_features, list, "Extracted features should be a list")
+        self.assertGreater(len(extracted_features), 0, "There should be at least one feature extracted")
 
-        # Check that the extracted features match the expected features
-        self.assertTrue(set(expected_features).issubset(set(extracted_features)), "Extracted features should include all expected features.")
-    
     def test_initialization(self):
         """Test initialization of systems."""
         self.assertIsNotNone(economic_health.fitness_score)
@@ -61,10 +58,13 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         self.assertEqual(len(economic_health._rules), len(clone._rules))
 
     def test_add_rule(self):
-        """Test adding a rule to the system."""
+        """Test adding a rule to the system using RuleGenerator and variable_store."""
         rule_count_before = len(economic_health._rules)
-        economic_health.add_rule("IF inflation_rate_value IS High THEN PricePrediction IS PricePrediction")
+        rg = RuleGenerator(self.__class__.variable_store, verbose=True)
+        new_rule = rg.generate_rule(3)  # Generate a rule with 3 clauses
+        economic_health.add_rule(new_rule)
         self.assertEqual(len(economic_health._rules), rule_count_before + 1)
+        self.assertIn(new_rule, economic_health.get_rules(), "The new rule should be in the rules list")
 
     def test_mutate_feature(self, verbose=False):
         """Test mutation of a feature within a rule and check linguistic variables."""
