@@ -1,15 +1,13 @@
-from ..gp_evolution import initialize_population, select_parents, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
-from .instances import economic_health, variable_store
-import unittest
 import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+import unittest
+from simpful.gp_fuzzy_system.gp_evolution import initialize_population, select_parents, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
+from simpful.gp_fuzzy_system.tests.instances import economic_health, variable_store
+
 import numpy as np
 from pathlib import Path
 import pandas as pd
-
-# Add the parent directory to sys.path
-parent_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(parent_dir)
-
 
 
 class TestGPEvolution(unittest.TestCase):

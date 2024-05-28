@@ -1,4 +1,4 @@
-from ..rule_processor import *
+from simpful.gp_fuzzy_system.rule_processor import *
 import unittest
 import sys
 sys.path.append('..')

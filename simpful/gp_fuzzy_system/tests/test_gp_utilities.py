@@ -1,13 +1,9 @@
-import unittest
-from .instances import *
-from ..gp_utilities import *
 import sys
-from pathlib import Path
-
-
-# Add the parent directory to sys.path
-parent_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(parent_dir)
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+import unittest
+from simpful.gp_fuzzy_system.tests.instances import *
+from simpful.gp_fuzzy_system.gp_utilities import *
 
 class TestLogicalOperatorMutation(unittest.TestCase):
     def test_find_no_operators(self):

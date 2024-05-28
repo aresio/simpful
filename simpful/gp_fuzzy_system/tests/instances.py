@@ -1,7 +1,6 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
-
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
 from simpful.gp_fuzzy_system.auto_lvs import FuzzyLinguisticVariableProcessor

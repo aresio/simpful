@@ -1,5 +1,8 @@
-from ..rule_generator import RuleGenerator
-from .instances import variable_store
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
+from simpful.gp_fuzzy_system.tests.instances import variable_store
 import unittest
 import sys
 from pathlib import Path

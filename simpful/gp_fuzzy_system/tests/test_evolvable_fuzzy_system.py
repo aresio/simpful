@@ -1,13 +1,11 @@
 import unittest
-from .instances import economic_health, market_risk, variable_store
-from ..rule_generator import RuleGenerator
-
 import sys
+import os
 from pathlib import Path
 # Add the parent directory to sys.path
-parent_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(parent_dir)
-
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+from simpful.gp_fuzzy_system.tests.instances import economic_health, market_risk, variable_store
+from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import numpy as np
 import pandas as pd
 

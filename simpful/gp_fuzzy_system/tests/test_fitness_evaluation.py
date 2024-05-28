@@ -1,16 +1,12 @@
-from ..fitness_evaluation import weighted_rmse, prediction_stability, financial_utility
-from .instances import economic_health, variable_store
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+from simpful.gp_fuzzy_system.fitness_evaluation import weighted_rmse, prediction_stability, financial_utility
+from simpful.gp_fuzzy_system.tests.instances import economic_health, variable_store
 import unittest
 import pandas as pd
 import numpy as np
-import sys
 from pathlib import Path
-
-# Add the parent directory to sys.path
-parent_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(parent_dir)
-
-
 
 class TestFitnessFunctions(unittest.TestCase):
 
