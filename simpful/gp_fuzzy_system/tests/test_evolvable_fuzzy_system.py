@@ -36,7 +36,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         file_path = Path(__file__).resolve().parent / 'gp_data_x_train.csv'
         terms_dict_path = Path(__file__).resolve().parent.parent / 'terms_dict.py'
         exclude_columns = ['month', 'day', 'hour']
-        verbose = True
+        verbose = False
 
         cls.variable_store = variable_store
 

@@ -20,7 +20,7 @@ sepsis_system = EvolvableFuzzySystem()
 file_path = 'gp_data_x_train.csv'  # Adjusted to reflect the correct path within the tests directory
 terms_dict_path = '../terms_dict.py'  # Adjusted to reflect the correct path within the current directory
 exclude_columns = ['month', 'day', 'hour']
-verbose = True
+verbose = False
 
 # Initialize the FuzzyLinguisticVariableProcessor
 from auto_lvs import FuzzyLinguisticVariableProcessor

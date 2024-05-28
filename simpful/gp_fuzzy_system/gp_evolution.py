@@ -1,13 +1,12 @@
 from evolvable_fuzzy_system import EvolvableFuzzySystem
-from gp_utilities import tournament_selection, roulette_wheel_selection, elitism
+from gp_utilities import tournament_selection, roulette_wheel_selection
 import numpy as np
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import logging
-import tqdm
+from tqdm import tqdm
 
 # Configure logging
 logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR)
-
 
 def initialize_population(population_size, variable_store, max_rules, available_features, min_rules=3, max_rules_per_system=7, min_clauses_per_rule=2, verbose=False, x_train=None, y_train=None, x_test=None, y_test=None):
     """Generates an initial population of EvolvableFuzzySystem instances with unique rules."""
@@ -51,7 +50,6 @@ def initialize_population(population_size, variable_store, max_rules, available_
 
     return population
 
-
 def select_parents(population, fitness_scores, selection_size, tournament_size, selection_method='tournament'):
     """Selects parents for the next generation."""
     if selection_method == 'tournament':
@@ -59,28 +57,6 @@ def select_parents(population, fitness_scores, selection_size, tournament_size, 
     else:
         raise ValueError(f"Unknown selection method: {selection_method}")
     return parents
-
-
-def apply_crossover(parents, variable_store, verbose=False):
-    offspring = []
-    for i in range(0, len(parents), 2):
-        parent1 = parents[i]
-        parent2 = parents[min(i + 1, len(parents) - 1)]
-        try:
-            child1, child2 = parent1.crossover(parent2, variable_store)
-            if child1 and child2:
-                offspring.append(child1)
-                offspring.append(child2)
-            else:
-                if verbose:
-                    print(f"Crossover did not produce valid offspring for parents {i} and {i + 1}")
-        except Exception as e:
-            if verbose:
-                print(f"Error during crossover of parent1 {parent1} and parent2 {parent2}: {e}")
-    if verbose:
-        print(f"Number of offspring produced: {len(offspring)}")
-    return offspring
-
 
 def apply_crossover(parents, variable_store, verbose=False):
     offspring = []
