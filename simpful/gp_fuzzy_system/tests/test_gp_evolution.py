@@ -1,3 +1,5 @@
+from ..gp_evolution import initialize_population, select_parents, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
+from .instances import economic_health, variable_store
 import unittest
 import sys
 import numpy as np
@@ -8,8 +10,7 @@ import pandas as pd
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from gp_evolution import initialize_population, select_parents, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
-from instances import economic_health, variable_store
+
 
 class TestGPEvolution(unittest.TestCase):
 

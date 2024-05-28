@@ -1,3 +1,5 @@
+from ..fitness_evaluation import weighted_rmse, prediction_stability, financial_utility
+from .instances import economic_health, variable_store
 import unittest
 import pandas as pd
 import numpy as np
@@ -8,8 +10,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from fitness_evaluation import weighted_rmse, prediction_stability, financial_utility
-from instances import economic_health, variable_store
+
 
 class TestFitnessFunctions(unittest.TestCase):
 

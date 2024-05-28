@@ -1,11 +1,12 @@
+from ..rule_generator import RuleGenerator
+from .instances import variable_store
 import unittest
 import sys
 from pathlib import Path
 # Add the parent directory to sys.path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
-from rule_generator import RuleGenerator
-from tests.instances import variable_store
+
 
 class TestRuleGenerator(unittest.TestCase):
 

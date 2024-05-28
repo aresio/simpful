@@ -1,12 +1,9 @@
+from simpful import *
+from ..rule_generator import RuleGenerator
+from ..evolvable_fuzzy_system import EvolvableFuzzySystem
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-import pandas as pd
-
-from simpful import *
-from rule_generator import RuleGenerator
-from evolvable_fuzzy_system import EvolvableFuzzySystem
 
 # Initializing EvolvableFuzzySystem instances
 economic_health = EvolvableFuzzySystem()

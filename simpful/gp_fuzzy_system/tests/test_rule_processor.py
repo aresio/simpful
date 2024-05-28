@@ -1,7 +1,8 @@
+from ..rule_processor import *
 import unittest
 import sys
 sys.path.append('..')
-from rule_processor import *
+
 
 rules = [
     "IF ((gdp_growth_annual_prcnt IS Low) AND (unemployment_rate_value IS High)) THEN (PricePrediction IS PricePrediction)",

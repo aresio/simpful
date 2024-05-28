@@ -1,8 +1,8 @@
 import unittest
 import sys
 from pathlib import Path
-from instances import *
-import gp_utilities
+from .instances import *
+from ..gp_utilities import *
 
 # Add the parent directory to sys.path
 parent_dir = str(Path(__file__).resolve().parent.parent)
@@ -11,20 +11,20 @@ sys.path.append(parent_dir)
 class TestLogicalOperatorMutation(unittest.TestCase):
     def test_find_no_operators(self):
         sentence = "if (gdp_growth IS High) THEN (PricePrediction IS PricePrediction)"  # Lowercase logical words
-        results = gp_utilities.find_logical_operators(sentence)
+        results = find_logical_operators(sentence)
         self.assertEqual(len(results), 0, "No operators should be found in lowercase.")
         self.assertEqual(results, {}, "Results dictionary should be empty when operators are in lowercase.")
 
     def test_find_single_operator(self):
         sentence = "IF (gdp_growth IS Low) AND (unemployment_rate IS High) THEN (PricePrediction IS PricePrediction)"
-        results = gp_utilities.find_logical_operators(sentence)
+        results = find_logical_operators(sentence)
         self.assertIn('AND', results, "AND should be found in uppercase.")
         self.assertEqual(results['AND']['count'], 1, "One AND should be found.")
         self.assertEqual(results['AND']['indices'], [sentence.find('AND')], "Index of AND should be correctly identified.")
 
     def test_find_multiple_operators(self):
         sentence = "IF (gdp_growth IS Low) AND (unemployment_rate IS High) OR (inflation_rate IS Low) AND (NOT (market_trend IS Positive)) THEN (PricePrediction IS PricePrediction)"
-        results = gp_utilities.find_logical_operators(sentence)
+        results = find_logical_operators(sentence)
         self.assertEqual(len(results), 3, "Three different operators should be found, all in uppercase.")
         expected_operators = {'AND': 2, 'OR': 1, 'NOT': 1}
         for op, expected_count in expected_operators.items():
@@ -34,7 +34,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
 
     def test_detailed_operator_indices(self):
         sentence = "IF (gdp_growth IS Low) OR (unemployment_rate IS High) OR (inflation_rate IS Low) OR (market_trend IS Negative) THEN (PricePrediction IS PricePrediction)"
-        results = gp_utilities.find_logical_operators(sentence)
+        results = find_logical_operators(sentence)
         self.assertEqual(results['OR']['count'], 3, "Three ORs should be found.")
         self.assertEqual(len(results['OR']['indices']), 3, "There should be three indices for OR.")
         # Dynamically find each 'OR' index
@@ -51,14 +51,14 @@ class TestLogicalOperatorMutation(unittest.TestCase):
     
     def test_case_sensitivity(self):
         sentence = "if (gdp_growth IS High) then (Outcome IS Positive) THEN (PricePrediction IS PricePrediction)"
-        results = gp_utilities.find_logical_operators(sentence)
+        results = find_logical_operators(sentence)
         self.assertEqual(len(results), 0, "No operators should be found in lowercase.")
         self.assertEqual(results, {}, "Results dictionary should be empty when operators are in lowercase.")
 
 
     def test_no_operator_present(self):
         sentence = "IF (gdp_growth IS High) THEN (PricePrediction IS PricePrediction)"
-        mutated, valid = gp_utilities.mutate_logical_operator(sentence, verbose=False)
+        mutated, valid = mutate_logical_operator(sentence, verbose=False)
         self.assertEqual(sentence, mutated, "Sentence should remain unchanged when no logical operators are present.")
         self.assertFalse(valid, "The mutation should be invalid when no logical operators are present.")
 
@@ -68,7 +68,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
         expected = "IF (gdp_growth IS Low) OR (NOT (unemployment_rate IS High)) THEN (PricePrediction IS PricePrediction)"
         # Clearly specify where and what to insert
         mutate_target = {'operator': 'OR', 'index': sentence.find('OR') + len('OR') + 1, 'new_operator': 'NOT'}
-        mutated, valid = gp_utilities.mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
+        mutated, valid = mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
         self.assertIn("NOT", mutated, "NOT should be inserted.")
         self.assertEqual(expected, mutated, "Proper NOT insertion with parentheses.")
         self.assertTrue(valid, "The mutation should be valid.")
@@ -82,7 +82,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
         'new_operator': 'NOT'
         }
         expected = "IF (gdp_growth IS Low) AND (unemployment_rate IS High) OR (inflation_rate IS Low) AND (market_trend IS Positive) THEN (PricePrediction IS PricePrediction)"
-        mutated, valid = gp_utilities.mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
+        mutated, valid = mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
         self.assertNotIn("NOT (market_trend IS Positive)", mutated, "NOT should be removed.")
         self.assertEqual(mutated, expected, "The sentence should have 'NOT' correctly removed.")
         self.assertTrue(valid, "The mutation should be valid.")
@@ -93,7 +93,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
         expected = "IF (gdp_growth IS Low) OR (unemployment_rate IS High) THEN (PricePrediction IS PricePrediction)"
         # Manually specify the NOT to remove
         mutate_target = {'operator': 'NOT', 'index': sentence.find('NOT')}
-        mutated = gp_utilities.mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
+        mutated = mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
         self.assertNotIn("NOT", mutated, "NOT should be removed.")
         self.assertEqual(expected, mutated, "Proper NOT removal.")
 
@@ -102,7 +102,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
         sentence = "IF (gld_close IS Low) OR (macd IS Negative) THEN (PricePrediction IS PricePrediction)"
         expected = "IF (gld_close IS Low) AND (macd IS Negative) THEN (PricePrediction IS PricePrediction)"
         mutate_target = {'operator': 'OR', 'index': sentence.find('OR'), 'new_operator': 'AND'}
-        mutated, valid = gp_utilities.mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
+        mutated, valid = mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
         self.assertNotIn("OR", mutated, "OR should be mutated to AND.")
         self.assertIn("AND", mutated, "Mutation should result in AND.")
         self.assertEqual(expected, mutated, "Proper mutation from OR to AND.")
@@ -112,7 +112,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
         sentence = "IF (gdp_growth IS Low) OR (NOT (unemployment_rate IS High)) THEN (PricePrediction IS PricePrediction)"
         expected = "IF (gdp_growth IS Low) OR (unemployment_rate IS High) THEN (PricePrediction IS PricePrediction)"
         mutate_target = {'operator': 'NOT', 'index': sentence.find('NOT')}
-        mutated, valid = gp_utilities.mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
+        mutated, valid = mutate_logical_operator(sentence, verbose=False, mutate_target=mutate_target)
         self.assertNotIn("NOT", mutated, "NOT should be removed.")
         self.assertEqual(expected, mutated, "Proper NOT removal.")
         self.assertTrue(valid, "The mutation should be valid.")
@@ -120,7 +120,7 @@ class TestLogicalOperatorMutation(unittest.TestCase):
 class TestSelectRuleIndices(unittest.TestCase):
     def test_select_indices_with_actual_rules(self):
         # Correct usage with two separate rule lists
-        index_self, index_partner = gp_utilities.select_rule_indices(economic_health._rules, market_risk._rules)
+        index_self, index_partner = select_rule_indices(economic_health._rules, market_risk._rules)
         self.assertIsNotNone(index_self, "Should select a valid index for self")
         self.assertIsNotNone(index_partner, "Should select a valid index for partner")
         self.assertTrue(0 <= index_self < len(economic_health._rules), "Index for self should be within range")
@@ -137,7 +137,7 @@ class TestSwapRules(unittest.TestCase):
         pre_swap_rule2 = system2._rules[0]
 
         # Perform the swap
-        gp_utilities.swap_rules(system1, system2, 0, 0)
+        swap_rules(system1, system2, 0, 0)
 
         # Test the results
         self.assertEqual(system1._rules[0], pre_swap_rule2, "Rule at index 0 of system1 should be swapped from system2")
