@@ -5,7 +5,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 from rule_generator import RuleGenerator
-from tests.instances import variable_store  #TODO; deprecate this var store
+from tests.instances import variable_store
 
 class TestRuleGenerator(unittest.TestCase):
 
