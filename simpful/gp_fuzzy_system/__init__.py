@@ -1,2 +1,11 @@
-# Import the EvolvableFuzzySystem class
-from .evolvable_fuzzy_system import EvolvableFuzzySystem
+from .auto_lvs import *
+from .evolvable_fuzzy_system import *
+from .fitness_evaluation import *
+from .generate_terms_dict import *
+from .gp_evolution import *
+from .gp_utilities import *
+from .linguistic_variable_store import *
+from .rule_generator import *
+from .rule_processor import *
+from .run_gp_simulation import *
+from .terms_dict import *

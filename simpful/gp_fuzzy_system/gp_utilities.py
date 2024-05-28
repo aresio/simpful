@@ -1,7 +1,6 @@
 import numpy as np
 import re
 import random
-from rule_processor import format_rule
 
 def extract_prediction_values(predictions):
     """
