@@ -115,12 +115,12 @@ def evaluate_population(variable_store, population, backup_population):
                         logging.info(f"Replaced failed system {i} with a backup system.")
                     except Exception as backup_e:
                         logging.error(f"Backup system also failed for system {i}: {backup_e}")
-                        fitness_score = None
-                        fitness_scores.append(float('-inf'))  # Assign a very low fitness score
+                        fitness_score = 1e-10  # Assign a very low positive fitness score
+                        fitness_scores.append(fitness_score)
                         break
                 else:
                     logging.error("Ran out of backup systems to replace failed ones.")
-                    fitness_score = float('-inf')
+                    fitness_score = 1e-10  # Assign a very low positive fitness score
                     fitness_scores.append(fitness_score)
                     break
     return fitness_scores

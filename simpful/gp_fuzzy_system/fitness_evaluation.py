@@ -43,9 +43,12 @@ def evaluate_fitness(system, predictions, actual, weights={'rmse': 0.5, 'stabili
     # Normalize or standardize scores if necessary
     # Placeholder for normalization: Assume scores are already comparable
 
-    # Calculate the weighted sum of scores as the final fitness
-    fitness = (weights['rmse'] * rmse_score) + \
-              (weights['stability'] * (1 - stability_score)) + \
-              (weights['utility'] * utility_score)
+    # Ensure non-negative contributions
+    rmse_contribution = weights['rmse'] * (1 / (1 + rmse_score))  # Higher RMSE reduces fitness
+    stability_contribution = weights['stability'] * (1 - stability_score)  # Lower stability reduces fitness
+    utility_contribution = weights['utility'] * utility_score  # Financial utility is directly proportional
+
+    # Calculate the weighted sum of scores as the final fitness with a positive baseline
+    fitness = rmse_contribution + stability_contribution + utility_contribution + 1  # Adding a baseline of 1
 
     return fitness
