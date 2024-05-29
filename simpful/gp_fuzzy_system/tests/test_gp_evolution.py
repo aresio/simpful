@@ -147,13 +147,18 @@ class TestGeneticAlgorithm(unittest.TestCase):
         self.assertEqual(len(new_population), self.population_size, "New population size is incorrect")
 
     def test_genetic_algorithm_loop(self):
-        best_system = genetic_algorithm_loop(
+        best_system, best_fitness_per_generation = genetic_algorithm_loop(
             self.population_size, self.max_generations, self.x_train, 
             self.y_train, self.variable_store,
             selection_method=self.selection_method, tournament_size=self.tournament_size, 
             crossover_rate=self.crossover_rate, mutation_rate=self.mutation_rate, 
             elitism_rate=self.elitism_rate, max_rules=self.max_rules, min_rules=self.min_rules, verbose=False
         )
+        # Convert the list of tuples into a DataFrame
+        fitness_df = pd.DataFrame(best_fitness_per_generation, columns=['Generation', 'Best Fitness'])
+
+        # Display the DataFrame as a table
+        print(fitness_df)
         self.assertIsNotNone(best_system.evaluate_fitness(self.variable_store), "The best system should have a fitness score")
 
 

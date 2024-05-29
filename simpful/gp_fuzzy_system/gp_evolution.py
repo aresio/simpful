@@ -114,12 +114,12 @@ def evaluate_population(variable_store, population, backup_population):
                         logging.info(f"Replaced failed system {i} with a backup system.")
                     except Exception as backup_e:
                         logging.error(f"Backup system also failed for system {i}: {backup_e}")
-                        fitness_score = 1e-10  # Assign a very low positive fitness score
+                        fitness_score = float('inf')  # Assign a very high positive fitness score
                         fitness_scores.append(fitness_score)
                         break
                 else:
                     logging.error("Ran out of backup systems to replace failed ones.")
-                    fitness_score = 1e-10  # Assign a very low positive fitness score
+                    fitness_score = float('inf')  # Assign a very high positive fitness score
                     fitness_scores.append(fitness_score)
                     break
     return fitness_scores
@@ -138,15 +138,21 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
         parents = roulette_wheel_selection(population, fitness_scores)
     else:
         raise ValueError("Unknown selection method: {}".format(selection_method))
-
+    
+    # Always find the best model
+    best_model_index = np.argmin(fitness_scores)
+    best_model = population[best_model_index]
+    
     # Apply crossover and mutation
     offspring = apply_crossover(parents, variable_store)
     apply_mutation(offspring, mutation_rate, variable_store)
 
+
+
     # Apply elitism if specified
     if elitism_rate > 0:
         num_elites = int(elitism_rate * len(population))
-        elites = sorted(zip(population, fitness_scores), key=lambda x: x[1], reverse=True)[:num_elites]
+        elites = sorted(zip(population, fitness_scores), key=lambda x: x[1])[:num_elites]  # Sort ascending for minimizing
         new_population = [elite[0] for elite in elites] + offspring[:len(population) - num_elites]
     else:
         new_population = offspring[:len(population)]
@@ -157,6 +163,12 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
             refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, len(population))
         new_system = backup_population.pop()
         new_population.append(new_system)
+    
+        # Ensure the best model is in the new population
+    if best_model not in new_population:
+        # Replace the worst model in the new population with the best model
+        worst_model_index = np.argmax([individual.evaluate_fitness(variable_store) for individual in new_population])
+        new_population[worst_model_index] = best_model
 
     # Print debugging information if verbose is True
     if verbose:
@@ -166,6 +178,7 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
         print(f"New population size: {len(new_population)}")
 
     return new_population
+
 
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='tournament', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
@@ -197,7 +210,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         progress_bar.update(1)
         
         # Print the best fitness score of the current generation
-        best_fitness = max(fitness_scores)
+        best_fitness = min(fitness_scores)
         best_fitness_per_generation.append(best_fitness)
         
         if verbose:
@@ -208,7 +221,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         
     # Evaluate the final population and get the best system
     final_fitness_scores = evaluate_population(variable_store, population, backup_population)
-    best_index = np.argmax(final_fitness_scores)
+    best_index = np.argmin(final_fitness_scores)
     best_system = population[best_index]
 
     # Pickle and save the best system
