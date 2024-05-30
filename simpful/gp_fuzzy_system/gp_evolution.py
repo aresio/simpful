@@ -179,7 +179,6 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
 
     return new_population
 
-
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='tournament', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
@@ -194,6 +193,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     progress_bar = tqdm(total=max_generations, desc="Generations", unit="gen")
 
     best_fitness_per_generation = []
+    average_fitness_per_generation = []
 
     for generation in range(max_generations):
         # Evaluate the population
@@ -209,12 +209,15 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         # Update the progress bar
         progress_bar.update(1)
         
-        # Print the best fitness score of the current generation
+        # Calculate and store the best and average fitness scores of the current generation
         best_fitness = min(fitness_scores)
+        average_fitness = np.mean(fitness_scores)
+        
         best_fitness_per_generation.append(best_fitness)
+        average_fitness_per_generation.append(average_fitness)
         
         if verbose:
-            print(f"Generation {generation}: Best Fitness = {best_fitness}")
+            print(f"Generation {generation}: Best Fitness = {best_fitness}, Average Fitness = {average_fitness}")
     
     # Close the progress bar
     progress_bar.close()
@@ -228,7 +231,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     with open('best_system.pkl', 'wb') as f:
         pickle.dump(best_system, f)
     
-    return best_system, list(zip(range(max_generations), best_fitness_per_generation))
+    return best_system, list(zip(range(max_generations), best_fitness_per_generation)), list(zip(range(max_generations), average_fitness_per_generation))
 
 # Example usage
 if __name__ == "__main__":
