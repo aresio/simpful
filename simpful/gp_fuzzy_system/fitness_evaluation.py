@@ -31,7 +31,7 @@ def financial_utility(actual, predicted, verbose=False):
     return utility
 
 
-def evaluate_fitness(system, predictions, actual, weights={'rmse': 0.5, 'stability': 0.3, 'utility': 0.2}):
+def evaluate_fitness(system, predictions, actual, weights={'rmse': 0.95, 'stability': 0.04, 'utility': 0.01}):
     """
     A complex fitness function that considers predictive accuracy (RMSE), 
     stability of predictions over time, and financial utility.
