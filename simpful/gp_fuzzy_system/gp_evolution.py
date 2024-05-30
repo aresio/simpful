@@ -94,13 +94,15 @@ def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
     if verbose:
         print(f"Number of offspring after mutation: {len(offspring)}")
 
-
-def evaluate_population(variable_store, population, backup_population):
+def evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose):
     """Evaluates the fitness of the entire population, replacing failed systems with backup systems."""
     fitness_scores = []
     for i in range(len(population)):
         fitness_score = None
-        while fitness_score is None:
+        replacement_attempts = 0
+        max_attempts = 1000
+        
+        while fitness_score is None and replacement_attempts < max_attempts:
             try:
                 fitness_score = population[i].evaluate_fitness(variable_store)
                 fitness_scores.append(fitness_score)
@@ -114,14 +116,17 @@ def evaluate_population(variable_store, population, backup_population):
                         logging.info(f"Replaced failed system {i} with a backup system.")
                     except Exception as backup_e:
                         logging.error(f"Backup system also failed for system {i}: {backup_e}")
-                        fitness_score = float('inf')  # Assign a very high positive fitness score
-                        fitness_scores.append(fitness_score)
-                        break
+                        replacement_attempts += 1
+                        fitness_score = None
                 else:
                     logging.error("Ran out of backup systems to replace failed ones.")
-                    fitness_score = float('inf')  # Assign a very high positive fitness score
-                    fitness_scores.append(fitness_score)
-                    break
+                    # Generate new backup population
+                    refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, len(population))
+                    replacement_attempts += 1
+        
+        if fitness_score is None:
+            fitness_score = float('inf')  # Assign a very high positive fitness score
+            fitness_scores.append(fitness_score)
     return fitness_scores
 
 def refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, population_size):
@@ -147,8 +152,6 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
     offspring = apply_crossover(parents, variable_store)
     apply_mutation(offspring, mutation_rate, variable_store)
 
-
-
     # Apply elitism if specified
     if elitism_rate > 0:
         num_elites = int(elitism_rate * len(population))
@@ -164,7 +167,7 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
         new_system = backup_population.pop()
         new_population.append(new_system)
     
-        # Ensure the best model is in the new population
+    # Ensure the best model is in the new population
     if best_model not in new_population:
         # Replace the worst model in the new population with the best model
         worst_model_index = np.argmax([individual.evaluate_fitness(variable_store) for individual in new_population])
@@ -197,7 +200,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
 
     for generation in range(max_generations):
         # Evaluate the population
-        fitness_scores = evaluate_population(variable_store, population, backup_population)
+        fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
         
         # Perform one iteration of the evolutionary algorithm
         selection_size = int(len(population) * 0.8)
@@ -223,7 +226,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     progress_bar.close()
         
     # Evaluate the final population and get the best system
-    final_fitness_scores = evaluate_population(variable_store, population, backup_population)
+    final_fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
     best_index = np.argmin(final_fitness_scores)
     best_system = population[best_index]
 

@@ -107,7 +107,11 @@ class TestGeneticAlgorithm(unittest.TestCase):
         )
 
     def setUp(self):
-        self.fitness_scores = evaluate_population(self.variable_store, self.population, self.backup_population)
+        self.fitness_scores = evaluate_population(
+            self.variable_store, self.population, self.backup_population, 
+            self.max_rules, self.available_features, self.x_train, 
+            self.y_train, self.min_rules, verbose=False
+        )
         self.assertIsNotNone(self.fitness_scores, "Fitness scores should not be None")
         self.assertEqual(len(self.fitness_scores), self.population_size, "Fitness scores should match population size")
 
@@ -142,7 +146,9 @@ class TestGeneticAlgorithm(unittest.TestCase):
             selection_method='tournament',  # Ensure the selection method is valid
             crossover_rate=1, mutation_rate=1, elitism_rate=0.05,
             tournament_size=3, selection_size=selection_size, 
-            backup_population=self.backup_population, verbose=False
+            backup_population=self.backup_population, 
+            max_rules=self.max_rules, available_features=self.available_features, 
+            x_train=self.x_train, y_train=self.y_train, min_rules=self.min_rules, verbose=False
         )
         self.assertEqual(len(new_population), self.population_size, "New population size is incorrect")
 
@@ -164,6 +170,8 @@ class TestGeneticAlgorithm(unittest.TestCase):
         
         # Display the DataFrame as a table
         print(fitness_df)
+        # Display the DataFrame as a table
+        print(average_fitness_df)
         
         self.assertIsNotNone(best_system.evaluate_fitness(self.variable_store), "The best system should have a fitness score")
 
