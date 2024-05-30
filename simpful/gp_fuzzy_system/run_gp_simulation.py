@@ -19,7 +19,7 @@ def main(args):
     variable_store = processor.process_dataset()
 
     # Run the genetic algorithm loop with the provided command line arguments
-    best_system, best_fitness_per_generation = genetic_algorithm_loop(
+    best_system, best_fitness_per_generation, average_fitness_per_generation = genetic_algorithm_loop(
         population_size=args.population_size, 
         max_generations=args.max_generations, 
         x_train=x_train, 
