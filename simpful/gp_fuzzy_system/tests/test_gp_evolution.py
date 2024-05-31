@@ -159,6 +159,9 @@ class TestGeneticAlgorithm(unittest.TestCase):
         self.assertEqual(len(new_population), self.population_size, "New population size is incorrect")
 
     def test_genetic_algorithm_loop(self):
+        self.assertGreater(self.max_generations, 0, "max_generations must be greater than 0")
+        print(f"max_generations: {self.max_generations}")
+        
         best_system, best_fitness_per_generation, average_fitness_per_generation = genetic_algorithm_loop(
             self.population_size, self.max_generations, self.x_train, 
             self.y_train, self.variable_store,
@@ -176,9 +179,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
         
         # Display the DataFrame as a table
         print(fitness_df)
-        # Display the DataFrame as a table
-        print(average_fitness_df)
-        
+
         self.assertIsNotNone(best_system.evaluate_fitness(self.variable_store), "The best system should have a fitness score")
 
 

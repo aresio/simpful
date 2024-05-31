@@ -128,7 +128,7 @@ def refill_backup_population(backup_population, variable_store, max_rules, avail
     if verbose:
         print(f"Refilled backup population with {len(new_backup_population)} new systems.")
 
-def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='hybrid', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False, generation=None, max_generations=None):
+def evolutionary_algorithm(population, fitness_scores, variable_store, generation, max_generations, selection_method='hybrid', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False):
     if selection_method == 'tournament':
         parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
     elif selection_method == 'roulette':
@@ -176,15 +176,18 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
 
     return new_population
 
-def adaptive_mutation_rate(generation, max_generations):
-    return 0.1 + (0.3 - 0.1) * (1 - generation / max_generations)
+def adaptive_mutation_rate(mutation_rate, generation, max_generations):
+    return 0.1 + (mutation_rate - 0.1) * (1 - generation / max_generations)
 
-def adaptive_crossover_rate(generation, max_generations):
-    return 0.8 * (1 - generation / max_generations)
+def adaptive_crossover_rate(crossover_rate, generation, max_generations):
+    return crossover_rate * (1 - generation / max_generations)
 
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
+    if max_generations <= 0:
+        raise ValueError("max_generations must be greater than 0.")
+    
     # Initialize the population
     available_features = variable_store.get_all_variables()
     population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
@@ -200,18 +203,19 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
 
     for generation in range(max_generations):
         # Adaptive rates
-        current_mutation_rate = adaptive_mutation_rate(generation, max_generations)
-        current_crossover_rate = adaptive_crossover_rate(generation, max_generations)
+        current_mutation_rate = adaptive_mutation_rate(mutation_rate, generation, max_generations)
+        current_crossover_rate = adaptive_crossover_rate(crossover_rate, generation, max_generations)
         
         # Evaluate the population
         fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
         
         # Perform one iteration of the evolutionary algorithm
         selection_size = int(len(population) * 0.7)  # Adjusted selection size
-        population = evolutionary_algorithm(population, fitness_scores, variable_store, 
+        population = evolutionary_algorithm(population, fitness_scores, variable_store, generation, max_generations,
                                             selection_method, current_crossover_rate, current_mutation_rate, 
                                             elitism_rate, tournament_size, selection_size, 
-                                            backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
+                                            backup_population, max_rules, available_features, x_train, y_train, min_rules, 
+                                            verbose)
         
         # Update the progress bar
         progress_bar.update(1)
@@ -230,7 +234,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     progress_bar.close()
         
     # Evaluate the final population and get the best system
-    final_fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
+    final_fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
     best_index = np.argmin(final_fitness_scores)
     best_system = population[best_index]
 
@@ -239,6 +243,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         pickle.dump(best_system, f)
     
     return best_system, list(zip(range(max_generations), best_fitness_per_generation)), list(zip(range(max_generations), average_fitness_per_generation))
+
 
 # Example usage
 if __name__ == "__main__":
