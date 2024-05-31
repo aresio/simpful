@@ -58,6 +58,8 @@ def select_parents(population, fitness_scores, selection_size, tournament_size, 
     """Selects parents for the next generation."""
     if selection_method == 'tournament':
         parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
+    elif selection_method == 'roulette':
+        parents = roulette_wheel_selection(population, fitness_scores)
     else:
         raise ValueError(f"Unknown selection method: {selection_method}")
     return parents
@@ -136,11 +138,21 @@ def refill_backup_population(backup_population, variable_store, max_rules, avail
     if verbose:
         print(f"Refilled backup population with {len(new_backup_population)} new systems.")
 
-def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='tournament', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False):
+def hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations, threshold=0.5):
+    """Selects parents for the next generation using a hybrid method."""
+    probability_of_roulette = generation / max_generations
+    if np.random.rand() < probability_of_roulette:
+        return roulette_wheel_selection(population, fitness_scores)
+    else:
+        return tournament_selection(population, fitness_scores, tournament_size, selection_size)
+
+def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='hybrid', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False, generation=None, max_generations=None):
     if selection_method == 'tournament':
         parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
     elif selection_method == 'roulette':
         parents = roulette_wheel_selection(population, fitness_scores)
+    elif selection_method == 'hybrid':
+        parents = hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations)
     else:
         raise ValueError("Unknown selection method: {}".format(selection_method))
     
@@ -182,8 +194,14 @@ def evolutionary_algorithm(population, fitness_scores, variable_store, selection
 
     return new_population
 
+def adaptive_mutation_rate(generation, max_generations):
+    return 0.1 + (0.3 - 0.1) * (1 - generation / max_generations)
+
+def adaptive_crossover_rate(generation, max_generations):
+    return 0.8 * (1 - generation / max_generations)
+
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
-                           selection_method='tournament', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
+                           selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
     # Initialize the population
     available_features = variable_store.get_all_variables()
