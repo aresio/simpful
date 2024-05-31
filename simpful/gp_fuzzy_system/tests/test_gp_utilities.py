@@ -140,5 +140,23 @@ class TestSwapRules(unittest.TestCase):
         self.assertEqual(system1._rules[0], pre_swap_rule2, "Rule at index 0 of system1 should be swapped from system2")
         self.assertEqual(system2._rules[0], pre_swap_rule1, "Rule at index 0 of system2 should be swapped from system1")
 
+class TestSelectionMethods(unittest.TestCase):
+    def setUp(self):
+        # Create a sample population and fitness scores
+        self.sample_population = ['individual1', 'individual2', 'individual3', 'individual4']
+        self.sample_fitness_scores = [10, 20, 30, 40]
+
+    def test_tournament_selection(self):
+        selected_parents = tournament_selection(self.sample_population, self.sample_fitness_scores, tournament_size=2, selection_size=2)
+        self.assertEqual(len(selected_parents), 2, "Two parents should be selected.")
+        for parent in selected_parents:
+            self.assertIn(parent, self.sample_population, "Selected parents should be from the sample population.")
+
+    def test_roulette_wheel_selection(self):
+        selected_individuals = roulette_wheel_selection(self.sample_population, self.sample_fitness_scores)
+        self.assertEqual(len(selected_individuals), len(self.sample_population), "Selection should produce the same number of individuals as the population size.")
+        for individual in selected_individuals:
+            self.assertIn(individual, self.sample_population, "Selected individuals should be from the sample population.")
+
 if __name__ == '__main__':
     unittest.main()

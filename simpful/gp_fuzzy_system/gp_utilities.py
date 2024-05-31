@@ -2,6 +2,12 @@ import numpy as np
 import re
 import random
 
+def adaptive_mutation_rate(generation, max_generations):
+    return 0.1 + (0.3 - 0.1) * (1 - generation / max_generations)
+
+def adaptive_crossover_rate(generation, max_generations):
+    return 0.8 * (1 - generation / max_generations)
+
 def extract_prediction_values(predictions):
     """
     Extracts numerical values from a list of prediction dictionaries.

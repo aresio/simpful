@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import pickle
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
-from simpful.gp_fuzzy_system.gp_utilities import tournament_selection, roulette_wheel_selection
+from simpful.gp_fuzzy_system.gp_utilities import tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import numpy as np
 import logging
@@ -199,13 +199,17 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     average_fitness_per_generation = []
 
     for generation in range(max_generations):
+        # Adaptive rates
+        current_mutation_rate = adaptive_mutation_rate(generation, max_generations)
+        current_crossover_rate = adaptive_crossover_rate(generation, max_generations)
+        
         # Evaluate the population
         fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
         
         # Perform one iteration of the evolutionary algorithm
-        selection_size = int(len(population) * 0.8)
+        selection_size = int(len(population) * 0.7)  # Adjusted selection size
         population = evolutionary_algorithm(population, fitness_scores, variable_store, 
-                                            selection_method, crossover_rate, mutation_rate, 
+                                            selection_method, current_crossover_rate, current_mutation_rate, 
                                             elitism_rate, tournament_size, selection_size, 
                                             backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
         
