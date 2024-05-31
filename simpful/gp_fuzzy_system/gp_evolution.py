@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import pickle
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
-from simpful.gp_fuzzy_system.gp_utilities import tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate
+from simpful.gp_fuzzy_system.gp_utilities import hybrid_selection, tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 import numpy as np
 import logging
@@ -54,17 +54,7 @@ def initialize_population(population_size, variable_store, max_rules, available_
 
     return population
 
-def select_parents(population, fitness_scores, selection_size, tournament_size, selection_method='tournament'):
-    """Selects parents for the next generation."""
-    if selection_method == 'tournament':
-        parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
-    elif selection_method == 'roulette':
-        parents = roulette_wheel_selection(population, fitness_scores)
-    else:
-        raise ValueError(f"Unknown selection method: {selection_method}")
-    return parents
-
-def apply_crossover(parents, variable_store, verbose=False):
+def apply_crossover(parents, variable_store, verbose=True):
     offspring = []
     for i in range(0, len(parents), 2):
         parent1 = parents[i]
@@ -84,7 +74,7 @@ def apply_crossover(parents, variable_store, verbose=False):
         print(f"Number of offspring produced: {len(offspring)}")
     return offspring
 
-def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
+def apply_mutation(offspring, mutation_rate, variable_store, verbose=True):
     """Applies mutation to the offspring."""
     for child in offspring:
         if np.random.rand() < mutation_rate:
@@ -96,7 +86,7 @@ def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
     if verbose:
         print(f"Number of offspring after mutation: {len(offspring)}")
 
-def evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose):
+def evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation=None, max_generations=None):
     """Evaluates the fitness of the entire population, replacing failed systems with backup systems."""
     fitness_scores = []
     for i in range(len(population)):
@@ -137,14 +127,6 @@ def refill_backup_population(backup_population, variable_store, max_rules, avail
     backup_population.extend(new_backup_population)
     if verbose:
         print(f"Refilled backup population with {len(new_backup_population)} new systems.")
-
-def hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations, threshold=0.5):
-    """Selects parents for the next generation using a hybrid method."""
-    probability_of_roulette = generation / max_generations
-    if np.random.rand() < probability_of_roulette:
-        return roulette_wheel_selection(population, fitness_scores)
-    else:
-        return tournament_selection(population, fitness_scores, tournament_size, selection_size)
 
 def evolutionary_algorithm(population, fitness_scores, variable_store, selection_method='hybrid', crossover_rate=0.8, mutation_rate=0.01, elitism_rate=0.05, tournament_size=3, selection_size=15, backup_population=None, max_rules=None, available_features=None, x_train=None, y_train=None, min_rules=None, verbose=False, generation=None, max_generations=None):
     if selection_method == 'tournament':
@@ -222,7 +204,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         current_crossover_rate = adaptive_crossover_rate(generation, max_generations)
         
         # Evaluate the population
-        fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose)
+        fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
         
         # Perform one iteration of the evolutionary algorithm
         selection_size = int(len(population) * 0.7)  # Adjusted selection size

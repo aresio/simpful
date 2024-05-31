@@ -16,7 +16,23 @@ def extract_prediction_values(predictions):
     :return: List of numerical prediction values.
     """
     return [pred["PricePrediction"] for pred in predictions]
-  
+
+
+def select_parents(population, fitness_scores, selection_size, tournament_size, selection_method='tournament', generation=None, max_generations=None):
+    """Selects parents for the next generation."""
+    if selection_method == 'tournament':
+        parents = tournament_selection(population, fitness_scores, tournament_size, selection_size)
+    elif selection_method == 'roulette':
+        parents = roulette_wheel_selection(population, fitness_scores)
+    elif selection_method == 'hybrid':
+        if generation is None or max_generations is None:
+            raise ValueError("generation and max_generations must be provided for hybrid selection.")
+        parents = hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations)
+    else:
+        raise ValueError(f"Unknown selection method: {selection_method}")
+    return parents
+
+
 def tournament_selection(population, fitness_scores, tournament_size, selection_size):
     """Selects parents using tournament selection."""
     parents = []
@@ -48,6 +64,19 @@ def roulette_wheel_selection(population, fitness_scores):
     probability_distribution = [score / fitness_sum for score in fitness_scores]
     selected_indices = np.random.choice(len(population), size=len(population), p=probability_distribution)
     return [population[i] for i in selected_indices]
+
+def hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations):
+    """Implements a hybrid selection method combining tournament and roulette wheel selection."""
+    probability_of_roulette = generation / max_generations
+    selected_parents = []
+
+    for _ in range(selection_size):
+        if random.random() < probability_of_roulette:
+            selected_parents.append(roulette_wheel_selection(population, fitness_scores)[0])
+        else:
+            selected_parents.append(tournament_selection(population, fitness_scores, tournament_size, 1)[0])
+
+    return selected_parents
 
 def elitism(population, fitness_scores, num_elites=1):
     """Preserves the top individuals for the next generation."""

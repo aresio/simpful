@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 import unittest
-from simpful.gp_fuzzy_system.gp_evolution import initialize_population, select_parents, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
+from simpful.gp_fuzzy_system.gp_utilities import select_parents
+from simpful.gp_fuzzy_system.gp_evolution import initialize_population, apply_crossover, apply_mutation, evolutionary_algorithm, evaluate_population, genetic_algorithm_loop
 from simpful.gp_fuzzy_system.tests.instances import economic_health, variable_store
 
 import numpy as np
@@ -64,7 +65,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
         cls.max_rules = 7
         cls.min_rules = 3
         cls.min_clauses_per_rule = 2
-        cls.selection_method = 'tournament'
+        cls.selection_method = 'hybrid'
         cls.selection_size = 10
         cls.mutation_rate = 0.2 
         cls.crossover_rate = 0.8 
@@ -125,30 +126,35 @@ class TestGeneticAlgorithm(unittest.TestCase):
                 self.assertTrue(num_clauses >= self.min_clauses_per_rule, f"Rule does not have the minimum number of clauses: {rule}")
 
     def test_select_parents(self):
-        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='tournament')
+        generation = 1
+        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='hybrid', generation=generation, max_generations=self.max_generations)
         self.assertEqual(len(parents), self.selection_size, "Selection size is incorrect")
 
     def test_apply_crossover(self):
-        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='tournament')
+        generation = 1
+        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='hybrid', generation=generation, max_generations=self.max_generations)
         offspring = apply_crossover(parents, self.variable_store)
         self.assertTrue(len(offspring) > 0, "Crossover did not produce any offspring")
 
     def test_apply_mutation(self):
-        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='tournament')
+        generation = 1
+        parents = select_parents(self.population, self.fitness_scores, self.selection_size, self.tournament_size, selection_method='hybrid', generation=generation, max_generations=self.max_generations)
         offspring = apply_crossover(parents, self.variable_store)
         apply_mutation(offspring, self.mutation_rate, self.variable_store)
         self.assertTrue(len(offspring) > 0, "Mutation did not produce any changes")
 
     def test_evolutionary_algorithm(self):
         selection_size = int(len(self.population) * 0.8)
+        generation = 1
         new_population = evolutionary_algorithm(
             self.population, self.fitness_scores, self.variable_store, 
-            selection_method='tournament',  # Ensure the selection method is valid
+            selection_method='hybrid',  # Ensure the selection method is valid
             crossover_rate=1, mutation_rate=1, elitism_rate=0.05,
             tournament_size=3, selection_size=selection_size, 
             backup_population=self.backup_population, 
             max_rules=self.max_rules, available_features=self.available_features, 
-            x_train=self.x_train, y_train=self.y_train, min_rules=self.min_rules, verbose=False
+            x_train=self.x_train, y_train=self.y_train, min_rules=self.min_rules, 
+            generation=generation, max_generations=self.max_generations, verbose=False
         )
         self.assertEqual(len(new_population), self.population_size, "New population size is incorrect")
 

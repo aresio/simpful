@@ -2,8 +2,9 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 import unittest
-from simpful.gp_fuzzy_system.tests.instances import *
 from simpful.gp_fuzzy_system.gp_utilities import *
+from simpful.gp_fuzzy_system.tests.instances import *
+
 
 class TestLogicalOperatorMutation(unittest.TestCase):
     def test_find_no_operators(self):
@@ -157,6 +158,14 @@ class TestSelectionMethods(unittest.TestCase):
         self.assertEqual(len(selected_individuals), len(self.sample_population), "Selection should produce the same number of individuals as the population size.")
         for individual in selected_individuals:
             self.assertIn(individual, self.sample_population, "Selected individuals should be from the sample population.")
+    
+    def test_hybrid_selection(self):
+        generation = 1
+        max_generations = 10
+        selected_parents = select_parents(self.sample_population, self.sample_fitness_scores, selection_size=2, tournament_size=2, selection_method='hybrid', generation=generation, max_generations=max_generations)
+        self.assertEqual(len(selected_parents), 2, "Two parents should be selected by hybrid method.")
+        for parent in selected_parents:
+            self.assertIn(parent, self.sample_population, "Selected parents should be from the sample population.")
 
 if __name__ == '__main__':
     unittest.main()
