@@ -67,10 +67,13 @@ def roulette_wheel_selection(population, fitness_scores):
 
 def hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations):
     """Implements a hybrid selection method combining tournament and roulette wheel selection."""
-    if max_generations <= 0:
-        raise ValueError("max_generations must be greater than 0.")
-        
-    probability_of_roulette = generation / max_generations
+       
+    try:
+        probability_of_roulette = generation / max_generations
+    except ZeroDivisionError:
+        probability_of_roulette = 0
+        print("Warning: max_generations was zero, setting probability_of_roulette to 0.")
+
     selected_parents = []
 
     for _ in range(selection_size):

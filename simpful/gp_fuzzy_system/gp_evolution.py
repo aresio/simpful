@@ -185,8 +185,6 @@ def adaptive_crossover_rate(crossover_rate, generation, max_generations):
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
-    if max_generations <= 0:
-        raise ValueError("max_generations must be greater than 0.")
     
     # Initialize the population
     available_features = variable_store.get_all_variables()
