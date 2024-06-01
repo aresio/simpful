@@ -20,7 +20,7 @@ file_path = os.path.join(os.path.dirname(__file__), 'gp_data_x_train.csv')
 terms_dict_path = os.path.join(os.path.dirname(__file__), '..', 'terms_dict.py')
 exclude_columns = ['month', 'day', 'hour']
 verbose = False
-mf_type = 'gaussian'  # or 'triangular' or 'sigmoid'
+mf_type = 'sigmoid'  # or 'triangular' or 'sigmoid'
 
 # Initialize the FuzzyLinguisticVariableProcessor
 processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type)
