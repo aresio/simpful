@@ -308,7 +308,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         offspring2.ensure_linguistic_variables(variable_store, verbose)
     
 
-    def evaluate_fitness(self, variable_store=None, weights={'rmse': 0.5, 'stability': 0.3, 'utility': 0.2}, verbose=False):
+    def evaluate_fitness(self, variable_store=None, weights={'rmse': 0.85, 'stability': 0.1, 'utility': 0.05}, verbose=False):
         """
         Calculates the fitness score based on a comparison metric like RMSE.
         """
