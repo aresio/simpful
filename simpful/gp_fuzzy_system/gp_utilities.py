@@ -46,7 +46,7 @@ def tournament_selection(population, fitness_scores, tournament_size, selection_
 
             if None not in participant_scores:
                 valid_participants = True
-                best_participant = participants[np.argmax(participant_scores)]
+                best_participant = participants[np.argmin(participant_scores)]
                 parents.append(population[best_participant])
                 population_indices.remove(best_participant)  # Ensure the same participant is not selected again
 
@@ -60,10 +60,12 @@ def tournament_selection(population, fitness_scores, tournament_size, selection_
 
 def roulette_wheel_selection(population, fitness_scores):
     """Implements roulette wheel selection."""
-    fitness_sum = sum(fitness_scores)
-    probability_distribution = [score / fitness_sum for score in fitness_scores]
+    inverse_fitness_scores = [1.0 / score if score != 0 else 1.0 for score in fitness_scores]
+    fitness_sum = sum(inverse_fitness_scores)
+    probability_distribution = [score / fitness_sum for score in inverse_fitness_scores]
     selected_indices = np.random.choice(len(population), size=len(population), p=probability_distribution)
     return [population[i] for i in selected_indices]
+
 
 def hybrid_selection(population, fitness_scores, selection_size, tournament_size, generation, max_generations):
     """Implements a hybrid selection method combining tournament and roulette wheel selection."""
@@ -86,7 +88,7 @@ def hybrid_selection(population, fitness_scores, selection_size, tournament_size
 
 def elitism(population, fitness_scores, num_elites=1):
     """Preserves the top individuals for the next generation."""
-    elite_indices = np.argsort(fitness_scores)[-num_elites:]
+    elite_indices = np.argsort(fitness_scores)[:num_elites]
     return [population[i] for i in elite_indices]
 
 
