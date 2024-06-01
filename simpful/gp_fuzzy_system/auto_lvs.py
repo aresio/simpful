@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from simpful import FuzzySet, Triangular_MF, LinguisticVariable
+from simpful import FuzzySet, Triangular_MF, Gaussian_MF, Sigmoid_MF, LinguisticVariable
 from simpful.gp_fuzzy_system.linguistic_variable_store import LocalLinguisticVariableStore
 import skfuzzy as fuzz
 import numpy as np
@@ -11,11 +11,12 @@ import argparse
 import importlib.util
 
 class FuzzyLinguisticVariableProcessor:
-    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None):
+    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='triangular'):
         self.file_path = file_path
         self.terms_dict_path = terms_dict_path
         self.verbose = verbose
         self.exclude_columns = exclude_columns if exclude_columns else []
+        self.mf_type = mf_type
         self.data = pd.read_csv(self.file_path)
         self.terms_dict = self._load_terms_dict()
 
@@ -39,9 +40,22 @@ class FuzzyLinguisticVariableProcessor:
         FS_list = []
         for i in range(len(terms)):
             try:
-                FS_list.append(FuzzySet(function=Triangular_MF(control_points[i], control_points[i+1], control_points[i+2]), term=terms[i]))
-                if self.verbose:
-                    print(f"Defined fuzzy set for term '{terms[i]}' with points: {control_points[i]}, {control_points[i+1]}, {control_points[i+2]}")
+                if self.mf_type == 'triangular':
+                    FS_list.append(FuzzySet(function=Triangular_MF(control_points[i], control_points[i+1], control_points[i+2]), term=terms[i]))
+                    if self.verbose:
+                        print(f"Defined triangular fuzzy set for term '{terms[i]}' with points: {control_points[i]}, {control_points[i+1]}, {control_points[i+2]}")
+                elif self.mf_type == 'gaussian':
+                    mean = control_points[i+1]
+                    sigma = (control_points[i+2] - control_points[i]) / 2
+                    FS_list.append(FuzzySet(function=Gaussian_MF(mean, sigma), term=terms[i]))
+                    if self.verbose:
+                        print(f"Defined gaussian fuzzy set for term '{terms[i]}' with mean: {mean}, sigma: {sigma}")
+                elif self.mf_type == 'sigmoid':
+                    mean = control_points[i+1]
+                    slope = (control_points[i+2] - control_points[i]) / 2
+                    FS_list.append(FuzzySet(function=Sigmoid_MF(mean, slope), term=terms[i]))
+                    if self.verbose:
+                        print(f"Defined sigmoid fuzzy set for term '{terms[i]}' with mean: {mean}, slope: {slope}")
             except IndexError:
                 if self.verbose:
                     print(f"Skipping term '{terms[i]}' due to insufficient control points.")
@@ -71,7 +85,7 @@ class FuzzyLinguisticVariableProcessor:
             FS_list = self.define_fuzzy_sets(control_points, terms[:num_terms])
 
             if len(FS_list) == num_terms:
-                LV = LinguisticVariable(FS_list=FS_list, universe_of_discourse=[low, high])
+                LV = LinguisticVariable(FS_list=FS_list, universe_of_discourse=[low, high], concept=column_name)
                 if self.verbose:
                     print(f"Created linguistic variable for column '{column_name}' with {num_terms} terms")
                 return LV
@@ -104,39 +118,21 @@ class FuzzyLinguisticVariableProcessor:
 
         return store
 
+    def process(self):
+        for column in self.data.columns:
+            if column in self.exclude_columns:
+                continue
 
-def main(file_path, terms_dict_path, verbose, exclude_columns):
-    processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns)
-    store = processor.process_dataset()
+            terms = self.terms_dict.get(column, [])
+            if not terms:
+                if self.verbose:
+                    print(f"No terms found for column '{column}'. Skipping.")
+                continue
 
-    for var_name, lv in store.get_all_variables().items():
-        print(f"Linguistic Variable: {var_name}")
-        print(f"Terms: {lv.get_terms()}")
+            control_points = self.data[column].tolist()
+            control_points = self.adjust_control_points(control_points)
+            fuzzy_sets = self.define_fuzzy_sets(control_points, terms)
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process a dataset to create a linguistic variable store.")
-    parser.add_argument("file_path", type=str, help="Path to the CSV file containing the dataset.")
-    parser.add_argument("terms_dict_path", type=str, help="Path to the Python file containing the terms dictionary.")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output.")
-    parser.add_argument("-e", "--exclude", nargs='+', default=[], help="Columns to exclude from processing.")
-
-    args = parser.parse_args()
-
-    main(args.file_path, args.terms_dict_path, args.verbose, args.exclude)
-
-
-
-# from fuzzy_linguistic_variable_processor import FuzzyLinguisticVariableProcessor
-
-# file_path = 'tests/gp_data_x_train.csv'
-# terms_dict_path = 'terms_dict.py'
-# exclude_columns = ['month', 'day', 'hour']
-# verbose = True
-
-# processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns)
-# store = processor.process_dataset()
-
-# for var_name, lv in store.get_all_variables().items():
-#     print(f"Linguistic Variable: {var_name}")
-#     print(f"Terms: {lv.get_terms()}")
+            if fuzzy_sets:
+                lv = LinguisticVariable(fuzzy_sets, universe_of_discourse=[min(control_points), max(control_points)], concept=column)
+                print(f"Linguistic Variable for '{column}' defined.")
