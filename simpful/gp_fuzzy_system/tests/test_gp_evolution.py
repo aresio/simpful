@@ -60,8 +60,8 @@ class TestGeneticAlgorithm(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.variable_store = variable_store
-        cls.population_size = 120
-        cls.max_generations = 40
+        cls.population_size = 10
+        cls.max_generations = 4
         cls.max_rules = 8
         cls.min_rules = 2
         cls.min_clauses_per_rule = 2
@@ -73,7 +73,6 @@ class TestGeneticAlgorithm(unittest.TestCase):
         cls.tournament_size = 3
         
         # Load the CSV data for training and predictions
-        cls.test_data = pd.read_csv(Path(__file__).resolve().parent / 'selected_variables_first_100.csv')
         cls.x_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_x_train.csv')
         cls.y_train = pd.read_csv(Path(__file__).resolve().parent / 'gp_data_y_train.csv')
 

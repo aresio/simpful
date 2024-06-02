@@ -54,7 +54,7 @@ def initialize_population(population_size, variable_store, max_rules, available_
 
     return population
 
-def apply_crossover(parents, variable_store, verbose=True):
+def apply_crossover(parents, variable_store, verbose=False):
     offspring = []
     for i in range(0, len(parents), 2):
         parent1 = parents[i]
@@ -74,7 +74,7 @@ def apply_crossover(parents, variable_store, verbose=True):
         print(f"Number of offspring produced: {len(offspring)}")
     return offspring
 
-def apply_mutation(offspring, mutation_rate, variable_store, verbose=True):
+def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
     """Applies mutation to the offspring."""
     for child in offspring:
         if np.random.rand() < mutation_rate:
