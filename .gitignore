@@ -150,3 +150,7 @@ docs/make.bat
 # Logs
 logs.txt
 .data
+
+# Ignore directories for saved populations and best models
+population_dir/
+best_model_dir/
