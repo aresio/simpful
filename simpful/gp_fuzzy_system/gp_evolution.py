@@ -3,8 +3,9 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import pickle
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
-from simpful.gp_fuzzy_system.gp_utilities import hybrid_selection, tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate
+from simpful.gp_fuzzy_system.gp_utilities import hybrid_selection, tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate, find_best_models, replace_worst_models_with_best
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
+from simpful.gp_fuzzy_system.model_saver import save_to_timestamped_dir, load_saved_individuals, load_populations_and_best_models
 import numpy as np
 import logging
 from tqdm import tqdm
@@ -184,11 +185,30 @@ def adaptive_crossover_rate(crossover_rate, generation, max_generations):
 
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
-                           elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False):
+                           elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False, early_stop=True,
+                           seed_population_from=None, num_seed_individuals=0, load_from=None):
     
-    # Initialize the population
-    available_features = variable_store.get_all_variables()
-    population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
+    # Load populations and best models if specified
+    if load_from:
+        loaded_data = load_populations_and_best_models(load_from)
+        population = []
+        for subdirectory, data in loaded_data.items():
+            population.extend(data['population'])
+        if len(population) > population_size:
+            population = population[:population_size]
+    else:
+        # Initialize the population
+        available_features = variable_store.get_all_variables()
+        
+        if seed_population_from and num_seed_individuals > 0:
+            # Load the saved individuals from the specified directory
+            seeded_individuals = load_saved_individuals(seed_population_from, num_seed_individuals)
+            # Initialize the remaining population
+            remaining_population = initialize_population(population_size - len(seeded_individuals), variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
+            # Combine the seeded individuals with the newly initialized population
+            population = seeded_individuals + remaining_population
+        else:
+            population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
     
     # Initialize the backup population
     backup_population = initialize_population(population_size * 3, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
@@ -199,6 +219,11 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     best_fitness_per_generation = []
     average_fitness_per_generation = []
 
+    # Early stopping parameters
+    patience = max(5, int(max_generations * 0.3))  # Ensure patience is at least 5 generations
+    no_improvement_counter = 0
+    best_fitness = float('inf')
+
     for generation in range(max_generations):
         # Adaptive rates
         current_mutation_rate = adaptive_mutation_rate(mutation_rate, generation, max_generations)
@@ -208,7 +233,7 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
         
         # Perform one iteration of the evolutionary algorithm
-        selection_size = int(len(population) * 0.7)  # Adjusted selection size
+        selection_size = int(len(population) * 0.6)  # Adjusted selection size
         population = evolutionary_algorithm(population, fitness_scores, variable_store, generation, max_generations,
                                             selection_method, current_crossover_rate, current_mutation_rate, 
                                             elitism_rate, tournament_size, selection_size, 
@@ -219,14 +244,27 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         progress_bar.update(1)
         
         # Calculate and store the best and average fitness scores of the current generation
-        best_fitness = min(fitness_scores)
+        current_best_fitness = min(fitness_scores)
         average_fitness = np.mean(fitness_scores)
         
-        best_fitness_per_generation.append(best_fitness)
+        best_fitness_per_generation.append(current_best_fitness)
         average_fitness_per_generation.append(average_fitness)
         
         if verbose:
-            print(f"Generation {generation}: Best Fitness = {best_fitness}, Average Fitness = {average_fitness}")
+            print(f"Generation {generation}: Best Fitness = {current_best_fitness}, Average Fitness = {average_fitness}")
+        
+        # Early stopping logic
+        if early_stop:
+            if current_best_fitness < best_fitness:
+                best_fitness = current_best_fitness
+                no_improvement_counter = 0
+            else:
+                no_improvement_counter += 1
+
+            if no_improvement_counter >= patience:
+                if verbose:
+                    print(f"Early stopping at generation {generation} due to no improvement in best fitness for {patience} generations.")
+                break
     
     # Close the progress bar
     progress_bar.close()
@@ -236,12 +274,11 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
     best_index = np.argmin(final_fitness_scores)
     best_system = population[best_index]
 
-    # Pickle and save the best system
-    with open('best_system.pkl', 'wb') as f:
-        pickle.dump(best_system, f)
+    # Save the best system and the entire population in timestamped directories
+    save_to_timestamped_dir(best_system, 'best_model_dir', 'best_model.pkl')
+    save_to_timestamped_dir(population, 'population_dir', 'population.pkl')
     
-    return best_system, list(zip(range(max_generations), best_fitness_per_generation)), list(zip(range(max_generations), average_fitness_per_generation))
-
+    return best_system, list(zip(range(len(best_fitness_per_generation)), best_fitness_per_generation)), list(zip(range(len(average_fitness_per_generation)), average_fitness_per_generation))
 
 # Example usage
 if __name__ == "__main__":

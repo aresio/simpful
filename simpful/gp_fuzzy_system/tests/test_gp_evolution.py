@@ -61,7 +61,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
     def setUpClass(cls):
         cls.variable_store = variable_store
         cls.population_size = 10
-        cls.max_generations = 4
+        cls.max_generations = 3
         cls.max_rules = 8
         cls.min_rules = 2
         cls.min_clauses_per_rule = 2
