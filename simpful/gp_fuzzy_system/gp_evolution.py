@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import pickle
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
-from simpful.gp_fuzzy_system.gp_utilities import hybrid_selection, tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate
+from simpful.gp_fuzzy_system.gp_utilities import hybrid_selection, tournament_selection, roulette_wheel_selection, adaptive_crossover_rate, adaptive_mutation_rate, find_best_models, replace_worst_models_with_best
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 from simpful.gp_fuzzy_system.model_saver import save_to_timestamped_dir, load_saved_individuals, load_populations_and_best_models
 import numpy as np

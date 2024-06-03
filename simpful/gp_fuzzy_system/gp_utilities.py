@@ -2,6 +2,52 @@ import numpy as np
 import re
 import random
 
+def find_best_models(loaded_data, num_best_models):
+    """
+    Find the best models from the loaded data.
+    
+    Parameters:
+    - loaded_data: A dictionary where the key is the directory name and the value is a dictionary
+                   containing 'population' and 'best_model'.
+    - num_best_models: The number of best models to find.
+    
+    Returns:
+    - A list of the best models.
+    """
+    all_best_models = []
+    
+    for directory, data in loaded_data.items():
+        best_model = data['best_model']
+        all_best_models.append(best_model)
+    
+    # Sort the best models based on their fitness
+    sorted_best_models = sorted(all_best_models, key=lambda model: model.evaluate_fitness())
+    
+    return sorted_best_models[:num_best_models]
+
+def replace_worst_models_with_best(population, fitness_scores, best_models, num_replace):
+    """
+    Replace the worst models in the population with the best models.
+    
+    Parameters:
+    - population: The current population of models.
+    - fitness_scores: The fitness scores of the current population.
+    - best_models: A list of the best models to insert into the population.
+    - num_replace: The number of worst models to replace.
+    
+    Returns:
+    - The updated population.
+    """
+    # Sort the population by fitness score in descending order (worst first)
+    sorted_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i], reverse=True)
+    
+    # Replace the worst models with the best models
+    for i in range(num_replace):
+        worst_index = sorted_indices[i]
+        population[worst_index] = best_models[i]
+    
+    return population
+
 def adaptive_mutation_rate(generation, max_generations):
     return 0.1 + (0.3 - 0.1) * (1 - generation / max_generations)
 
