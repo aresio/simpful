@@ -150,3 +150,7 @@ docs/make.bat
 # Logs
 logs.txt
 .data
+
+# models 
+best_model_dir/
+population_dir/
