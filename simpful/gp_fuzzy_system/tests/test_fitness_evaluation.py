@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
-from simpful.gp_fuzzy_system.fitness_evaluation import weighted_rmse, prediction_stability, financial_utility
+from simpful.gp_fuzzy_system.fitness_evaluation import weighted_rmse, prediction_stability, financial_utility, zero_prediction_penalty
 from simpful.gp_fuzzy_system.tests.instances import economic_health, variable_store
 import unittest
 import pandas as pd
@@ -57,9 +57,19 @@ class TestFitnessFunctions(unittest.TestCase):
         utility = financial_utility(self.system.y_train, predicted)
         self.assertIsInstance(utility, float)
 
+    def test_zero_prediction_penalty(self):
+        predicted = self.system.predict_with_fis(data=self.system.x_train, variable_store=self.variable_store)
+        self.assertIsInstance(predicted, np.ndarray)
+        self.assertEqual(predicted.shape, (self.system.x_train.shape[0],))
+        # Verify zero prediction penalty calculation does not raise any errors
+        penalty = zero_prediction_penalty(predicted)
+        self.assertIsInstance(penalty, float)
+
     def test_evaluate_fitness(self):
+        # Define weights including zero_penalty
+        weights = {'rmse': 0.90, 'stability': 0.04, 'utility': 0.01, 'zero_penalty': 0.05}
         # Verify fitness evaluation does not raise any errors
-        fitness = self.system.evaluate_fitness(variable_store=self.variable_store)
+        fitness = self.system.evaluate_fitness(variable_store=self.variable_store, weights=weights)
         self.assertIsInstance(fitness, float)
 
 if __name__ == '__main__':

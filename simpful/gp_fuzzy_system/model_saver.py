@@ -48,12 +48,13 @@ def save_to_timestamped_dir(obj, base_dir, filename):
     
     return dir_path
 
+
 def load_populations_and_best_models(base_directory):
     """
-    Load all populations and best models from the subdirectories of the base directory.
+    Load all populations and best models from the respective directories under the base directory.
     
     Parameters:
-    - base_directory: The base directory containing timestamped subdirectories.
+    - base_directory: The base directory containing 'population_dir' and 'best_model_dir'.
     
     Returns:
     - A dictionary with directory names as keys and another dictionary as values,
@@ -61,12 +62,15 @@ def load_populations_and_best_models(base_directory):
     """
     data = {}
     
-    subdirectories = [d for d in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, d))]
+    population_dir = os.path.join(base_directory, 'population_dir')
+    best_model_dir = os.path.join(base_directory, 'best_model_dir')
     
-    for subdirectory in subdirectories:
-        subdirectory_path = os.path.join(base_directory, subdirectory)
-        population_path = os.path.join(subdirectory_path, 'population.pkl')
-        best_model_path = os.path.join(subdirectory_path, 'best_model.pkl')
+    population_subdirs = [d for d in os.listdir(population_dir) if os.path.isdir(os.path.join(population_dir, d))]
+    best_model_subdirs = [d for d in os.listdir(best_model_dir) if os.path.isdir(os.path.join(best_model_dir, d))]
+    
+    for subdirectory in population_subdirs:
+        population_path = os.path.join(population_dir, subdirectory, 'population.pkl')
+        best_model_path = os.path.join(best_model_dir, subdirectory, 'best_model.pkl')
         
         if os.path.exists(population_path) and os.path.exists(best_model_path):
             with open(population_path, 'rb') as pop_file:
@@ -80,6 +84,8 @@ def load_populations_and_best_models(base_directory):
             }
     
     return data
+
+
 
 # Example usage:
 # base_dir = 'path_to_your_base_directory'

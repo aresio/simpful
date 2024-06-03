@@ -55,6 +55,10 @@ def initialize_population(population_size, variable_store, max_rules, available_
 
     return population
 
+def initialize_backup_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose):
+    return initialize_population(population_size * 3, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
+
+
 def apply_crossover(parents, variable_store, verbose=False):
     offspring = []
     for i in range(0, len(parents), 2):
@@ -183,67 +187,130 @@ def adaptive_mutation_rate(mutation_rate, generation, max_generations):
 def adaptive_crossover_rate(crossover_rate, generation, max_generations):
     return crossover_rate * (1 - generation / max_generations)
 
+def initialize_main_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals):
+    if seed_population_from and num_seed_individuals > 0:
+        seeded_individuals = load_saved_individuals(seed_population_from, num_seed_individuals)
+        remaining_population = initialize_population(population_size - len(seeded_individuals), variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
+        population = seeded_individuals + remaining_population
+    else:
+        population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
+    return population
+
+def load_and_initialize_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals, load_from):
+    loaded_data = None
+    if load_from:
+        try:
+            loaded_data = load_populations_and_best_models(load_from)
+            population = []
+            for subdirectory, data in loaded_data.items():
+                population.extend(data['population'])
+            if len(population) > population_size:
+                population = population[:population_size]
+        except Exception as e:
+            print(f"Error loading populations and best models: {e}")
+            population = initialize_main_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals)
+    else:
+        population = initialize_main_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals)
+    
+    return population, loaded_data
+
+def early_stop_logic(current_best_fitness, best_fitness, no_improvement_counter, patience, loaded_data, num_replace_worst, population, fitness_scores, variable_store, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations):
+    if current_best_fitness < best_fitness:
+        best_fitness = current_best_fitness
+        no_improvement_counter = 0
+    else:
+        no_improvement_counter += 1
+
+    if no_improvement_counter >= patience:
+        if loaded_data:
+            best_models = find_best_models(loaded_data, num_replace_worst)
+            population = replace_worst_models_with_best(population, fitness_scores, best_models, num_replace_worst)
+            fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
+            no_improvement_counter = 0
+        else:
+            if verbose:
+                print(f"Early stopping at generation {generation} due to no improvement in best fitness for {patience} generations.")
+            return True
+    return False
+
+def initialize_algorithm(population_size, variable_store, max_rules, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals):
+    available_features = variable_store.get_all_variables()
+    population = initialize_main_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals)
+    backup_population = initialize_backup_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose)
+    return population, backup_population, available_features
+
+def finalize_algorithm(progress_bar, population, variable_store, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations):
+    progress_bar.close()
+    
+    final_fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
+    best_index = np.argmin(final_fitness_scores)
+    best_system = population[best_index]
+
+    save_to_timestamped_dir(best_system, 'best_model_dir', 'best_model.pkl')
+    save_to_timestamped_dir(population, 'population_dir', 'population.pkl')
+    
+    return best_system, final_fitness_scores
+
+def handle_early_stopping(current_best_fitness, best_fitness, no_improvement_counter, patience, load_from, loaded_data, population, fitness_scores, variable_store, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations, num_replace_worst):
+    if current_best_fitness < best_fitness:
+        best_fitness = current_best_fitness
+        no_improvement_counter = 0
+    else:
+        no_improvement_counter += 1
+
+    if no_improvement_counter >= patience:
+        if load_from and not loaded_data:
+            try:
+                loaded_data = load_populations_and_best_models(load_from)
+            except Exception as e:
+                print(f"Error loading populations and best models: {e}")
+                return population, fitness_scores, best_fitness, no_improvement_counter, loaded_data, True
+        
+        if loaded_data:
+            best_models = find_best_models(loaded_data, num_replace_worst)
+            population = replace_worst_models_with_best(population, fitness_scores, best_models, num_replace_worst)
+            fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
+            no_improvement_counter = 0  # Reset counter after replacement
+        else:
+            if verbose:
+                print(f"Early stopping at generation {generation} due to no improvement in best fitness for {patience} generations.")
+            return population, fitness_scores, best_fitness, no_improvement_counter, loaded_data, True
+    
+    return population, fitness_scores, best_fitness, no_improvement_counter, loaded_data, False
+
+
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False, early_stop=True,
-                           seed_population_from=None, num_seed_individuals=0, load_from=None):
+                           seed_population_from=None, num_seed_individuals=0, load_from=None, num_replace_worst=12):
     
-    # Load populations and best models if specified
-    if load_from:
-        loaded_data = load_populations_and_best_models(load_from)
-        population = []
-        for subdirectory, data in loaded_data.items():
-            population.extend(data['population'])
-        if len(population) > population_size:
-            population = population[:population_size]
-    else:
-        # Initialize the population
-        available_features = variable_store.get_all_variables()
-        
-        if seed_population_from and num_seed_individuals > 0:
-            # Load the saved individuals from the specified directory
-            seeded_individuals = load_saved_individuals(seed_population_from, num_seed_individuals)
-            # Initialize the remaining population
-            remaining_population = initialize_population(population_size - len(seeded_individuals), variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
-            # Combine the seeded individuals with the newly initialized population
-            population = seeded_individuals + remaining_population
-        else:
-            population = initialize_population(population_size, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
-    
-    # Initialize the backup population
-    backup_population = initialize_population(population_size * 3, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
-    
-    # Initialize the progress bar
+    population, backup_population, available_features = initialize_algorithm(population_size, variable_store, max_rules, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals)
+    loaded_data = '/Users/nikhilrazab-sekh/Desktop/simpful/simpful/gp_fuzzy_system/tests'  # We will load this only if we need to
+
     progress_bar = tqdm(total=max_generations, desc="Generations", unit="gen")
 
     best_fitness_per_generation = []
     average_fitness_per_generation = []
 
-    # Early stopping parameters
-    patience = max(5, int(max_generations * 0.3))  # Ensure patience is at least 5 generations
+    patience = max(5, int(max_generations * 0.3))
     no_improvement_counter = 0
     best_fitness = float('inf')
 
     for generation in range(max_generations):
-        # Adaptive rates
         current_mutation_rate = adaptive_mutation_rate(mutation_rate, generation, max_generations)
         current_crossover_rate = adaptive_crossover_rate(crossover_rate, generation, max_generations)
         
-        # Evaluate the population
         fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
         
-        # Perform one iteration of the evolutionary algorithm
-        selection_size = int(len(population) * 0.6)  # Adjusted selection size
+        selection_size = int(len(population) * 0.7)
         population = evolutionary_algorithm(population, fitness_scores, variable_store, generation, max_generations,
                                             selection_method, current_crossover_rate, current_mutation_rate, 
                                             elitism_rate, tournament_size, selection_size, 
                                             backup_population, max_rules, available_features, x_train, y_train, min_rules, 
                                             verbose)
         
-        # Update the progress bar
         progress_bar.update(1)
         
-        # Calculate and store the best and average fitness scores of the current generation
         current_best_fitness = min(fitness_scores)
         average_fitness = np.mean(fitness_scores)
         
@@ -253,32 +320,22 @@ def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, v
         if verbose:
             print(f"Generation {generation}: Best Fitness = {current_best_fitness}, Average Fitness = {average_fitness}")
         
-        # Early stopping logic
         if early_stop:
-            if current_best_fitness < best_fitness:
-                best_fitness = current_best_fitness
-                no_improvement_counter = 0
-            else:
-                no_improvement_counter += 1
-
-            if no_improvement_counter >= patience:
-                if verbose:
-                    print(f"Early stopping at generation {generation} due to no improvement in best fitness for {patience} generations.")
+            population, fitness_scores, best_fitness, no_improvement_counter, loaded_data, should_stop = handle_early_stopping(
+                current_best_fitness, best_fitness, no_improvement_counter, patience, load_from, loaded_data, 
+                population, fitness_scores, variable_store, backup_population, max_rules, available_features, 
+                x_train, y_train, min_rules, verbose, generation, max_generations, num_replace_worst
+            )
+            if should_stop:
                 break
     
-    # Close the progress bar
-    progress_bar.close()
-        
-    # Evaluate the final population and get the best system
-    final_fitness_scores = evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
-    best_index = np.argmin(final_fitness_scores)
-    best_system = population[best_index]
+    best_system, final_fitness_scores = finalize_algorithm(progress_bar, population, variable_store, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation, max_generations)
 
-    # Save the best system and the entire population in timestamped directories
-    save_to_timestamped_dir(best_system, 'best_model_dir', 'best_model.pkl')
-    save_to_timestamped_dir(population, 'population_dir', 'population.pkl')
-    
+    print(final_fitness_scores)
+
     return best_system, list(zip(range(len(best_fitness_per_generation)), best_fitness_per_generation)), list(zip(range(len(average_fitness_per_generation)), average_fitness_per_generation))
+
+
 
 # Example usage
 if __name__ == "__main__":
