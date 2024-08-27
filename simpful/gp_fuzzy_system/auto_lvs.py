@@ -11,7 +11,25 @@ import argparse
 import importlib.util
 
 class FuzzyLinguisticVariableProcessor:
+    """
+    A processor for handling fuzzy linguistic variables in a dataset.
+
+    This class reads a dataset and a dictionary of terms, processes the data to generate fuzzy sets and linguistic
+    variables, and stores them for use in a fuzzy logic system. It supports various types of membership functions
+    (triangular, gaussian, sigmoid) and allows for verbose output for debugging purposes.
+    """
+
     def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='sigmoid'):
+        """
+        Initialize the FuzzyLinguisticVariableProcessor.
+
+        Args:
+            file_path (str): Path to the CSV file containing the dataset.
+            terms_dict_path (str): Path to the Python file containing the terms dictionary.
+            verbose (bool, optional): If True, prints detailed logs. Defaults to False.
+            exclude_columns (list, optional): List of column names to exclude from processing. Defaults to None.
+            mf_type (str, optional): Type of membership function to use ('triangular', 'gaussian', 'sigmoid'). Defaults to 'sigmoid'.
+        """
         self.file_path = file_path
         self.terms_dict_path = terms_dict_path
         self.verbose = verbose
@@ -21,12 +39,27 @@ class FuzzyLinguisticVariableProcessor:
         self.terms_dict = self._load_terms_dict()
 
     def _load_terms_dict(self):
+        """
+        Load the terms dictionary from a specified Python file.
+
+        Returns:
+            dict: A dictionary of terms loaded from the specified file.
+        """
         spec = importlib.util.spec_from_file_location("terms_dict", self.terms_dict_path)
         terms_dict_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(terms_dict_module)
         return terms_dict_module.terms_dict
 
     def adjust_control_points(self, control_points):
+        """
+        Adjust control points to ensure they are unique for membership function definition.
+
+        Args:
+            control_points (list): A list of control points to be adjusted.
+
+        Returns:
+            list: A list of adjusted, unique control points.
+        """
         unique_points = sorted(set(control_points))
         if len(unique_points) < len(control_points):
             for i in range(1, len(unique_points)):
@@ -37,6 +70,16 @@ class FuzzyLinguisticVariableProcessor:
         return unique_points
 
     def define_fuzzy_sets(self, control_points, terms):
+        """
+        Define fuzzy sets based on control points and terms using the specified membership function type.
+
+        Args:
+            control_points (list): A list of control points for defining fuzzy sets.
+            terms (list): A list of terms corresponding to the fuzzy sets.
+
+        Returns:
+            list: A list of defined FuzzySet objects.
+        """
         FS_list = []
         for i in range(len(terms)):
             try:
@@ -63,6 +106,19 @@ class FuzzyLinguisticVariableProcessor:
         return FS_list
 
     def create_linguistic_variable(self, column_data, column_name, terms):
+        """
+        Create a linguistic variable for a given dataset column.
+
+        This function attempts to cluster the column data into fuzzy sets based on the specified terms and control points.
+
+        Args:
+            column_data (numpy.ndarray): The data for the column to be processed.
+            column_name (str): The name of the column.
+            terms (list): A list of terms to be used for fuzzy set creation.
+
+        Returns:
+            LinguisticVariable: A linguistic variable object, or None if creation fails.
+        """
         num_terms = len(terms)
         while num_terms >= 2:
             col_data = column_data.reshape(1, -1)
@@ -99,6 +155,15 @@ class FuzzyLinguisticVariableProcessor:
         return None
 
     def process_dataset(self):
+        """
+        Process the entire dataset to create and store linguistic variables.
+
+        This function iterates over the columns in the dataset, creates linguistic variables for each, and stores them
+        in a LocalLinguisticVariableStore.
+
+        Returns:
+            LocalLinguisticVariableStore: A store containing all created linguistic variables.
+        """
         store = LocalLinguisticVariableStore()
 
         for column in self.data.columns:
@@ -119,6 +184,15 @@ class FuzzyLinguisticVariableProcessor:
         return store
 
     def process(self):
+        """
+        Process the dataset to define fuzzy sets and create linguistic variables.
+
+        This function iterates over each column in the dataset, applies control points adjustment, and defines fuzzy sets
+        based on terms specified in the terms dictionary.
+
+        It outputs the defined linguistic variables for each column.
+
+        """
         for column in self.data.columns:
             if column in self.exclude_columns:
                 continue
