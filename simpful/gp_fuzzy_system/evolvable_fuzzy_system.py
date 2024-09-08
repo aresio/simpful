@@ -51,34 +51,32 @@ class EvolvableFuzzySystem(FuzzySystem):
             return formatted_rules
         return rules
     
-    def update_output_function_linear(self, current_features, output_var_name="PricePrediction", coefficient=1, verbose=False):
+    def update_output_function_zero_order(self, output_var_name="PricePrediction", constant_value=1, verbose=False):
         """
-        Updates the output function of the fuzzy system based on the features used in the current rules.
-
+        Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system, 
+        where the output is a constant value.
+        
         Args:
             output_var_name: The name of the output variable for which the output function is set.
-            coefficient: The coefficient to multiply each feature in the output function.
+            constant_value: The constant value to use in the output function (default is 1).
             verbose: If True, prints additional details about the process.
         """
         
-        # Generate the output function string based on these features
-        if current_features:
-            function_str = " + ".join([f"{coefficient}*{feature}" for feature in current_features])
-            self.set_output_function(output_var_name, function_str, verbose=verbose)
-            
-            if verbose:
-                print(f"Updated output function for '{output_var_name}' to '{function_str}'")
-        else:
-            if verbose:
-                print("No features available to update the output function.")
-    
-    def update_output_function_polynomial(self, output_var_name="PricePrediction", degrees=None, verbose=False):
+        # The output function in a zero-order system is a constant
+        function_str = str(constant_value)
+        self.set_output_function(output_var_name, function_str, verbose=verbose)
+        
+        if verbose:
+            print(f"Updated output function for '{output_var_name}' to a constant value of {constant_value}")
+
+    def update_output_function_first_order(self, output_var_name="PricePrediction", verbose=False):
         """
-        Updates the output function of the fuzzy system to a polynomial based on the features used in the current rules.
+        Updates the output function of the fuzzy system to a first-order Takagi-Sugeno system.
+        
+        In a first-order system, the output is a linear combination of the input features.
 
         Args:
             output_var_name: The name of the output variable for which the output function is set.
-            degrees: A dictionary mapping each feature to its degree in the polynomial. If None, use degree of 1.
             verbose: If True, prints additional details about the process.
         """
         # Extract features currently used in the rules
@@ -86,46 +84,53 @@ class EvolvableFuzzySystem(FuzzySystem):
         
         # Generate the output function string based on these features
         if current_features:
-            if degrees is None:
-                degrees = {feature: 1 for feature in current_features}
-            
-            function_str = " + ".join([f"{feature}**{degrees.get(feature, 1)}" for feature in current_features])
+            function_str = " + ".join([f"1*{feature}" for feature in current_features])  # Coefficients are set to 1 for now
             self.set_output_function(output_var_name, function_str, verbose=verbose)
             
             if verbose:
-                print(f"Updated output function for '{output_var_name}' to '{function_str}'")
+                print(f"Updated output function for '{output_var_name}' to a first-order linear function: '{function_str}'")
         else:
             if verbose:
                 print("No features available to update the output function.")
 
-    def update_output_function_with_interactions(self, output_var_name="PricePrediction", interaction_terms=None, verbose=False):
+    def update_output_function_higher_order(self, output_var_name="PricePrediction", degrees=None, interaction_terms=None, verbose=False):
         """
-        Updates the output function of the fuzzy system based on the features and their interactions used in the current rules.
+        Updates the output function of the fuzzy system for a higher-order Takagi-Sugeno system (EXPERIMENTAL). TODO: make it per rule and fit weights.
+
+        This method combines polynomial and interaction terms between features.
 
         Args:
             output_var_name: The name of the output variable for which the output function is set.
+            degrees: A dictionary mapping each feature to its degree in the polynomial. If None, use degree of 1.
             interaction_terms: A list of tuples representing interaction terms. If None, no interactions are used.
             verbose: If True, prints additional details about the process.
         """
         # Extract features currently used in the rules
         current_features = self.extract_features_from_rules()
         
-        # Generate the output function string based on these features
         if current_features:
-            terms = [f"{feature}" for feature in current_features]
-            
+            terms = []
+
+            # Add polynomial terms
+            if degrees is None:
+                degrees = {feature: 1 for feature in current_features}
+            polynomial_terms = [f"{feature}**{degrees.get(feature, 1)}" for feature in current_features]
+            terms.extend(polynomial_terms)
+
+            # Add interaction terms
             if interaction_terms:
                 interaction_strs = [f"{'*'.join(term)}" for term in interaction_terms if all(f in current_features for f in term)]
                 terms.extend(interaction_strs)
-            
+
             function_str = " + ".join(terms)
             self.set_output_function(output_var_name, function_str, verbose=verbose)
             
             if verbose:
-                print(f"Updated output function for '{output_var_name}' to '{function_str}'")
+                print(f"Updated output function for '{output_var_name}' to an experimental higher-order function: '{function_str}'")
         else:
             if verbose:
                 print("No features available to update the output function.")
+
 
     def get_rules_(self):
         # Implement fetching rules without calling the rule_processor's process_rules_from_system
@@ -354,22 +359,21 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         return list(features_set)
 
-    def update_output_function(self, output_function_type, current_features, coefficient=1, verbose=False):
+    def update_output_function(self, output_function_type, current_features, verbose=False):
         """
-        Updates the output function of the fuzzy system based on the specified type.
+        Updates the output function of the fuzzy system based on the specified type (zero-order, first-order, or higher-order).
 
         Args:
-            output_function_type: Type of output function ('linear', 'polynomial', 'interaction').
+            output_function_type: Type of output function ('zero-order', 'first-order', 'higher-order').
             current_features: List of features currently used in the rules.
-            coefficient: The coefficient to multiply each feature in the output function.
             verbose: If True, prints additional details about the process.
         """
-        if output_function_type == 'linear':
-            self.update_output_function_linear(current_features=current_features, coefficient=coefficient, verbose=verbose)
-        elif output_function_type == 'polynomial':
-            self.update_output_function_polynomial(current_features=current_features, verbose=verbose)
-        elif output_function_type == 'interaction':
-            self.update_output_function_with_interactions(current_features=current_features, verbose=verbose)
+        if output_function_type == 'zero-order':
+            self.update_output_function_zero_order(current_features=current_features, verbose=verbose)
+        elif output_function_type == 'first-order':
+            self.update_output_function_first_order(current_features=current_features, verbose=verbose)
+        elif output_function_type == 'higher-order':
+            self.update_output_function_higher_order(current_features=current_features, verbose=verbose)
         else:
             raise ValueError(f"Unknown output function type: {output_function_type}")
     
@@ -397,7 +401,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
         # Update the output function based on current features in the rules
-        self.update_output_function(output_function_type='linear', current_features=features_used, coefficient=1, verbose=False)
+        self.update_output_function(output_function_type='zero_order', current_features=features_used, coefficient=1, verbose=False)
 
         # Ensure the DataFrame contains all necessary features
         if not all(feature in data.columns for feature in features_used):

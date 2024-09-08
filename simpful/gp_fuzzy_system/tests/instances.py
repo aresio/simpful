@@ -39,7 +39,7 @@ instances = {
 }
 
 # Generate and add rules to each system using RuleGenerator
-rg = RuleGenerator(variable_store, verbose=False)
+rg = RuleGenerator(variable_store, output_variable="PricePrediction", verbose=False)
 
 for system_name, system in instances.items():
     rules = rg.generate_rules(2)
