@@ -1,15 +1,23 @@
 import sys
 import os
+
+from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from simpful import FuzzySystem
 from simpful.gp_fuzzy_system.fitness_evaluation import evaluate_fitness
 from simpful.gp_fuzzy_system.rule_processor import format_rule, extract_feature_term
 from simpful.gp_fuzzy_system.gp_utilities import *
+from collections import OrderedDict
 import numpy as np
 from copy import deepcopy
 import random
 import re
+
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 class EvolvableFuzzySystem(FuzzySystem):
     def __init__(self, *args, **kwargs):
@@ -51,86 +59,149 @@ class EvolvableFuzzySystem(FuzzySystem):
             return formatted_rules
         return rules
     
-    def update_output_function_zero_order(self, output_var_name="PricePrediction", constant_value=1, verbose=False):
+    def update_output_function_zero_order(self, output_var_name="PricePrediction", n_clusters=3, verbose=False):
         """
         Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system, 
-        where the output is a constant value.
+        where the output is a crisp value (constant) for each rule.
         
         Args:
             output_var_name: The name of the output variable for which the output function is set.
-            constant_value: The constant value to use in the output function (default is 1).
+            n_clusters: Number of clusters for k-means clustering (or another clustering method).
             verbose: If True, prints additional details about the process.
         """
-        
-        # The output function in a zero-order system is a constant
-        function_str = str(constant_value)
-        self.set_output_function(output_var_name, function_str, verbose=verbose)
-        
-        if verbose:
-            print(f"Updated output function for '{output_var_name}' to a constant value of {constant_value}")
 
-    def update_output_function_first_order(self, output_var_name="PricePrediction", verbose=False):
+        rule_feature_dict = self.extract_features_with_rules()
+
+        # Iterate over each rule and its associated features
+        for rule_index, (rule, features) in enumerate(rule_feature_dict.items(), start=1):
+            
+            # Subset the training data to only include the features for this rule
+            rule_data = self.x_train[features]
+
+            if len(features) < 3:  # Simple case with fewer features
+                constant_value = np.mean(self.y_train)  # or np.median(self.y_train)
+            else:
+                # Apply k-means clustering
+                kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+                clusters = kmeans.fit_predict(rule_data)
+
+                # For each cluster, determine the constant value (e.g., mean of y_train for that cluster)
+                constant_values = []
+                for cluster_label in np.unique(clusters):
+                    cluster_indices = np.where(clusters == cluster_label)[0]
+                    cluster_y = self.y_train.iloc[cluster_indices]
+                    constant_value = np.mean(cluster_y)  # or np.median(cluster_y)
+                    constant_values.append(constant_value)
+
+                # Choose the constant for the whole rule
+                most_populous_cluster = np.argmax(np.bincount(clusters))
+                constant_value = constant_values[most_populous_cluster]
+
+            # Set the crisp output value for this rule
+            output_name = f"{output_var_name}_{rule_index}"
+            self.set_crisp_output_value(output_name, constant_value, verbose=verbose)
+            
+            if verbose:
+                print(f"Set crisp output value for rule {rule_index} ('{rule}') to {constant_value}")
+
+    def update_output_function_first_order(self, output_var_name="PricePrediction", data=None, verbose=False):
         """
         Updates the output function of the fuzzy system to a first-order Takagi-Sugeno system.
-        
-        In a first-order system, the output is a linear combination of the input features.
+
+        In a first-order system, the output is a linear combination of the input features. The coefficients 
+        for each feature are determined by fitting a linear regression model on the available data.
 
         Args:
             output_var_name: The name of the output variable for which the output function is set.
+            data: pandas DataFrame containing the input data.
             verbose: If True, prints additional details about the process.
         """
-        # Extract features currently used in the rules
-        current_features = self.extract_features_from_rules()
+
+        rule_feature_dict = self.extract_features_with_rules()
+
+        if data is None:
+            raise ValueError("Data is required to fit a linear model for the first-order output function.")
         
-        # Generate the output function string based on these features
-        if current_features:
-            function_str = " + ".join([f"1*{feature}" for feature in current_features])  # Coefficients are set to 1 for now
-            self.set_output_function(output_var_name, function_str, verbose=verbose)
+        # Iterate over each rule and its associated features
+        for rule_index, (rule, features) in enumerate(rule_feature_dict.items(), start=1):
             
-            if verbose:
-                print(f"Updated output function for '{output_var_name}' to a first-order linear function: '{function_str}'")
-        else:
-            if verbose:
-                print("No features available to update the output function.")
+            # Ensure that all features for the rule are in the dataset
+            if not all(feature in data.columns for feature in features):
+                missing_features = [feature for feature in features if feature not in data.columns]
+                raise ValueError(f"Data is missing required features for rule {rule_index}: {missing_features}")
+            
+            # Extract the relevant data for this rule's features
+            X = data[features].values  # Independent variables (features)
+            y = self.y_train.values if self.y_train is not None else np.random.rand(X.shape[0])  # Target variable (for now placeholder)
 
-    def update_output_function_higher_order(self, output_var_name="PricePrediction", degrees=None, interaction_terms=None, verbose=False):
+            # Fit a linear regression model to these features
+            model = LinearRegression()
+            model.fit(X, y)
+            coefficients = model.coef_
+
+            # Create the output function string using the coefficients
+            function_str = " + ".join([f"{coef}*{feature}" for coef, feature in zip(coefficients, features)])
+
+            # Set the output function for this rule (keying by rule index for distinction)
+            output_function_name = f"{output_var_name}_{rule_index}"
+            self.set_output_function(output_function_name, function_str, verbose=verbose)
+
+            if verbose:
+                print(f"Updated output function for rule {rule_index} ('{rule}') to first-order linear model: '{function_str}'")
+
+    def update_output_function_higher_order(self, output_var_name="PricePrediction", max_degree=2, verbose=False):
         """
-        Updates the output function of the fuzzy system for a higher-order Takagi-Sugeno system (EXPERIMENTAL). TODO: make it per rule and fit weights.
+        Updates the output function of the fuzzy system for a higher-order Takagi-Sugeno system (EXPERIMENTAL).
 
-        This method combines polynomial and interaction terms between features.
+        This method fits polynomial models to the features extracted for each rule.
 
         Args:
             output_var_name: The name of the output variable for which the output function is set.
-            degrees: A dictionary mapping each feature to its degree in the polynomial. If None, use degree of 1.
-            interaction_terms: A list of tuples representing interaction terms. If None, no interactions are used.
+            max_degree: The maximum degree of the polynomial model to fit (default is 2).
             verbose: If True, prints additional details about the process.
         """
-        # Extract features currently used in the rules
-        current_features = self.extract_features_from_rules()
-        
-        if current_features:
-            terms = []
+        # Extract the ordered dictionary of rules and their corresponding features
+        rules_and_features = self.extract_features_from_rules_ordered()
 
-            # Add polynomial terms
-            if degrees is None:
-                degrees = {feature: 1 for feature in current_features}
-            polynomial_terms = [f"{feature}**{degrees.get(feature, 1)}" for feature in current_features]
-            terms.extend(polynomial_terms)
-
-            # Add interaction terms
-            if interaction_terms:
-                interaction_strs = [f"{'*'.join(term)}" for term in interaction_terms if all(f in current_features for f in term)]
-                terms.extend(interaction_strs)
-
-            function_str = " + ".join(terms)
-            self.set_output_function(output_var_name, function_str, verbose=verbose)
-            
+        if not rules_and_features:
             if verbose:
-                print(f"Updated output function for '{output_var_name}' to an experimental higher-order function: '{function_str}'")
-        else:
-            if verbose:
-                print("No features available to update the output function.")
+                print("No rules available to update the output function.")
+            return
 
+        for rule, features in rules_and_features.items():
+            if features:
+                # Simulate some data (replace with real data in actual use)
+                X = np.random.rand(100, len(features))  # 100 data points, as many features as the rule contains
+                y = np.random.rand(100)  # Target values
+
+                # Create a polynomial regression model
+                polynomial_model = make_pipeline(PolynomialFeatures(max_degree), LinearRegression())
+
+                # Fit the model to the data (this part would be replaced with real training data)
+                polynomial_model.fit(X, y)
+
+                # Get the coefficients from the trained model
+                coefs = polynomial_model.named_steps['linearregression'].coef_
+                intercept = polynomial_model.named_steps['linearregression'].intercept_
+
+                # Create the polynomial function string
+                terms = [f"{intercept}"]
+                for i, feature in enumerate(features):
+                    for degree in range(1, max_degree + 1):
+                        terms.append(f"{coefs[i]}*{feature}^{degree}")
+
+                function_str = " + ".join(terms)
+
+                # Set the output function for this rule
+                rule_output_var_name = f"{output_var_name}_{rule.split('_')[-1]}"  # Generate unique output variable per rule
+                self.set_output_function(rule_output_var_name, function_str, verbose=verbose)
+
+                if verbose:
+                    print(f"Updated output function for rule '{rule}' to: '{function_str}'")
+
+            else:
+                if verbose:
+                    print(f"No features found for rule: {rule}")
 
     def get_rules_(self):
         # Implement fetching rules without calling the rule_processor's process_rules_from_system
@@ -331,6 +402,49 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.fitness_score = evaluate_fitness(self, predictions, actual, weights)
         return self.fitness_score
 
+    def extract_features_with_rules(self, verbose=False):
+        """
+        Extract unique features from the current fuzzy rules and return them in an ordered dictionary.
+        The rules are the keys and the corresponding features are the values.
+
+        Args:
+            verbose: If True, prints detailed information about the extraction process.
+
+        Returns:
+            OrderedDict: A dictionary where each key is a rule and each value is a list of features used in that rule.
+        """
+        current_rules = self.get_rules()
+        if not current_rules:
+            if verbose:
+                print("No rules to analyze.")
+            return OrderedDict()
+
+        features_dict = OrderedDict()
+        
+        for rule in current_rules:
+            # Split the rule at 'THEN' and take the part before 'THEN'
+            if 'THEN' in rule:
+                before_then = rule.split('THEN')[0].strip()
+                
+                # Find all alphanumeric words in the part before 'THEN'; assume they include feature names
+                words = re.findall(r'\w+', before_then)
+                features_in_rule = [word for word in words if word in self.available_features]
+                
+                # Add rule and its corresponding features to the dictionary
+                features_dict[rule] = features_in_rule
+                
+                if verbose:
+                    print(f"Rule: {rule}")
+                    print(f"Extracted features: {features_in_rule}")
+
+        if verbose:
+            print("Ordered dictionary of features by rule:")
+            for rule, features in features_dict.items():
+                print(f"{rule}: {features}")
+
+        return features_dict
+
+
     def extract_features_from_rules(self, verbose=False):
         """Extract unique features from the current fuzzy rules."""
         current_rules = self.get_rules()
@@ -389,8 +503,6 @@ class EvolvableFuzzySystem(FuzzySystem):
         if data is None:
             data = self.x_train  # Use the loaded training data for predictions
 
-        # Extract features used in the rul
-
         if self.x_train is None:
             raise ValueError("Training data is not loaded.")
 
@@ -401,7 +513,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
         # Update the output function based on current features in the rules
-        self.update_output_function(output_function_type='zero_order', current_features=features_used, coefficient=1, verbose=False)
+        self.update_output_function(output_function_type='zero_order', current_features=features_used, verbose=False)
 
         # Ensure the DataFrame contains all necessary features
         if not all(feature in data.columns for feature in features_used):
