@@ -11,19 +11,43 @@ import logging
 from tqdm import tqdm
 
 # Configure logging
-logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR)
+logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+import logging
 
 def initialize_population(population_size, variable_store, max_rules, available_features, min_rules=3, max_rules_per_system=7, min_clauses_per_rule=2, verbose=False, x_train=None, y_train=None, x_test=None, y_test=None):
-    """Generates an initial population of EvolvableFuzzySystem instances with unique rules."""
+    """
+    Generates an initial population of EvolvableFuzzySystem instances with unique rules.
+    
+    Args:
+        population_size: The number of systems to initialize in the population.
+        variable_store: The store of linguistic variables.
+        max_rules: The maximum number of rules a system can have.
+        available_features: List of available features for rule generation.
+        min_rules: The minimum number of rules required for a system (default 3).
+        max_rules_per_system: Maximum number of rules allowed in a system (default 7).
+        min_clauses_per_rule: Minimum number of clauses per rule (default 2).
+        verbose: Boolean flag for logging verbosity.
+        x_train: Training input data.
+        y_train: Training target data.
+        x_test: Testing input data (optional).
+        y_test: Testing target data (optional).
+
+    Returns:
+        A list containing the initialized population of EvolvableFuzzySystem instances.
+    """
+    # Setup the rule generator and error logging
     rg = RuleGenerator(variable_store, output_variable="PricePrediction")
     population = []
     error_log = []  # List to store rules that caused errors
 
-    for _ in range(population_size):
+    for system_index in range(population_size):
         system = EvolvableFuzzySystem()
         system.load_data(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)  # Load the data into the system
         valid_rules_added = False
-        
+
         while not valid_rules_added:
             rules = rg.generate_rules(max_rules, min_clauses=min_clauses_per_rule)
             num_valid_rules = 0
@@ -31,29 +55,35 @@ def initialize_population(population_size, variable_store, max_rules, available_
                 try:
                     system.add_rule(rule)
                     num_valid_rules += 1
+                    if verbose:
+                        logging.info(f"Successfully added rule to system {system_index}: {rule}")
                 except Exception as e:
                     error_log.append((rule, str(e)))
+                    logging.error(f"Error adding rule to system {system_index}: {rule}")
+                    logging.error(f"Exception: {e}")
             
             # Check if the system has between min_rules and max_rules_per_system rules
             valid_rules_added = min_rules <= num_valid_rules <= max_rules_per_system
 
             # If not, clear the system and try again
             if not valid_rules_added:
+                logging.warning(f"System {system_index} did not meet rule requirements. Retrying with a new set of rules.")
                 system = EvolvableFuzzySystem()
-                system.load_data(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)  # Load the data into the new system
+                system.load_data(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)  # Reload the data
                 system.available_features = available_features
 
         population.append(system)
     
-    # Print all errors at the end
+    # Log all errors at the end
     if error_log:
-        print("\n--- Error Log ---")
+        logging.error("\n--- Error Log ---")
         for rule, error in error_log:
-            print(f"Error adding rule: {rule}")
-            print(f"Exception: {error}")
-        print("--- End of Error Log ---\n")
+            logging.error(f"Error adding rule: {rule}")
+            logging.error(f"Exception: {error}")
+        logging.error("--- End of Error Log ---\n")
 
     return population
+
 
 def initialize_backup_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose):
     return initialize_population(population_size * 3, variable_store, max_rules, available_features=available_features, x_train=x_train, y_train=y_train, min_rules=min_rules, verbose=verbose)
@@ -91,40 +121,88 @@ def apply_mutation(offspring, mutation_rate, variable_store, verbose=False):
     if verbose:
         print(f"Number of offspring after mutation: {len(offspring)}")
 
+
 def evaluate_population(variable_store, population, backup_population, max_rules, available_features, x_train, y_train, min_rules, verbose, generation=None, max_generations=None):
-    """Evaluates the fitness of the entire population, replacing failed systems with backup systems."""
+    """
+    Evaluates the fitness of the entire population, replacing failed systems with backup systems if necessary.
+    
+    Args:
+        variable_store: A store of available linguistic variables.
+        population: The current population of fuzzy systems.
+        backup_population: A backup population to use in case of evaluation failures.
+        max_rules: The maximum number of rules allowed in a system.
+        available_features: List of features available for rule generation.
+        x_train: The training data.
+        y_train: The target values.
+        min_rules: The minimum number of rules required in a system.
+        verbose: Boolean flag to toggle verbosity of logging.
+        generation: Current generation number (optional).
+        max_generations: Maximum number of generations allowed (optional).
+    
+    Returns:
+        A list of fitness scores for the evaluated population.
+    """
     fitness_scores = []
     for i in range(len(population)):
         fitness_score = None
         replacement_attempts = 0
         max_attempts = 1000
-        
+
+        # Log initial details for the system being evaluated
+        logging.info(f"Evaluating system {i} (Generation {generation}/{max_generations}) with rules: {population[i].get_rules()}")
+        logging.info(f"Available features for system {i}: {population[i].available_features}")
+        logging.info(f"Training data columns: {x_train.columns.tolist()}")
+
         while fitness_score is None and replacement_attempts < max_attempts:
             try:
+                # Attempt to evaluate the fitness of the current system
                 fitness_score = population[i].evaluate_fitness(variable_store)
                 fitness_scores.append(fitness_score)
+
+                if verbose:
+                    logging.info(f"System {i} fitness evaluated successfully with score: {fitness_score}")
+
             except Exception as e:
+                # Log the failure and system number
                 logging.error(f"Failed to evaluate fitness for system {i}: {e}")
+                logging.error(f"Failed system rules: {population[i].get_rules()}")
+
                 if backup_population:
-                    # Replace the failed system with a backup system
                     try:
+                        # Replace the failed system with a backup system
                         new_system = backup_population.pop()
                         population[i] = new_system
                         logging.info(f"Replaced failed system {i} with a backup system.")
+                        logging.info(f"Backup system rules for system {i}: {population[i].get_rules()}")
+
                     except Exception as backup_e:
+                        # Log if the backup system also fails
                         logging.error(f"Backup system also failed for system {i}: {backup_e}")
                         replacement_attempts += 1
                         fitness_score = None
                 else:
+                    # Log that there are no more backup systems and attempt to refill the population
                     logging.error("Ran out of backup systems to replace failed ones.")
-                    # Generate new backup population
+                    logging.warning(f"Backup system attempts for system {i}: {replacement_attempts}")
+                    
+                    # Refill backup population if empty
                     refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, len(population))
                     replacement_attempts += 1
-        
+
+        # If fitness evaluation failed after multiple attempts, assign a high fitness score
         if fitness_score is None:
-            fitness_score = float('inf')  # Assign a very high positive fitness score
+            fitness_score = float('inf')  # Assign a very high fitness score to indicate failure
             fitness_scores.append(fitness_score)
+            logging.error(f"Failed to evaluate system {i} after {max_attempts} attempts. Assigned fitness score: inf")
+
+        # Log success or failure after all attempts
+        if fitness_score != float('inf'):
+            logging.info(f"System {i} successfully evaluated with fitness score: {fitness_score}")
+        else:
+            logging.error(f"System {i} evaluation failed after maximum attempts, fitness score: inf")
+
     return fitness_scores
+
 
 def refill_backup_population(backup_population, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose, population_size):
     """Refill the backup population if it becomes empty."""
