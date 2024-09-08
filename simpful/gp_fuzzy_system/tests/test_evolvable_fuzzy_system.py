@@ -61,7 +61,7 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         """Test adding a rule to the system using RuleGenerator and variable_store."""
         rule_count_before = len(economic_health._rules)
         rg = RuleGenerator(self.__class__.variable_store, verbose=False)
-        new_rule = rg.generate_rule(3)  # Generate a rule with 3 clauses
+        new_rule = rg.generate_rule(3, 1)  # Generate a rule with 3 clauses
         economic_health.add_rule(new_rule)
         self.assertEqual(len(economic_health._rules), rule_count_before + 1)
         self.assertIn(new_rule, economic_health.get_rules(), "The new rule should be in the rules list")

@@ -473,7 +473,7 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         return list(features_set)
 
-    def update_output_function(self, output_function_type, current_features, verbose=False):
+    def update_output_function(self, output_function_type, verbose=False):
         """
         Updates the output function of the fuzzy system based on the specified type (zero-order, first-order, or higher-order).
 
@@ -483,11 +483,11 @@ class EvolvableFuzzySystem(FuzzySystem):
             verbose: If True, prints additional details about the process.
         """
         if output_function_type == 'zero-order':
-            self.update_output_function_zero_order(current_features=current_features, verbose=verbose)
+            self.update_output_function_zero_order(verbose=verbose)
         elif output_function_type == 'first-order':
-            self.update_output_function_first_order(current_features=current_features, verbose=verbose)
+            self.update_output_function_first_order(verbose=verbose)
         elif output_function_type == 'higher-order':
-            self.update_output_function_higher_order(current_features=current_features, verbose=verbose)
+            self.update_output_function_higher_order(verbose=verbose)
         else:
             raise ValueError(f"Unknown output function type: {output_function_type}")
     
@@ -513,7 +513,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
         # Update the output function based on current features in the rules
-        self.update_output_function(output_function_type='zero_order', current_features=features_used, verbose=False)
+        self.update_output_function(output_function_type='zero-order', verbose=False)
 
         # Ensure the DataFrame contains all necessary features
         if not all(feature in data.columns for feature in features_used):
