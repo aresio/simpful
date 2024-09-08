@@ -15,7 +15,7 @@ logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR)
 
 def initialize_population(population_size, variable_store, max_rules, available_features, min_rules=3, max_rules_per_system=7, min_clauses_per_rule=2, verbose=False, x_train=None, y_train=None, x_test=None, y_test=None):
     """Generates an initial population of EvolvableFuzzySystem instances with unique rules."""
-    rg = RuleGenerator(variable_store)
+    rg = RuleGenerator(variable_store, output_variable="PricePrediction")
     population = []
     error_log = []  # List to store rules that caused errors
 
