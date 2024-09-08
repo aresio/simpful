@@ -6,6 +6,7 @@ from simpful.gp_fuzzy_system.tests.instances import variable_store
 import unittest
 import sys
 from pathlib import Path
+
 # Add the parent directory to sys.path
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
@@ -15,7 +16,9 @@ class TestRuleGenerator(unittest.TestCase):
 
     def setUp(self):
         self.variable_store = variable_store
-        self.rg = RuleGenerator(self.variable_store)
+        # Pass the output variable in the constructor
+        self.output_variable = "PricePrediction"
+        self.rg = RuleGenerator(self.variable_store, output_variable=self.output_variable)
     
     def test_generate_random_number_of_rules(self):
         max_rules = 10
@@ -29,12 +32,14 @@ class TestRuleGenerator(unittest.TestCase):
     
     def test_generate_rule(self):
         num_clauses = 3
-        rule = self.rg.generate_rule(num_clauses)
+        # The output_variable is now set via the constructor, so no need to pass it here
+        rule = self.rg.generate_rule(num_clauses, rule_index=1)
         self.assertIsInstance(rule, str, "Generated rule is not a string")
         self.assertTrue(rule.startswith("IF ") and " THEN " in rule, "Rule format is incorrect")
     
     def test_generate_rules(self):
         max_rules = 5
+        # The output_variable is now set via the constructor
         rules = self.rg.generate_rules(max_rules)
         self.assertIsInstance(rules, list, "Generated rules are not in a list")
         self.assertTrue(all(isinstance(rule, str) for rule in rules), "Not all generated rules are strings")
@@ -43,6 +48,7 @@ class TestRuleGenerator(unittest.TestCase):
     def test_generate_rules_with_min_clauses(self):
         max_rules = 5
         min_clauses = 2
+        # The output_variable is now set via the constructor
         rules = self.rg.generate_rules(max_rules, min_clauses=min_clauses)
         self.assertIsInstance(rules, list, "Generated rules are not in a list")
         self.assertTrue(all(isinstance(rule, str) for rule in rules), "Not all generated rules are strings")
@@ -60,18 +66,14 @@ class TestRuleGenerator(unittest.TestCase):
 
     def test_rule_contains_clauses_and_operators(self):
         num_clauses = 4
-        rule = self.rg.generate_rule(num_clauses)
+        # The output_variable is now set via the constructor
+        rule = self.rg.generate_rule(num_clauses, rule_index=1)
         if_part = rule.split(" THEN ")[0]
         clause_count = if_part.count(" IS ")
         operator_count = if_part.count(" AND ") + if_part.count(" OR ")
         self.assertEqual(clause_count, num_clauses, f"Rule does not contain the correct number of clauses: {rule}")
         self.assertEqual(operator_count, num_clauses - 1, "Rule does not contain the correct number of operators")
-    
-    # def test_not_clause_format(self):
-    #     for _ in range(100):  # Run multiple times to catch randomness
-    #         clause = self.rg.generate_clause()
-    #         if "NOT" in clause:
-    #             self.assertTrue(clause.startswith("(NOT (") and clause.endswith("))"), "NOT clause format is incorrect")
+
 
 if __name__ == '__main__':
     unittest.main()

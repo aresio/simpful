@@ -47,14 +47,14 @@ for system_name, system in instances.items():
         system.add_rule(rule)
 
 # Define output functions for each system
-def set_output_function(system, feature_names):
-    system.set_output_function("PricePrediction", " + ".join([f"1*{name}" for name in feature_names]))
+# def set_output_function(system, feature_names):
+#     system.set_output_function("PricePrediction", " + ".join([f"1*{name}" for name in feature_names]))
 
-set_output_function(economic_health, economic_health.extract_features_from_rules())
-set_output_function(market_risk, market_risk.extract_features_from_rules())
-set_output_function(investment_opportunity, investment_opportunity.extract_features_from_rules())
-set_output_function(inflation_prediction, inflation_prediction.extract_features_from_rules())
-set_output_function(market_sentiment, market_sentiment.extract_features_from_rules())
+# set_output_function(economic_health, economic_health.extract_features_from_rules())
+# set_output_function(market_risk, market_risk.extract_features_from_rules())
+# set_output_function(investment_opportunity, investment_opportunity.extract_features_from_rules())
+# set_output_function(inflation_prediction, inflation_prediction.extract_features_from_rules())
+# set_output_function(market_sentiment, market_sentiment.extract_features_from_rules())
 
 if __name__ == "__main__":
     verbose_level = 0  # Default to no verbosity
