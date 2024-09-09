@@ -44,6 +44,8 @@ def initialize_population(population_size, variable_store, max_rules, available_
     for system_index in range(population_size):
         system = EvolvableFuzzySystem()
         system.load_data(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)  # Load the data into the system
+        system.available_features = available_features  # Ensure available_features is always assigned
+
         valid_rules_added = False
 
         while not valid_rules_added:
@@ -68,7 +70,7 @@ def initialize_population(population_size, variable_store, max_rules, available_
                 logging.warning(f"System {system_index} did not meet rule requirements. Retrying with a new set of rules.")
                 system = EvolvableFuzzySystem()
                 system.load_data(x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)  # Reload the data
-                system.available_features = available_features
+                system.available_features = available_features  # Ensure available_features is always assigned
 
         population.append(system)
     
@@ -81,6 +83,7 @@ def initialize_population(population_size, variable_store, max_rules, available_
         logging.error("--- End of Error Log ---\n")
 
     return population
+
 
 
 def initialize_backup_population(population_size, variable_store, max_rules, available_features, x_train, y_train, min_rules, verbose):
