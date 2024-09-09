@@ -637,7 +637,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
         # Update the output function based on current features in the rules
-        self.update_output_function(output_function_type='higher-order', verbose=False)
+        self.update_output_function(output_function_type='first-order', verbose=False)
 
         # Ensure the DataFrame contains all necessary features
         if not all(feature in data.columns for feature in features_used):
