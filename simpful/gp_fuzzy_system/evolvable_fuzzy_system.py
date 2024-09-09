@@ -18,6 +18,7 @@ import random
 import re
 
 from sklearn.linear_model import LinearRegression
+import sympy as sp
 import numpy as np
 
 # Set up logging configuration
@@ -152,8 +153,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             if verbose:
                 self.logger.info(f"Set crisp output value for rule {rule_index} ('{rule}') to {constant_value}")
 
-
-    def update_output_function_first_order(self, output_var_name="PricePrediction", data=None, verbose=False):
+    def update_output_function_first_order(self, output_var_name="PricePrediction", verbose=False):
         """
         Updates the output function of the fuzzy system to a first-order Takagi-Sugeno system.
 
@@ -162,45 +162,65 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         Args:
             output_var_name: The name of the output variable for which the output function is set.
-            data: pandas DataFrame containing the input data.
             verbose: If True, prints additional details about the process.
         """
 
+        self.logger.info("Updating output function (first-order).")
         rule_feature_dict = self.extract_features_with_rules()
 
-        if data is None:
-            raise ValueError("Data is required to fit a linear model for the first-order output function.")
-        
+        # Ensure x_train and y_train are properly initialized
+        if self.x_train is None or self.y_train is None:
+            self.logger.error("Training data (x_train and y_train) are not provided.")
+            raise ValueError("Training data (x_train and y_train) must be provided for first-order output function.")
+
         # Iterate over each rule and its associated features
         for rule_index, (rule, features) in enumerate(rule_feature_dict.items(), start=1):
-            
-            # Ensure that all features for the rule are in the dataset
-            if not all(feature in data.columns for feature in features):
-                missing_features = [feature for feature in features if feature not in data.columns]
-                raise ValueError(f"Data is missing required features for rule {rule_index}: {missing_features}")
-            
-            # Extract the relevant data for this rule's features
-            X = data[features].values  # Independent variables (features)
-            y = self.y_train.values if self.y_train is not None else np.random.rand(X.shape[0])  # Target variable (for now placeholder)
+            rule_data = self.x_train[features]
 
-            # Fit a linear regression model to these features
-            model = LinearRegression()
-            model.fit(X, y)
-            coefficients = model.coef_
-
-            # Create the output function string using the coefficients
-            function_str = " + ".join([f"{coef}*{feature}" for coef, feature in zip(coefficients, features)])
-
-            # Set the output function for this rule (keying by rule index for distinction)
-            output_function_name = f"{output_var_name}_{rule_index}"
-            self.set_output_function(output_function_name, function_str, verbose=verbose)
+            if rule_data.empty:
+                self.logger.error(f"Rule {rule_index}: No valid data found for features: {features}. Skipping rule.")
+                continue
 
             if verbose:
-                print(f"Updated output function for rule {rule_index} ('{rule}') to first-order linear model: '{function_str}'")
+                self.logger.info(f"Processing Rule {rule_index} with features: {features}")
+
+            try:
+                X = rule_data.values  # Independent variables (features)
+                y = self.y_train.values  # Target variable
+
+                # Log the shape of the data
+                self.logger.info(f"Rule {rule_index}: Shape of X (features): {X.shape}, Shape of y (target): {y.shape}")
+
+                # Fit a linear regression model to these features
+                model = LinearRegression()
+                model.fit(X, y)
+                coefficients = model.coef_.flatten()  # Flatten the coefficients to ensure 1D array
+
+                # Log the coefficients
+                self.logger.info(f"Rule {rule_index}: Coefficients for features {features}: {coefficients}")
+
+                # Create the output function string using the coefficients
+                # Ensure coefficients are properly formatted and valid Python expressions
+                function_str = " + ".join([f"{coef:.5f}*{feature}" for coef, feature in zip(coefficients, features)])
+
+                # Log the constructed function string
+                self.logger.info(f"Rule {rule_index}: Constructed function string: {function_str}")
+
+                # Set the output function for this rule (keying by rule index for distinction)
+                output_function_name = f"{output_var_name}_{rule_index}"
+                self.set_output_function(output_function_name, function_str, verbose=verbose)
+
+                if verbose:
+                    self.logger.info(f"Updated output function for rule {rule_index} ('{rule}') to first-order linear model: '{function_str}'")
+
+            except ValueError as e:
+                self.logger.error(f"Rule {rule_index}: Error fitting linear regression: {e}")
+                # Optionally: you can set a default function or behavior here in case of failure
+                continue
 
     def update_output_function_higher_order(self, output_var_name="PricePrediction", max_degree=2, verbose=False):
         """
-        Updates the output function of the fuzzy system for a higher-order Takagi-Sugeno system (EXPERIMENTAL).
+        Updates the output function of the fuzzy system for a higher-order Takagi-Sugeno system.
 
         This method fits polynomial models to the features extracted for each rule.
 
@@ -209,48 +229,83 @@ class EvolvableFuzzySystem(FuzzySystem):
             max_degree: The maximum degree of the polynomial model to fit (default is 2).
             verbose: If True, prints additional details about the process.
         """
+        self.logger.info("Starting update of higher-order output function.")
+        
+        # Ensure x_train and y_train are properly initialized
+        if self.x_train is None or self.y_train is None:
+            raise ValueError("Training data (x_train and y_train) must be provided for higher-order output function.")
+
         # Extract the ordered dictionary of rules and their corresponding features
-        rules_and_features = self.extract_features_from_rules_ordered()
+        rules_and_features = self.extract_features_with_rules()
 
         if not rules_and_features:
-            if verbose:
-                print("No rules available to update the output function.")
+            self.logger.error("No rules available to update the output function.")
             return
 
-        for rule, features in rules_and_features.items():
-            if features:
-                # Simulate some data (replace with real data in actual use)
-                X = np.random.rand(100, len(features))  # 100 data points, as many features as the rule contains
-                y = np.random.rand(100)  # Target values
+        # Iterate over each rule and its associated features
+        for rule_index, (rule, features) in enumerate(rules_and_features.items(), start=1):
+            rule_data = self.x_train[features]
 
+            if rule_data.empty:
+                self.logger.error(f"Rule {rule_index}: No valid data found for features: {features}. Skipping rule.")
+                continue
+
+            if verbose:
+                self.logger.info(f"Processing Rule {rule_index} with features: {features}")
+
+            # Ensure that X and y have matching dimensions
+            y = self.y_train.values  # Target variable
+            if rule_data.shape[0] != len(y):
+                self.logger.error(f"Rule {rule_index}: Mismatch between the number of samples in X and y.")
+                raise ValueError(f"Mismatch between the number of samples in X ({rule_data.shape[0]}) and y ({len(y)}) for rule {rule_index}")
+
+            try:
                 # Create a polynomial regression model
-                polynomial_model = make_pipeline(PolynomialFeatures(max_degree), LinearRegression())
+                polynomial_model = make_pipeline(PolynomialFeatures(degree=max_degree, include_bias=False), LinearRegression())
 
-                # Fit the model to the data (this part would be replaced with real training data)
-                polynomial_model.fit(X, y)
+                # Fit the model to the data
+                polynomial_model.fit(rule_data, y)
 
-                # Get the coefficients from the trained model
+                # Get the coefficients and intercept from the trained model
                 coefs = polynomial_model.named_steps['linearregression'].coef_
                 intercept = polynomial_model.named_steps['linearregression'].intercept_
 
-                # Create the polynomial function string
-                terms = [f"{intercept}"]
-                for i, feature in enumerate(features):
-                    for degree in range(1, max_degree + 1):
-                        terms.append(f"{coefs[i]}*{feature}^{degree}")
+                # Handle the case where intercept is an array
+                intercept_value = intercept[0] if isinstance(intercept, np.ndarray) else intercept
 
-                function_str = " + ".join(terms)
+                # Use SymPy to create symbolic variables for each feature
+                symbols = sp.symbols(features)
+
+                # Get polynomial feature names
+                poly_features = polynomial_model.named_steps['polynomialfeatures'].get_feature_names_out(features)
+
+                # Convert the polynomial feature names into SymPy-compatible terms
+                poly_sympy_terms = [
+                    sp.Mul(*[symbols[features.index(f)] for f in feature.split() if f in features])
+                    for feature in poly_features
+                ]
+
+                # Generate the polynomial expression
+                polynomial_expr = sp.Add(intercept_value, *[
+                    coef * term for coef, term in zip(coefs.flatten(), poly_sympy_terms)
+                ])
+
+                # Convert the symbolic expression to a string
+                function_str = str(polynomial_expr)
 
                 # Set the output function for this rule
-                rule_output_var_name = f"{output_var_name}_{rule.split('_')[-1]}"  # Generate unique output variable per rule
+                rule_output_var_name = f"{output_var_name}_{rule_index}"  # Generate unique output variable per rule
                 self.set_output_function(rule_output_var_name, function_str, verbose=verbose)
 
                 if verbose:
-                    print(f"Updated output function for rule '{rule}' to: '{function_str}'")
+                    self.logger.info(f"Updated output function for rule {rule_index} to: '{function_str}'")
 
-            else:
-                if verbose:
-                    print(f"No features found for rule: {rule}")
+            except Exception as e:
+                self.logger.error(f"Rule {rule_index}: Failed to fit polynomial regression model: {e}")
+                raise e
+
+        self.logger.info("Higher-order output function update complete.")
+
 
     def get_rules_(self):
         # Implement fetching rules without calling the rule_processor's process_rules_from_system
@@ -582,7 +637,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
         # Update the output function based on current features in the rules
-        self.update_output_function(output_function_type='zero-order', verbose=False)
+        self.update_output_function(output_function_type='higher-order', verbose=False)
 
         # Ensure the DataFrame contains all necessary features
         if not all(feature in data.columns for feature in features_used):
