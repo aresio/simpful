@@ -2,7 +2,12 @@ import logging
 from abc import ABC, abstractmethod
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_filename = "variable_store.log"
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    handlers=[
+                        logging.FileHandler(log_filename),  # Write logs to a file
+                    ])
 logger = logging.getLogger(__name__)
 
 class ILinguisticVariableStore(ABC):
