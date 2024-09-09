@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 
 from sklearn.cluster import KMeans
 from sklearn.pipeline import make_pipeline
@@ -59,6 +60,40 @@ class EvolvableFuzzySystem(FuzzySystem):
             return formatted_rules
         return rules
         
+    def relabel_rules_consequents(self, output_var_name="PricePrediction", verbose=False):
+        """
+        Extracts the consequents of the current rules, relabels them to ensure the correct association with their
+        corresponding rules, and updates the fuzzy system's rules accordingly.
+        
+        Args:
+            output_var_name: The name of the output variable to relabel in the rules.
+            verbose: If True, prints detailed information about the process.
+        """
+        current_rules = self.get_rules()
+        if not current_rules:
+            if verbose:
+                print("No rules to analyze.")
+            return
+
+        # Iterate over each rule and ensure correct labeling of its consequent
+        for rule_index, rule in enumerate(current_rules, start=1):
+            if 'THEN' in rule:
+                # Extract the part after 'THEN' which is the consequent
+                after_then = rule.split('THEN')[1].strip()
+                
+                # Find the consequent part, typically in the form (PricePrediction IS PricePrediction_X)
+                consequent = re.findall(r'\(([^)]+)\)', after_then)
+                if consequent:
+                    # Replace the old consequent with the correctly indexed one
+                    updated_consequent = f"{output_var_name} IS {output_var_name}_{rule_index}"
+                    updated_rule = rule.replace(consequent[0], updated_consequent)
+                    
+                    # Replace the rule in the fuzzy system
+                    self.replace_rule(rule_index - 1, updated_rule, verbose=verbose)
+                    
+                    if verbose:
+                        print(f"Updated rule {rule_index}: {updated_rule}")
+
     def update_output_function_zero_order(self, output_var_name="PricePrediction", n_clusters=3, verbose=False):
         """
         Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system, 
@@ -413,11 +448,13 @@ class EvolvableFuzzySystem(FuzzySystem):
         """
         current_rules = self.get_rules()
         if not current_rules:
+            logging.info("No rules to analyze.")
             if verbose:
                 print("No rules to analyze.")
             return OrderedDict()
 
         features_dict = OrderedDict()
+        logging.info(f"Extracting features from {len(current_rules)} rules.")
         
         for rule in current_rules:
             # Split the rule at 'THEN' and take the part before 'THEN'
@@ -431,17 +468,20 @@ class EvolvableFuzzySystem(FuzzySystem):
                 # Add rule and its corresponding features to the dictionary
                 features_dict[rule] = features_in_rule
                 
+                logging.info(f"Rule: {rule} -> Extracted features: {features_in_rule}")
+                
                 if verbose:
                     print(f"Rule: {rule}")
                     print(f"Extracted features: {features_in_rule}")
 
+        logging.info("Feature extraction complete.")
+        
         if verbose:
             print("Ordered dictionary of features by rule:")
             for rule, features in features_dict.items():
                 print(f"{rule}: {features}")
 
         return features_dict
-
 
     def extract_features_from_rules(self, verbose=False):
         """Extract unique features from the current fuzzy rules."""
@@ -506,6 +546,10 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         # Extract features used in the rules of this fuzzy system
         features_used = self.extract_features_from_rules()
+
+        # Relabel rules' consequents to ensure proper association
+        self.relabel_rules_consequents(output_var_name="PricePrediction", verbose=verbose)
+
 
         # Added check, just in case
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
