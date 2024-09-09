@@ -5,6 +5,9 @@ import logging
 from sklearn.cluster import KMeans
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
+
+from simpful.fuzzy_sets import FuzzySet, Gaussian_MF
+from simpful.simpful import LinguisticVariable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from simpful import FuzzySystem
@@ -611,16 +614,15 @@ class EvolvableFuzzySystem(FuzzySystem):
             self.update_output_function_higher_order(verbose=verbose)
         else:
             raise ValueError(f"Unknown output function type: {output_function_type}")
-        
+                
     def predict_with_fis(self, data=None, variable_store=None, verbose=False, print_predictions=False):
         """
         Makes predictions for the EvolvableFuzzySystem instance using the features defined in its rules.
-        
+
         :param data: pandas DataFrame containing the input data.
         :param print_predictions: Boolean, if True, prints the first 5 predictions.
         :return: List of predictions.
         """
-        
         if data is None:
             data = self.x_train  # Use the loaded training data for predictions
 
@@ -636,9 +638,14 @@ class EvolvableFuzzySystem(FuzzySystem):
         # Added check, just in case
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
-        # Perform clustering on the subset of features used
+        # Ensure the DataFrame contains all necessary features
+        if not all(feature in data.columns for feature in features_used):
+            missing_features = [feature for feature in features_used if feature not in data.columns]
+            raise ValueError(f"Data is missing required features: {missing_features}")
+
+        # Subset the DataFrame based on the features used in this system
         subset_data = data[features_used]
-        
+
         # Perform clustering (e.g., KMeans)
         n_clusters = 3  # Example: set the number of clusters
         kmeans = KMeans(n_clusters=n_clusters)
@@ -648,8 +655,8 @@ class EvolvableFuzzySystem(FuzzySystem):
         for feature in features_used:
             centers = sorted(kmeans.cluster_centers_[:, features_used.index(feature)])
             # Dynamically update membership functions based on cluster centers
-            self.update_membership_function(feature, centers, variable_store, verbose=verbose)
-
+            self.update_membership_function(feature, centers, variable_store, self)
+        
         # Update the output function based on current features in the rules
         self.update_output_function(output_function_type='first-order', verbose=False)
 
@@ -669,7 +676,7 @@ class EvolvableFuzzySystem(FuzzySystem):
         # Optionally print the first 5 predictions
         if print_predictions:
             print(f"{self.__class__.__name__} Predictions:")
-            for pred in predictions[:5]:
+            for pred in predictions[:5]:  # Print the first 5 predictions as an example
                 print(pred)
 
         # Extract numerical values from the prediction dictionaries
@@ -693,7 +700,55 @@ class EvolvableFuzzySystem(FuzzySystem):
                 self.remove_linguistic_variable(variable, verbose=verbose)
                 if verbose:
                     print(f"cleanup_unused_linguistic_variables: Removed unused linguistic variable '{variable}'")
+    
+    def update_membership_function(self, feature, centers, variable_store, fuzzy_system):
+        """
+        Update the membership function for a given feature based on new cluster centers and update both
+        the variable store and the FuzzySystem's linguistic variables.
 
+        Args:
+            feature (str): The feature (linguistic variable) to update.
+            centers (list): Cluster centers to create new fuzzy sets.
+            variable_store: The linguistic variable store containing fuzzy variables.
+            fuzzy_system: The FuzzySystem instance to update its linguistic variables.
+        """
+        logging.info(f"Starting membership function update for feature: {feature}")
+        new_fuzzy_sets = []
+        num_centers = len(centers)
+
+        logging.debug(f"Centers for feature '{feature}': {centers}")
+
+        # Compute sigma (spread) for each Gaussian based on adjacent centers
+        for i in range(num_centers):
+            if i == 0:  # First term
+                sigma = (centers[i+1] - centers[i]) / 2 if num_centers > 1 else 1  # Handle case with only 1 center
+                logging.debug(f"First term for '{feature}', center: {centers[i]}, sigma: {sigma}")
+            elif i == num_centers - 1:  # Last term
+                sigma = (centers[i] - centers[i-1]) / 2
+                logging.debug(f"Last term for '{feature}', center: {centers[i]}, sigma: {sigma}")
+            else:  # Intermediate terms
+                sigma = (centers[i+1] - centers[i-1]) / 2
+                logging.debug(f"Intermediate term for '{feature}', center: {centers[i]}, sigma: {sigma}")
+            
+            # Create Gaussian fuzzy set
+            new_fuzzy_sets.append(FuzzySet(function=Gaussian_MF(centers[i], sigma), term=f"Term_{i+1}"))
+            logging.info(f"Created Gaussian fuzzy set for '{feature}', center: {centers[i]}, sigma: {sigma}, term: Term_{i+1}")
+
+        # Update the linguistic variable in the store
+        variable_store.update_variable_terms(feature, new_fuzzy_sets)
+        logging.info(f"Updated variable store for '{feature}' with new fuzzy sets.")
+
+        # Update the FuzzySystem's linguistic variables
+        if feature in fuzzy_system._lvs:
+            fuzzy_system._lvs[feature] = LinguisticVariable(new_fuzzy_sets, concept=feature)
+            logging.info(f"Updated FuzzySystem's linguistic variable for feature '{feature}'.")
+        else:
+            fuzzy_system._lvs[feature] = LinguisticVariable(new_fuzzy_sets, concept=feature)
+            logging.info(f"Added new linguistic variable to FuzzySystem for feature '{feature}'.")
+
+        # Log the final sigmas for reference
+        logging.info(f"Updated membership function for feature '{feature}' with new Gaussian centers: {centers}")
+        logging.debug(f"Sigmas for feature '{feature}': {[fs._funpointer._sigma for fs in new_fuzzy_sets]}")
 
 if __name__ == "__main__":
     pass
