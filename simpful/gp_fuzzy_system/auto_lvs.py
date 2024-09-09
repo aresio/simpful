@@ -153,6 +153,9 @@ class FuzzyLinguisticVariableProcessor:
         if self.verbose:
             print(f"Failed to create linguistic variable for column '{column_name}' with at least 2 terms")
         return None
+    
+    def sanitize_variable_name(self, var_name):
+        return var_name.replace('_', '').strip()
 
     def process_dataset(self):
         """
@@ -164,22 +167,22 @@ class FuzzyLinguisticVariableProcessor:
         Returns:
             LocalLinguisticVariableStore: A store containing all created linguistic variables.
         """
+    def process_dataset(self):
         store = LocalLinguisticVariableStore()
-
         for column in self.data.columns:
             if column in self.exclude_columns:
                 if self.verbose:
                     print(f"Excluding column '{column}'")
                 continue
-
             if self.data[column].dtype not in [np.float64, np.int64]:
                 continue
 
+            sanitized_column_name = self.sanitize_variable_name(column)
             terms = self.terms_dict.get(column, ['low', 'medium', 'high'])
-            LV = self.create_linguistic_variable(self.data[column].values, column, terms)
+            LV = self.create_linguistic_variable(self.data[column].values, sanitized_column_name, terms)
 
             if LV:
-                store.add_variable(column, LV)
+                store.add_variable(sanitized_column_name, LV)
 
         return store
 
