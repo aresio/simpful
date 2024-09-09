@@ -20,6 +20,16 @@ import re
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
+# Set up logging configuration
+LOG_FILE_PATH = 'fuzzy_system_output.log'
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE_PATH),
+    ]
+)
+
 class EvolvableFuzzySystem(FuzzySystem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,6 +40,12 @@ class EvolvableFuzzySystem(FuzzySystem):
         self.y_train = None
         self.x_test = None
         self.y_test = None
+
+        # Initialize a logger specifically for this class
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        # Optionally, set the logging level for this class (e.g., DEBUG, INFO, etc.)
+        self.logger.setLevel(logging.INFO)
 
     def load_data(self, x_train=None, y_train=None, x_test=None, y_test=None):
         """
@@ -96,45 +112,45 @@ class EvolvableFuzzySystem(FuzzySystem):
 
     def update_output_function_zero_order(self, output_var_name="PricePrediction", n_clusters=3, verbose=False):
         """
-        Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system, 
+        Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system,
         where the output is a crisp value (constant) for each rule.
-        
-        Args:
-            output_var_name: The name of the output variable for which the output function is set.
-            n_clusters: Number of clusters for k-means clustering (or another clustering method).
-            verbose: If True, prints additional details about the process.
         """
-
+        self.logger.info("Updating output function (zero-order).")
         rule_feature_dict = self.extract_features_with_rules()
 
-        # Iterate over each rule and its associated features
         for rule_index, (rule, features) in enumerate(rule_feature_dict.items(), start=1):
-            
-            # Subset the training data to only include the features for this rule
             rule_data = self.x_train[features]
 
-            # Apply k-means clustering
-            kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-            clusters = kmeans.fit_predict(rule_data)
+            if rule_data.empty:
+                self.logger.error(f"Rule {rule_index}: No valid data found for features: {features}. Skipping rule.")
+                continue
 
-            # For each cluster, determine the constant value (e.g., mean of y_train for that cluster)
-            constant_values = []
-            for cluster_label in np.unique(clusters):
-                cluster_indices = np.where(clusters == cluster_label)[0]
-                cluster_y = self.y_train.iloc[cluster_indices]
-                constant_value = np.mean(cluster_y)  # or np.median(cluster_y)
-                constant_values.append(constant_value)
+            if verbose:
+                self.logger.info(f"Processing Rule {rule_index} with features: {features}")
 
-            # Choose the constant for the whole rule based on the most populous cluster
-            most_populous_cluster = np.argmax(np.bincount(clusters))
-            constant_value = constant_values[most_populous_cluster]
+            try:
+                kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+                clusters = kmeans.fit_predict(rule_data)
 
-            # Set the crisp output value for this rule
+                constant_values = []
+                for cluster_label in np.unique(clusters):
+                    cluster_indices = np.where(clusters == cluster_label)[0]
+                    cluster_y = self.y_train.iloc[cluster_indices]
+                    constant_value = np.mean(cluster_y)
+                    constant_values.append(constant_value)
+
+                most_populous_cluster = np.argmax(np.bincount(clusters))
+                constant_value = constant_values[most_populous_cluster]
+
+            except ValueError as e:
+                self.logger.error(f"Rule {rule_index}: Error processing KMeans: {e}")
+                constant_value = np.mean(self.y_train)
+
             output_name = f"{output_var_name}_{rule_index}"
             self.set_crisp_output_value(output_name, constant_value, verbose=verbose)
-            
+
             if verbose:
-                print(f"Set crisp output value for rule {rule_index} ('{rule}') to {constant_value}")
+                self.logger.info(f"Set crisp output value for rule {rule_index} ('{rule}') to {constant_value}")
 
 
     def update_output_function_first_order(self, output_var_name="PricePrediction", data=None, verbose=False):
@@ -446,6 +462,12 @@ class EvolvableFuzzySystem(FuzzySystem):
         Returns:
             OrderedDict: A dictionary where each key is a rule and each value is a list of features used in that rule.
         """
+        # Log the available features to ensure it's populated
+        if not self.available_features:
+            logging.warning("available_features is empty. No features to extract.")
+        else:
+            logging.info(f"Available features: {self.available_features}")
+
         current_rules = self.get_rules()
         if not current_rules:
             logging.info("No rules to analyze.")
@@ -460,16 +482,22 @@ class EvolvableFuzzySystem(FuzzySystem):
             # Split the rule at 'THEN' and take the part before 'THEN'
             if 'THEN' in rule:
                 before_then = rule.split('THEN')[0].strip()
+
+                # Find terms in parentheses as they often enclose feature names
+                parentheses_matches = re.findall(r'\(([^)]+)\)', before_then)
                 
-                # Find all alphanumeric words in the part before 'THEN'; assume they include feature names
-                words = re.findall(r'\w+', before_then)
-                features_in_rule = [word for word in words if word in self.available_features]
-                
+                features_in_rule = []
+                for match in parentheses_matches:
+                    # Split the match by spaces and check if the word is in available features
+                    terms = match.split()  # Assuming the format is like (feature_name IS term)
+                    if terms and terms[0] in self.available_features:
+                        features_in_rule.append(terms[0])
+
                 # Add rule and its corresponding features to the dictionary
                 features_dict[rule] = features_in_rule
-                
+
                 logging.info(f"Rule: {rule} -> Extracted features: {features_in_rule}")
-                
+
                 if verbose:
                     print(f"Rule: {rule}")
                     print(f"Extracted features: {features_in_rule}")
@@ -549,7 +577,6 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         # Relabel rules' consequents to ensure proper association
         self.relabel_rules_consequents(output_var_name="PricePrediction", verbose=verbose)
-
 
         # Added check, just in case
         self.ensure_linguistic_variables(variable_store, verbose=verbose)

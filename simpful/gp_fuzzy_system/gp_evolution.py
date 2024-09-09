@@ -10,12 +10,10 @@ import numpy as np
 import logging
 from tqdm import tqdm
 
-# Configure logging
-logging.basicConfig(filename='evaluation_errors.log', level=logging.ERROR, 
+# Configure logging to log errors to tests/evaluation_errors.log
+logging.basicConfig(filename='tests/evaluation_errors.log', level=logging.ERROR, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-import logging
 
 def initialize_population(population_size, variable_store, max_rules, available_features, min_rules=3, max_rules_per_system=7, min_clauses_per_rule=2, verbose=False, x_train=None, y_train=None, x_test=None, y_test=None):
     """
