@@ -60,16 +60,16 @@ class TestGeneticAlgorithm(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.variable_store = variable_store
-        cls.population_size = 10
-        cls.max_generations = 3
-        cls.max_rules = 8
+        cls.population_size = 200
+        cls.max_generations = 150
+        cls.max_rules = 10
         cls.min_rules = 2
         cls.min_clauses_per_rule = 2
         cls.selection_method = 'hybrid'
-        cls.selection_size = 10
-        cls.mutation_rate = 0.2 
+        cls.selection_size = 6
+        cls.mutation_rate = 0.25
         cls.crossover_rate = 0.8 
-        cls.elitism_rate = 0.1
+        cls.elitism_rate = 0.08
         cls.tournament_size = 3
         
         # Load the CSV data for training and predictions
