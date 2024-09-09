@@ -160,8 +160,8 @@ class TestEvolvableFuzzySystem(unittest.TestCase):
         # Ensure economic_health has been initialized and has rules
         self.assertTrue(economic_health._rules, "economic_health should have rules initialized")
         
-        # Call the predict_with_fis function
-        predictions = economic_health.predict_with_fis()
+        # Call the predict_with_fis function and pass the variable_store
+        predictions = economic_health.predict_with_fis(variable_store=self.__class__.variable_store)
         
         # Ensure predictions are returned as expected
         self.assertIsInstance(predictions, np.ndarray, "Should return a numpy array of predictions")
