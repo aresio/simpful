@@ -154,25 +154,14 @@ class FuzzyLinguisticVariableProcessor:
             print(f"Failed to create linguistic variable for column '{column_name}' with at least 2 terms")
         return None
     
+
     def sanitize_variable_name(self, var_name):
         return var_name.replace('_', '').strip()
 
-    def process_dataset(self):
-        """
-        Process the entire dataset to create and store linguistic variables.
-
-        This function iterates over the columns in the dataset, creates linguistic variables for each, and stores them
-        in a LocalLinguisticVariableStore.
-
-        Returns:
-            LocalLinguisticVariableStore: A store containing all created linguistic variables.
-        """
-    def process_dataset(self):
+    def process_dataset(self, save_csv=True):
         store = LocalLinguisticVariableStore()
         for column in self.data.columns:
             if column in self.exclude_columns:
-                if self.verbose:
-                    print(f"Excluding column '{column}'")
                 continue
             if self.data[column].dtype not in [np.float64, np.int64]:
                 continue
@@ -183,6 +172,14 @@ class FuzzyLinguisticVariableProcessor:
 
             if LV:
                 store.add_variable(sanitized_column_name, LV)
+
+        # Overwrite the original file with sanitized column names
+        if save_csv:
+            sanitized_columns = [self.sanitize_variable_name(col) for col in self.data.columns]
+            self.data.columns = sanitized_columns
+            self.data.to_csv(self.file_path, index=False)  # Save to the original file path
+            if self.verbose:
+                print(f"Dataset saved with sanitized column names to {self.file_path}")
 
         return store
 
