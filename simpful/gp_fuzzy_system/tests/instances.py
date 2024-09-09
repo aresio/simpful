@@ -23,7 +23,7 @@ verbose = False
 mf_type = 'gaussian'  # or 'triangular' or 'sigmoid'
 
 # Initialize the FuzzyLinguisticVariableProcessor
-processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type='sigmoid', use_standard_terms=True)
+processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type, use_standard_terms=True)
 # Process the dataset
 variable_store = processor.process_dataset()
 
