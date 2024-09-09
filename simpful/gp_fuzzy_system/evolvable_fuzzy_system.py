@@ -700,7 +700,7 @@ class EvolvableFuzzySystem(FuzzySystem):
                 self.remove_linguistic_variable(variable, verbose=verbose)
                 if verbose:
                     print(f"cleanup_unused_linguistic_variables: Removed unused linguistic variable '{variable}'")
-    
+        
     def update_membership_function(self, feature, centers, variable_store, fuzzy_system):
         """
         Update the membership function for a given feature based on new cluster centers and update both
@@ -712,43 +712,36 @@ class EvolvableFuzzySystem(FuzzySystem):
             variable_store: The linguistic variable store containing fuzzy variables.
             fuzzy_system: The FuzzySystem instance to update its linguistic variables.
         """
-        logging.info(f"Starting membership function update for feature: {feature}")
         new_fuzzy_sets = []
         num_centers = len(centers)
 
-        logging.debug(f"Centers for feature '{feature}': {centers}")
-
+        # Standard terms: LOW, MEDIUM, HIGH
+        standard_terms = ['LOW', 'MEDIUM', 'HIGH']
+        
         # Compute sigma (spread) for each Gaussian based on adjacent centers
         for i in range(num_centers):
             if i == 0:  # First term
                 sigma = (centers[i+1] - centers[i]) / 2 if num_centers > 1 else 1  # Handle case with only 1 center
-                logging.debug(f"First term for '{feature}', center: {centers[i]}, sigma: {sigma}")
             elif i == num_centers - 1:  # Last term
                 sigma = (centers[i] - centers[i-1]) / 2
-                logging.debug(f"Last term for '{feature}', center: {centers[i]}, sigma: {sigma}")
             else:  # Intermediate terms
                 sigma = (centers[i+1] - centers[i-1]) / 2
-                logging.debug(f"Intermediate term for '{feature}', center: {centers[i]}, sigma: {sigma}")
             
-            # Create Gaussian fuzzy set
-            new_fuzzy_sets.append(FuzzySet(function=Gaussian_MF(centers[i], sigma), term=f"Term_{i+1}"))
-            logging.info(f"Created Gaussian fuzzy set for '{feature}', center: {centers[i]}, sigma: {sigma}, term: Term_{i+1}")
+            # Assign terms as LOW, MEDIUM, HIGH (or adjust if more than 3 terms are used)
+            term = standard_terms[i] if i < len(standard_terms) else f"Term_{i+1}"
+            
+            # Create Gaussian fuzzy set with proper term
+            new_fuzzy_sets.append(FuzzySet(function=Gaussian_MF(centers[i], sigma), term=term))
 
         # Update the linguistic variable in the store
         variable_store.update_variable_terms(feature, new_fuzzy_sets)
-        logging.info(f"Updated variable store for '{feature}' with new fuzzy sets.")
 
         # Update the FuzzySystem's linguistic variables
-        if feature in fuzzy_system._lvs:
-            fuzzy_system._lvs[feature] = LinguisticVariable(new_fuzzy_sets, concept=feature)
-            logging.info(f"Updated FuzzySystem's linguistic variable for feature '{feature}'.")
-        else:
-            fuzzy_system._lvs[feature] = LinguisticVariable(new_fuzzy_sets, concept=feature)
-            logging.info(f"Added new linguistic variable to FuzzySystem for feature '{feature}'.")
+        fuzzy_system._lvs[feature] = LinguisticVariable(new_fuzzy_sets, concept=feature)
 
-        # Log the final sigmas for reference
+        # Log the update
         logging.info(f"Updated membership function for feature '{feature}' with new Gaussian centers: {centers}")
-        logging.debug(f"Sigmas for feature '{feature}': {[fs._funpointer._sigma for fs in new_fuzzy_sets]}")
+
 
 if __name__ == "__main__":
     pass

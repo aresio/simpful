@@ -1,4 +1,9 @@
+import logging
 from abc import ABC, abstractmethod
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ILinguisticVariableStore(ABC):
     @abstractmethod
@@ -27,6 +32,7 @@ class LocalLinguisticVariableStore(ILinguisticVariableStore):
 
     def add_variable(self, name, variable):
         self.variables[name] = variable
+        logger.info(f"Added variable '{name}' to the store.")
 
     def get_variable(self, name):
         return self.variables.get(name)
@@ -37,6 +43,7 @@ class LocalLinguisticVariableStore(ILinguisticVariableStore):
     def remove_variable(self, name):
         if name in self.variables:
             del self.variables[name]
+            logger.info(f"Removed variable '{name}' from the store.")
 
     def get_all_variables(self):
         return self.variables
@@ -52,6 +59,6 @@ class LocalLinguisticVariableStore(ILinguisticVariableStore):
         if self.has_variable(name):
             linguistic_variable = self.get_variable(name)
             linguistic_variable._FS_list = new_fuzzy_sets  # Update the fuzzy sets
-            print(f"Updated terms for variable '{name}'")
+            logger.info(f"Updated terms for variable '{name}'")
         else:
-            print(f"Variable '{name}' not found in the store.")
+            logger.warning(f"Variable '{name}' not found in the store.")
