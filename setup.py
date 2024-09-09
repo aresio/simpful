@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     name='simpful',
     packages=find_packages(),  # Automatically find packages
-    version='2.13.0',  # Updated version for a non-breaking change
+    version='2.14.0',  # Updated version for a non-breaking change
     description='A user-friendly Python library for fuzzy logic',
     author='Marco S. Nobile',
     author_email='marco.nobile@unive.it',
