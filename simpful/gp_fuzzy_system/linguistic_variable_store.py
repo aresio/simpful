@@ -40,3 +40,18 @@ class LocalLinguisticVariableStore(ILinguisticVariableStore):
 
     def get_all_variables(self):
         return self.variables
+
+    def update_variable_terms(self, name, new_fuzzy_sets):
+        """
+        Update the terms (fuzzy sets) for a given linguistic variable.
+        
+        Args:
+            name (str): Name of the linguistic variable to update.
+            new_fuzzy_sets (list): List of new fuzzy sets to replace the old ones.
+        """
+        if self.has_variable(name):
+            linguistic_variable = self.get_variable(name)
+            linguistic_variable._FS_list = new_fuzzy_sets  # Update the fuzzy sets
+            print(f"Updated terms for variable '{name}'")
+        else:
+            print(f"Variable '{name}' not found in the store.")
