@@ -58,7 +58,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             formatted_rules = [format_rule(rule) for rule in rules]
             return formatted_rules
         return rules
-    
+        
     def update_output_function_zero_order(self, output_var_name="PricePrediction", n_clusters=3, verbose=False):
         """
         Updates the output function of the fuzzy system for a zero-order Takagi-Sugeno system, 
@@ -78,24 +78,21 @@ class EvolvableFuzzySystem(FuzzySystem):
             # Subset the training data to only include the features for this rule
             rule_data = self.x_train[features]
 
-            if len(features) < 3:  # Simple case with fewer features
-                constant_value = np.mean(self.y_train)  # or np.median(self.y_train)
-            else:
-                # Apply k-means clustering
-                kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-                clusters = kmeans.fit_predict(rule_data)
+            # Apply k-means clustering
+            kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+            clusters = kmeans.fit_predict(rule_data)
 
-                # For each cluster, determine the constant value (e.g., mean of y_train for that cluster)
-                constant_values = []
-                for cluster_label in np.unique(clusters):
-                    cluster_indices = np.where(clusters == cluster_label)[0]
-                    cluster_y = self.y_train.iloc[cluster_indices]
-                    constant_value = np.mean(cluster_y)  # or np.median(cluster_y)
-                    constant_values.append(constant_value)
+            # For each cluster, determine the constant value (e.g., mean of y_train for that cluster)
+            constant_values = []
+            for cluster_label in np.unique(clusters):
+                cluster_indices = np.where(clusters == cluster_label)[0]
+                cluster_y = self.y_train.iloc[cluster_indices]
+                constant_value = np.mean(cluster_y)  # or np.median(cluster_y)
+                constant_values.append(constant_value)
 
-                # Choose the constant for the whole rule
-                most_populous_cluster = np.argmax(np.bincount(clusters))
-                constant_value = constant_values[most_populous_cluster]
+            # Choose the constant for the whole rule based on the most populous cluster
+            most_populous_cluster = np.argmax(np.bincount(clusters))
+            constant_value = constant_values[most_populous_cluster]
 
             # Set the crisp output value for this rule
             output_name = f"{output_var_name}_{rule_index}"
@@ -103,6 +100,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             
             if verbose:
                 print(f"Set crisp output value for rule {rule_index} ('{rule}') to {constant_value}")
+
 
     def update_output_function_first_order(self, output_var_name="PricePrediction", data=None, verbose=False):
         """
