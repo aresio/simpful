@@ -17,7 +17,7 @@ class TestRunGPSimulation(unittest.TestCase):
             "--x_train", self.x_train_path,
             "--y_train", self.y_train_path,
             "--terms_dict_path", self.terms_dict_path,
-            "--exclude_columns", "month,day,hour",
+            "--exclude_columns", "month,day,hour,value,volume",
             "--population_size", "10",
             "--max_generations", "3",
             "--mutation_rate", "0.01",
