@@ -7,7 +7,6 @@ from simpful.gp_fuzzy_system.linguistic_variable_store import LocalLinguisticVar
 import skfuzzy as fuzz
 import numpy as np
 import pandas as pd
-import argparse
 import importlib.util
 
 class FuzzyLinguisticVariableProcessor:
@@ -19,7 +18,7 @@ class FuzzyLinguisticVariableProcessor:
     (triangular, gaussian, sigmoid) and allows for verbose output for debugging purposes.
     """
 
-    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='sigmoid'):
+    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='sigmoid', use_standard_terms=False):
         """
         Initialize the FuzzyLinguisticVariableProcessor.
 
@@ -29,12 +28,15 @@ class FuzzyLinguisticVariableProcessor:
             verbose (bool, optional): If True, prints detailed logs. Defaults to False.
             exclude_columns (list, optional): List of column names to exclude from processing. Defaults to None.
             mf_type (str, optional): Type of membership function to use ('triangular', 'gaussian', 'sigmoid'). Defaults to 'sigmoid'.
+            use_standard_terms (bool, optional): If True, apply standard terms (e.g., ['LOW', 'MEDIUM', 'HIGH']) to all variables. Defaults to False.
         """
         self.file_path = file_path
         self.terms_dict_path = terms_dict_path
         self.verbose = verbose
         self.exclude_columns = exclude_columns if exclude_columns else []
         self.mf_type = mf_type
+        self.use_standard_terms = use_standard_terms  # New parameter for standard terms usage
+        self.standard_terms = ['LOW', 'MEDIUM', 'HIGH']  # Standard terms
         self.data = pd.read_csv(self.file_path)
         self.terms_dict = self._load_terms_dict()
 
@@ -153,12 +155,30 @@ class FuzzyLinguisticVariableProcessor:
         if self.verbose:
             print(f"Failed to create linguistic variable for column '{column_name}' with at least 2 terms")
         return None
-    
 
     def sanitize_variable_name(self, var_name):
+        """
+        Sanitize variable names by removing underscores and stripping whitespace.
+
+        Args:
+            var_name (str): The variable name to sanitize.
+
+        Returns:
+            str: Sanitized variable name.
+        """
         return var_name.replace('_', '').strip()
 
+
     def process_dataset(self, save_csv=True):
+        """
+        Process the dataset to define fuzzy sets and create linguistic variables.
+
+        Args:
+            save_csv (bool, optional): If True, save the processed dataset with sanitized column names to the file. Defaults to True.
+        
+        Returns:
+            LocalLinguisticVariableStore: A store of linguistic variables created from the dataset.
+        """
         store = LocalLinguisticVariableStore()
         for column in self.data.columns:
             if column in self.exclude_columns:
@@ -167,7 +187,13 @@ class FuzzyLinguisticVariableProcessor:
                 continue
 
             sanitized_column_name = self.sanitize_variable_name(column)
-            terms = self.terms_dict.get(column, ['low', 'medium', 'high'])
+
+            # Use standard terms if the option is set, otherwise fallback to terms_dict
+            if self.use_standard_terms:
+                terms = self.standard_terms  # Apply standard terms
+            else:
+                terms = self.terms_dict.get(column, self.standard_terms)  # Default to standard terms if not in terms_dict
+
             LV = self.create_linguistic_variable(self.data[column].values, sanitized_column_name, terms)
 
             if LV:

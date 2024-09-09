@@ -611,16 +611,16 @@ class EvolvableFuzzySystem(FuzzySystem):
             self.update_output_function_higher_order(verbose=verbose)
         else:
             raise ValueError(f"Unknown output function type: {output_function_type}")
-    
+        
     def predict_with_fis(self, data=None, variable_store=None, verbose=False, print_predictions=False):
         """
         Makes predictions for the EvolvableFuzzySystem instance using the features defined in its rules.
-
+        
         :param data: pandas DataFrame containing the input data.
         :param print_predictions: Boolean, if True, prints the first 5 predictions.
         :return: List of predictions.
         """
-
+        
         if data is None:
             data = self.x_train  # Use the loaded training data for predictions
 
@@ -636,16 +636,22 @@ class EvolvableFuzzySystem(FuzzySystem):
         # Added check, just in case
         self.ensure_linguistic_variables(variable_store, verbose=verbose)
 
+        # Perform clustering on the subset of features used
+        subset_data = data[features_used]
+        
+        # Perform clustering (e.g., KMeans)
+        n_clusters = 3  # Example: set the number of clusters
+        kmeans = KMeans(n_clusters=n_clusters)
+        clusters = kmeans.fit_predict(subset_data)
+
+        # Adjust membership functions based on clustering results
+        for feature in features_used:
+            centers = sorted(kmeans.cluster_centers_[:, features_used.index(feature)])
+            # Dynamically update membership functions based on cluster centers
+            self.update_membership_function(feature, centers, variable_store, verbose=verbose)
+
         # Update the output function based on current features in the rules
         self.update_output_function(output_function_type='first-order', verbose=False)
-
-        # Ensure the DataFrame contains all necessary features
-        if not all(feature in data.columns for feature in features_used):
-            missing_features = [feature for feature in features_used if feature not in data.columns]
-            raise ValueError(f"Data is missing required features: {missing_features}")
-        
-        # Subset the DataFrame based on the features used in this system
-        subset_data = data[features_used]
 
         # Initialize an empty list to store predictions
         predictions = []
@@ -655,7 +661,7 @@ class EvolvableFuzzySystem(FuzzySystem):
             # Set each variable in the system to its value in the current row
             for feature_name in features_used:
                 self.set_variable(feature_name, row[feature_name])
-            
+
             # Perform Sugeno inference and add the result to our predictions list
             prediction = self.Sugeno_inference(["PricePrediction"])
             predictions.append(prediction)
@@ -663,14 +669,14 @@ class EvolvableFuzzySystem(FuzzySystem):
         # Optionally print the first 5 predictions
         if print_predictions:
             print(f"{self.__class__.__name__} Predictions:")
-            for pred in predictions[:5]:  # Print the first 5 predictions as an example
+            for pred in predictions[:5]:
                 print(pred)
 
         # Extract numerical values from the prediction dictionaries
         prediction_values = extract_prediction_values(predictions)
 
         return np.array(prediction_values)  # Convert to numpy array
-    
+
     def cleanup_unused_linguistic_variables(self, verbose=False):
         """
         Removes linguistic variables that are no longer used in any of the current rules.

@@ -23,8 +23,7 @@ verbose = False
 mf_type = 'sigmoid'  # or 'triangular' or 'sigmoid'
 
 # Initialize the FuzzyLinguisticVariableProcessor
-processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type)
-
+processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type='sigmoid', use_standard_terms=True)
 # Process the dataset
 variable_store = processor.process_dataset()
 
@@ -55,6 +54,8 @@ if __name__ == "__main__":
             verbose_level = 2
         if "-vvv" in sys.argv:
             verbose_level = 3
+        if "-vvvv" in sys.argv:
+            verbose_level = 4
     
     # For '-v' argument: Print all instances and their rules
     if verbose_level == 1:
@@ -80,3 +81,12 @@ if __name__ == "__main__":
         all_vars = variable_store.get_all_variables()
         for name, var in all_vars.items():
             print(f"{name}: {var}")
+
+    if verbose_level == 4:
+        # Test retrieving terms for each variable from variable_store
+        all_vars = variable_store.get_all_variables()
+        for name, var in all_vars.items():
+            print(f"Testing variable: {name}")
+            # Get the terms for this variable
+            terms = var.get_terms()
+            print(f"Retrieved terms for {name}: {terms}")
