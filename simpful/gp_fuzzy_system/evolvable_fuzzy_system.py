@@ -700,7 +700,7 @@ class EvolvableFuzzySystem(FuzzySystem):
                 self.remove_linguistic_variable(variable, verbose=verbose)
                 if verbose:
                     print(f"cleanup_unused_linguistic_variables: Removed unused linguistic variable '{variable}'")
-        
+            
     def update_membership_function(self, feature, centers, variable_store, fuzzy_system):
         """
         Update the membership function for a given feature based on new cluster centers and update both
@@ -718,6 +718,9 @@ class EvolvableFuzzySystem(FuzzySystem):
         # Standard terms: LOW, MEDIUM, HIGH
         standard_terms = ['LOW', 'MEDIUM', 'HIGH']
         
+        # Minimum threshold for sigma to avoid division by zero
+        min_sigma_threshold = 1e-5
+
         # Compute sigma (spread) for each Gaussian based on adjacent centers
         for i in range(num_centers):
             if i == 0:  # First term
@@ -727,9 +730,14 @@ class EvolvableFuzzySystem(FuzzySystem):
             else:  # Intermediate terms
                 sigma = (centers[i+1] - centers[i-1]) / 2
             
+            # Ensure sigma is above the minimum threshold
+            if sigma <= 0:
+                logging.warning(f"Sigma is non-positive for '{feature}' with value {sigma}. Setting sigma to a small positive value.")
+                sigma = min_sigma_threshold
+
             # Assign terms as LOW, MEDIUM, HIGH (or adjust if more than 3 terms are used)
             term = standard_terms[i] if i < len(standard_terms) else f"Term_{i+1}"
-            
+
             # Create Gaussian fuzzy set with proper term
             new_fuzzy_sets.append(FuzzySet(function=Gaussian_MF(centers[i], sigma), term=term))
 
@@ -741,7 +749,6 @@ class EvolvableFuzzySystem(FuzzySystem):
 
         # Log the update
         logging.info(f"Updated membership function for feature '{feature}' with new Gaussian centers: {centers}")
-
 
 if __name__ == "__main__":
     pass

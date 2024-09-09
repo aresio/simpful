@@ -18,7 +18,7 @@ sepsis_system = EvolvableFuzzySystem()
 # Load the CSV data
 file_path = os.path.join(os.path.dirname(__file__), 'gp_data_x_train.csv')
 terms_dict_path = os.path.join(os.path.dirname(__file__), '..', 'terms_dict.py')
-exclude_columns = ['month', 'day', 'hour']
+exclude_columns = ['month', 'day', 'hour', 'value', 'volume'] #TODO: look into why value and colume can't coexist with other volume columns (diavolume, etc.)               
 verbose = False
 mf_type = 'sigmoid'  # or 'triangular' or 'sigmoid'
 
