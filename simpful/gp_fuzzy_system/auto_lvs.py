@@ -18,7 +18,7 @@ class FuzzyLinguisticVariableProcessor:
     (triangular, gaussian, sigmoid) and allows for verbose output for debugging purposes.
     """
 
-    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='sigmoid', use_standard_terms=False):
+    def __init__(self, file_path, terms_dict_path, verbose=False, exclude_columns=None, mf_type='gaussian', use_standard_terms=False):
         """
         Initialize the FuzzyLinguisticVariableProcessor.
 
