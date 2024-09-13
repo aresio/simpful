@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 from simpful.gp_fuzzy_system.evolvable_fuzzy_system import EvolvableFuzzySystem
 from simpful.gp_fuzzy_system.auto_lvs import FuzzyLinguisticVariableProcessor
@@ -16,14 +17,27 @@ market_sentiment = EvolvableFuzzySystem()
 sepsis_system = EvolvableFuzzySystem()
 
 # Load the CSV data
-file_path = os.path.join(os.path.dirname(__file__), 'gp_data_x_train.csv')
-terms_dict_path = os.path.join(os.path.dirname(__file__), '..', 'terms_dict.py')
-exclude_columns = ['month', 'day', 'hour', 'value', 'volume'] #TODO: look into why value and colume can't coexist with other volume columns (diavolume, etc.)               
+file_path = os.path.join(os.path.dirname(__file__), "gp_data_x_train.csv")
+terms_dict_path = os.path.join(os.path.dirname(__file__), "..", "terms_dict.py")
+exclude_columns = [
+    "month",
+    "day",
+    "hour",
+    "value",
+    "volume",
+]  # TODO: look into why value and colume can't coexist with other volume columns (diavolume, etc.)
 verbose = False
-mf_type = 'gaussian'  # or 'triangular' or 'sigmoid'
+mf_type = "gaussian"  # or 'triangular' or 'sigmoid'
 
 # Initialize the FuzzyLinguisticVariableProcessor
-processor = FuzzyLinguisticVariableProcessor(file_path, terms_dict_path, verbose, exclude_columns, mf_type, use_standard_terms=True)
+processor = FuzzyLinguisticVariableProcessor(
+    file_path,
+    terms_dict_path,
+    verbose,
+    exclude_columns,
+    mf_type,
+    use_standard_terms=True,
+)
 # Process the dataset
 variable_store = processor.process_dataset()
 
@@ -34,7 +48,7 @@ instances = {
     "investment_opportunity": investment_opportunity,
     "inflation_prediction": inflation_prediction,
     "market_sentiment": market_sentiment,
-    "sepsis_system": sepsis_system
+    "sepsis_system": sepsis_system,
 }
 
 # Generate and add rules to each system using RuleGenerator
@@ -56,7 +70,7 @@ if __name__ == "__main__":
             verbose_level = 3
         if "-vvvv" in sys.argv:
             verbose_level = 4
-    
+
     # For '-v' argument: Print all instances and their rules
     if verbose_level == 1:
         for name, instance in instances.items():
@@ -74,7 +88,9 @@ if __name__ == "__main__":
                 for rule in detailed_rules:
                     print(f" - {rule}")
             else:
-                print("No rules found or get_rules method not returning correctly.")  # Debug print
+                print(
+                    "No rules found or get_rules method not returning correctly."
+                )  # Debug print
 
     if verbose_level == 3:
         # Print out all variables to confirm they're stored correctly

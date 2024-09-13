@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 from simpful.gp_fuzzy_system.rule_generator import RuleGenerator
 from simpful.gp_fuzzy_system.tests.instances import variable_store
 import unittest
@@ -18,32 +19,47 @@ class TestRuleGenerator(unittest.TestCase):
         self.variable_store = variable_store
         # Pass the output variable in the constructor
         self.output_variable = "PricePrediction"
-        self.rg = RuleGenerator(self.variable_store, output_variable=self.output_variable)
-    
+        self.rg = RuleGenerator(
+            self.variable_store, output_variable=self.output_variable
+        )
+
     def test_generate_random_number_of_rules(self):
         max_rules = 10
         num_rules = self.rg.generate_random_number_of_rules(max_rules)
-        self.assertTrue(1 <= num_rules <= max_rules, "Generated number of rules is out of expected range")
-    
+        self.assertTrue(
+            1 <= num_rules <= max_rules,
+            "Generated number of rules is out of expected range",
+        )
+
     def test_generate_clause(self):
         clause = self.rg.generate_clause()
         self.assertIsInstance(clause, str, "Generated clause is not a string")
-        self.assertTrue(clause.startswith("(") and clause.endswith(")"), "Clause does not start and end with parentheses")
-    
+        self.assertTrue(
+            clause.startswith("(") and clause.endswith(")"),
+            "Clause does not start and end with parentheses",
+        )
+
     def test_generate_rule(self):
         num_clauses = 3
         # The output_variable is now set via the constructor, so no need to pass it here
         rule = self.rg.generate_rule(num_clauses, rule_index=1)
         self.assertIsInstance(rule, str, "Generated rule is not a string")
-        self.assertTrue(rule.startswith("IF ") and " THEN " in rule, "Rule format is incorrect")
-    
+        self.assertTrue(
+            rule.startswith("IF ") and " THEN " in rule, "Rule format is incorrect"
+        )
+
     def test_generate_rules(self):
         max_rules = 5
         # The output_variable is now set via the constructor
         rules = self.rg.generate_rules(max_rules)
         self.assertIsInstance(rules, list, "Generated rules are not in a list")
-        self.assertTrue(all(isinstance(rule, str) for rule in rules), "Not all generated rules are strings")
-        self.assertTrue(len(rules) <= max_rules, "Generated more rules than the maximum allowed")
+        self.assertTrue(
+            all(isinstance(rule, str) for rule in rules),
+            "Not all generated rules are strings",
+        )
+        self.assertTrue(
+            len(rules) <= max_rules, "Generated more rules than the maximum allowed"
+        )
 
     def test_generate_rules_with_min_clauses(self):
         max_rules = 5
@@ -51,16 +67,30 @@ class TestRuleGenerator(unittest.TestCase):
         # The output_variable is now set via the constructor
         rules = self.rg.generate_rules(max_rules, min_clauses=min_clauses)
         self.assertIsInstance(rules, list, "Generated rules are not in a list")
-        self.assertTrue(all(isinstance(rule, str) for rule in rules), "Not all generated rules are strings")
-        self.assertTrue(len(rules) <= max_rules, "Generated more rules than the maximum allowed")
+        self.assertTrue(
+            all(isinstance(rule, str) for rule in rules),
+            "Not all generated rules are strings",
+        )
+        self.assertTrue(
+            len(rules) <= max_rules, "Generated more rules than the maximum allowed"
+        )
         for rule in rules:
             num_clauses = rule.split(" THEN ")[0].count(" IS ")
-            self.assertTrue(num_clauses >= min_clauses, f"Rule does not have the minimum number of clauses: {rule}")
+            self.assertTrue(
+                num_clauses >= min_clauses,
+                f"Rule does not have the minimum number of clauses: {rule}",
+            )
 
     def test_clause_contains_variable_and_term(self):
         clause = self.rg.generate_clause()
-        contains_variable = any(var in clause for var in self.variable_store.get_all_variables())
-        contains_term = any(term in clause for var in self.variable_store.get_all_variables() for term in self.variable_store.get_variable(var).get_terms())
+        contains_variable = any(
+            var in clause for var in self.variable_store.get_all_variables()
+        )
+        contains_term = any(
+            term in clause
+            for var in self.variable_store.get_all_variables()
+            for term in self.variable_store.get_variable(var).get_terms()
+        )
         self.assertTrue(contains_variable, "Clause does not contain any variable")
         self.assertTrue(contains_term, "Clause does not contain any term")
 
@@ -71,9 +101,17 @@ class TestRuleGenerator(unittest.TestCase):
         if_part = rule.split(" THEN ")[0]
         clause_count = if_part.count(" IS ")
         operator_count = if_part.count(" AND ") + if_part.count(" OR ")
-        self.assertEqual(clause_count, num_clauses, f"Rule does not contain the correct number of clauses: {rule}")
-        self.assertEqual(operator_count, num_clauses - 1, "Rule does not contain the correct number of operators")
+        self.assertEqual(
+            clause_count,
+            num_clauses,
+            f"Rule does not contain the correct number of clauses: {rule}",
+        )
+        self.assertEqual(
+            operator_count,
+            num_clauses - 1,
+            "Rule does not contain the correct number of operators",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

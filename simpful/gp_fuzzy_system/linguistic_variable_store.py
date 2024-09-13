@@ -3,12 +3,15 @@ from abc import ABC, abstractmethod
 
 # Configure logging
 log_filename = "variable_store.log"
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler(log_filename),  # Write logs to a file
-                    ])
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_filename),  # Write logs to a file
+    ],
+)
 logger = logging.getLogger(__name__)
+
 
 class ILinguisticVariableStore(ABC):
     @abstractmethod
@@ -30,6 +33,7 @@ class ILinguisticVariableStore(ABC):
     @abstractmethod
     def get_all_variables(self):
         pass
+
 
 class LocalLinguisticVariableStore(ILinguisticVariableStore):
     def __init__(self):
@@ -56,7 +60,7 @@ class LocalLinguisticVariableStore(ILinguisticVariableStore):
     def update_variable_terms(self, name, new_fuzzy_sets):
         """
         Update the terms (fuzzy sets) for a given linguistic variable.
-        
+
         Args:
             name (str): Name of the linguistic variable to update.
             new_fuzzy_sets (list): List of new fuzzy sets to replace the old ones.
