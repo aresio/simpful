@@ -5,7 +5,7 @@ from simpful import *
 FS = FuzzySystem()
 
 # Define fuzzy sets and linguistic variables
-LV = AutoTriangle(2, terms=['low', 'high'])
+LV = AutoTriangle(2, terms=["low", "high"])
 FS.add_linguistic_variable("Var1", LV)
 FS.add_linguistic_variable("Var2", LV)
 

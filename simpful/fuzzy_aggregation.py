@@ -1,12 +1,13 @@
 from simpful import FuzzySet
 from numpy import prod
 
+
 class FuzzyAggregator(object):
     """
-        Creates a new fuzzy aggregation object.
+    Creates a new fuzzy aggregation object.
 
-        Args:
-            verbose: True/False, toggles verbose mode.
+    Args:
+        verbose: True/False, toggles verbose mode.
     """
 
     def __init__(self, verbose=False):
@@ -25,7 +26,9 @@ class FuzzyAggregator(object):
             if isinstance(v, FuzzySet):
                 self._variables[v._term] = v
             else:
-                raise Exception("ERROR: please provide only fuzzy set objects as arguments")
+                raise Exception(
+                    "ERROR: please provide only fuzzy set objects as arguments"
+                )
 
     def set_variable(self, name, value):
         """
@@ -35,12 +38,18 @@ class FuzzyAggregator(object):
             name: name of the variables to be set.
             value: numerical value to be set.
         """
-        try: 
+        try:
             value = float(value)
             self._values[name] = value
-            if self.verbose: print(" * Variable %s set to %f" % (name, value))
+            if self.verbose:
+                print(" * Variable %s set to %f" % (name, value))
         except ValueError:
-            raise Exception("ERROR: specified value for "+name+" is not an integer or float: "+value)
+            raise Exception(
+                "ERROR: specified value for "
+                + name
+                + " is not an integer or float: "
+                + value
+            )
 
     def aggregate(self, variables=None, aggregation_fun="product"):
         """
@@ -54,13 +63,15 @@ class FuzzyAggregator(object):
             Numerical result of the aggregation, as provided by the aggregation function.
         """
         # In development
-        
+
         # default: aggregate ALL variables
         if variables == None:
             variables = list(set(self._variables.keys()))
 
         if len(variables) > len(set(variables)):
-            raise Exception("ERROR: provided list of variables to aggregate contains two or more repetitions, terminating.")
+            raise Exception(
+                "ERROR: provided list of variables to aggregate contains two or more repetitions, terminating."
+            )
 
         memberships = []
         for v in variables:
@@ -69,12 +80,12 @@ class FuzzyAggregator(object):
                 result = self._variables[v].get_value(value)
                 memberships.append(result)
             except KeyError:
-                raise Exception("ERROR: term "+v+" not defined.")
-        
+                raise Exception("ERROR: term " + v + " not defined.")
+
         if self.verbose:
             print(" * Aggregating the following values:", memberships)
             print(" * Using aggregation function:", aggregation_fun)
-        
+
         if callable(aggregation_fun):
             return aggregation_fun(memberships)
         elif aggregation_fun == "product":
@@ -84,6 +95,8 @@ class FuzzyAggregator(object):
         elif aggregation_fun == "max":
             return max(memberships)
         elif aggregation_fun == "arit_mean":
-            return sum(memberships)/len(memberships)
+            return sum(memberships) / len(memberships)
         else:
-            raise Exception("ERROR: Please provide pointer to callable function or the name of an implemented aggregation function")
+            raise Exception(
+                "ERROR: Please provide pointer to callable function or the name of an implemented aggregation function"
+            )

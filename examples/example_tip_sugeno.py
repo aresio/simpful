@@ -5,14 +5,18 @@ from simpful import *
 FS = FuzzySystem()
 
 # Define fuzzy sets and linguistic variables
-S_1 = FuzzySet(points=[[0., 1.],  [5., 0.]], term="poor")
-S_2 = FuzzySet(points=[[0., 0.], [5., 1.], [10., 0.]], term="good")
-S_3 = FuzzySet(points=[[5., 0.],  [10., 1.]], term="excellent")
-FS.add_linguistic_variable("Service", LinguisticVariable([S_1, S_2, S_3], concept="Service quality"))
+S_1 = FuzzySet(points=[[0.0, 1.0], [5.0, 0.0]], term="poor")
+S_2 = FuzzySet(points=[[0.0, 0.0], [5.0, 1.0], [10.0, 0.0]], term="good")
+S_3 = FuzzySet(points=[[5.0, 0.0], [10.0, 1.0]], term="excellent")
+FS.add_linguistic_variable(
+    "Service", LinguisticVariable([S_1, S_2, S_3], concept="Service quality")
+)
 
-F_1 = FuzzySet(points=[[0., 1.],  [10., 0.]], term="rancid")
-F_2 = FuzzySet(points=[[0., 0.],  [10., 1.]], term="delicious")
-FS.add_linguistic_variable("Food", LinguisticVariable([F_1, F_2], concept="Food quality"))
+F_1 = FuzzySet(points=[[0.0, 1.0], [10.0, 0.0]], term="rancid")
+F_2 = FuzzySet(points=[[0.0, 0.0], [10.0, 1.0]], term="delicious")
+FS.add_linguistic_variable(
+    "Food", LinguisticVariable([F_1, F_2], concept="Food quality")
+)
 
 # Define output crisp values
 FS.set_crisp_output_value("small", 5)

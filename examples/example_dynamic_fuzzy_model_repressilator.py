@@ -6,7 +6,7 @@ from copy import deepcopy
 FS = FuzzySystem()
 
 # Define fuzzy sets and linguistic variables
-LV = AutoTriangle(2, terms=['low', 'high'])
+LV = AutoTriangle(2, terms=["low", "high"])
 FS.add_linguistic_variable("LacI", LV)
 FS.add_linguistic_variable("TetR", LV)
 FS.add_linguistic_variable("CI", LV)
@@ -37,22 +37,23 @@ dynamics.append(deepcopy(FS._variables))
 
 # At each simulation step, perform Sugeno inference, update state and save the results
 for i in range(steps):
-    new_values  = FS.inference()
+    new_values = FS.inference()
     FS._variables.update(new_values)
     dynamics.append(new_values)
 
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 # Plot the dynamics
 lac = [d["LacI"] for d in dynamics]
 tet = [d["TetR"] for d in dynamics]
 ci = [d["CI"] for d in dynamics]
-plt.plot(range(steps+1),lac)
-plt.plot(range(steps+1),tet)
-plt.plot(range(steps+1),ci)
-plt.ylim(0,1.05)
+plt.plot(range(steps + 1), lac)
+plt.plot(range(steps + 1), tet)
+plt.plot(range(steps + 1), ci)
+plt.ylim(0, 1.05)
 plt.xlabel("Time")
 plt.ylabel("Level")
-plt.legend(["LacI","TetR","CI"], loc="lower right",framealpha=1.0)
+plt.legend(["LacI", "TetR", "CI"], loc="lower right", framealpha=1.0)
 plt.show()

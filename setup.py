@@ -3,19 +3,26 @@ from os import path
 
 # Read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name='simpful',
+    name="simpful",
     packages=find_packages(),  # Automatically find packages
-    version='2.14.0',  # Updated version for a non-breaking change
-    description='A user-friendly Python library for fuzzy logic',
-    author='Marco S. Nobile',
-    author_email='marco.nobile@unive.it',
-    url='https://github.com/aresio/simpful',  # use the URL to the github repo
-    keywords=['fuzzy logic', 'sugeno', 'mamdani', 'reasoner', 'python', 'modeling'],  # arbitrary keywords
-    license='LICENSE.txt',
+    version="2.14.0",  # Updated version for a non-breaking change
+    description="A user-friendly Python library for fuzzy logic",
+    author="Marco S. Nobile",
+    author_email="marco.nobile@unive.it",
+    url="https://github.com/aresio/simpful",  # use the URL to the github repo
+    keywords=[
+        "fuzzy logic",
+        "sugeno",
+        "mamdani",
+        "reasoner",
+        "python",
+        "modeling",
+    ],  # arbitrary keywords
+    license="LICENSE.txt",
     install_requires=[
         "numpy >= 1.12.0",
         "scipy >= 1.0.0",
@@ -35,5 +42,5 @@ setup(
         "Operating System :: OS Independent",
     ],
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
 )
