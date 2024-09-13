@@ -361,7 +361,7 @@ def handle_early_stopping(current_best_fitness, best_fitness, no_improvement_cou
 def genetic_algorithm_loop(population_size, max_generations, x_train, y_train, variable_store, 
                            selection_method='hybrid', tournament_size=3, crossover_rate=0.8, mutation_rate=0.2, 
                            elitism_rate=0.05, max_rules=10, min_rules=3, verbose=False, early_stop=True,
-                           seed_population_from=None, num_seed_individuals=0, load_from=None, num_replace_worst=12):
+                           seed_population_from=None, num_seed_individuals=0, load_from=None, num_replace_worst=1):
     
     population, backup_population, available_features = initialize_algorithm(population_size, variable_store, max_rules, x_train, y_train, min_rules, verbose, seed_population_from, num_seed_individuals)
     loaded_data = '/Users/nikhilrazab-sekh/Desktop/simpful/simpful/gp_fuzzy_system/tests'  # We will load this only if we need to

@@ -38,6 +38,15 @@ def replace_worst_models_with_best(population, fitness_scores, best_models, num_
     Returns:
     - list: The updated population with the worst models replaced by the best models.
     """
+    # Ensure num_replace does not exceed the number of available best models
+    if num_replace > len(best_models):
+        print(f"Adjusting num_replace from {num_replace} to {len(best_models)} due to limited best models available.")
+        num_replace = len(best_models)
+
+    # Ensure num_replace does not exceed the size of the population
+    if num_replace > len(population):
+        print(f"Adjusting num_replace from {num_replace} to {len(population)} due to population size.")
+        num_replace = len(population)
     # Sort the population by fitness score in descending order (worst first)
     sorted_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i], reverse=True)
     
