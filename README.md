@@ -22,7 +22,7 @@ Spolaor S., Fuchs C., Cazzaniga P., Kaymak U., Besozzi D., Nobile M.S.: Simpful:
 This example shows how to specify the information about the linguistic variables, fuzzy sets, fuzzy rules, and input values to Simpful. The last line of code prints the result of the fuzzy reasoning.
 
 
-```
+```py
 import simpful as sf
 
 # A simple fuzzy model describing how the heating power of a gas burner depends on the oxygen supply.
@@ -57,7 +57,7 @@ This second example shows how to model a FIS using Mamdani inference. It also sh
 that make modeling more concise and clear: automatic Triangles (i.e., pre-baked linguistic variables 
 with equally spaced triangular fuzzy sets) and the automatic detection of the inference method.
 
-```
+```py
 from simpful import *
 
 FS = FuzzySystem()
