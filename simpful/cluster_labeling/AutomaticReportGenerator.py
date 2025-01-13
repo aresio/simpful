@@ -5,7 +5,10 @@ try:
 except ImportError:
     has_fpdf: bool = False
 
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = lambda x, *args, **kwargs: x  # Fallback to a no-op
 
 
 class AutoReport(FPDF):

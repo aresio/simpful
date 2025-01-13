@@ -1,7 +1,9 @@
 from typing import List
 
-# FIXME: remove TQDM
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = lambda x, *args, **kwargs: x  # Fallback to a no-op
 
 from simpful import FuzzySet
 from simpful.cluster_labeling.components.CFGManager import CFGManager, HedgeChain

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 from simpful import FuzzySet
 from simpful.cluster_labeling.components.CFGManager import HedgeChain
@@ -39,7 +39,7 @@ class Individual:
         self.current_fuzzy_set = FuzzySet(function=modified_membership,
                                           term=f"{current_hedge}"
                                                f"{self.base_template.get_term()}")
-                                               # f"({self.target_set.get_term()})")
+        # f"({self.target_set.get_term()})")
         # Update fitness
         self.fitness = union_intersection_sim(self.current_fuzzy_set,
                                               self.target_set,
