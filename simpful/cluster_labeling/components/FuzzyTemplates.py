@@ -7,23 +7,23 @@ from simpful.cluster_labeling.components.similarity import intersection_area_sim
 
 
 class FuzzySetTemplate:
-    SURELY_STRING = "[SURELY]"
+    SURELY_STRING: str = "[SURELY]"
 
     def __init__(self, universe_of_discourse: List[float]):
         """
         Base FuzzySet template class
 
-        :param universe_of_discourse: Boundaries of the known universe of discourse
+        :param universe_of_discourse: Boundaries of the known universe of discourse [float, float]
         """
         if len(universe_of_discourse) != 2 or universe_of_discourse[0] > universe_of_discourse[1]:
-            raise ValueError("Please specify the universe of discourse in the format [low, high]")
-        self._universe_of_discourse = universe_of_discourse
+            raise ValueError("Please specify the universe of discourse in the format [lower_boundary, higher_boundary]")
+        self._universe_of_discourse: List[float] = universe_of_discourse
 
 
 class GaussianFuzzyTemplates(FuzzySetTemplate):
     def __init__(self, universe_of_discourse: List[float]):
         """
-        Gaussian FuzzySet Template class.
+        Gaussian FuzzySet Template class
 
         :param universe_of_discourse: boundaries in which to check similarity
         """
@@ -32,12 +32,13 @@ class GaussianFuzzyTemplates(FuzzySetTemplate):
         lower_mu, higher_mu = self._universe_of_discourse
         # Find bounds of known universe of discourse
         extent: float = abs(higher_mu - lower_mu)
-        # Empirically decent approximations of low/med/high
-        sigma: float = extent / 6
+        # Note: Empirically decent approximations of low/med/high
+        sigma: float = extent / 6.0
         # Define templates
         low = GaussianFuzzySet(mu=lower_mu, sigma=sigma, term="low")
         high = GaussianFuzzySet(mu=higher_mu, sigma=sigma, term="high")
-        # (test) Medium defined such that sum is always 1
+        # (Alternative): Medium defined such that sum is always 1
+        # Note: works alright, but the standard alternative works better empirically
         # med = FuzzySet(function=lambda x: 1 - (low.get_value(x) + high.get_value(x)), term="medium")
         med = GaussianFuzzySet(mu=(lower_mu + higher_mu) / 2, sigma=sigma, term="medium")
         self._template_list = [low, med, high]
@@ -50,8 +51,9 @@ class GaussianFuzzyTemplates(FuzzySetTemplate):
             "fuse_adjacent_threshold": 0.8,
         }
 
-    def fuse_templates(self, left_index: int, left_intersection: float, right_intersection: float) -> FuzzySet:
+    def _fuse_templates(self, left_index: int, left_intersection: float, right_intersection: float) -> FuzzySet:
         """
+        Note: OFF by default
         Fuse two templates into a larger one. Adjacent templates are fused to make a better-fitting one.
         Adjacent templates are also adjacents in the template list.
 
@@ -74,10 +76,11 @@ class GaussianFuzzyTemplates(FuzzySetTemplate):
                                                        right_template.get_value(x)), term=term)
         return mid_template
 
-    def check_fusion(self, target_set: FuzzySet,
-                     contained_threshold: float = 0.95,
-                     adjacent_threshold: float = 0.8):
+    def _check_fusion(self, target_set: FuzzySet,
+                      contained_threshold: float = 0.95,
+                      adjacent_threshold: float = 0.8):
         """
+        Note: OFF by default
         Check if a fusion between templates is possible.
 
         :param target_set: the target set
@@ -90,23 +93,33 @@ class GaussianFuzzyTemplates(FuzzySetTemplate):
                                                smaller_set=template,
                                                universe_of_discourse=self._universe_of_discourse) for template
                          in self._template_list]
-        # NOTE: this prioritizes the first found. Even then, if it's a good match, why not?
+        # NOTE: this prioritizes the first found
         for idx in range(len(intersections) - 1):
             left_intersection, right_intersection = intersections[idx], intersections[idx + 1]
             # If the conditions are met either way
             if (left_intersection > contained_threshold and right_intersection > adjacent_threshold
                     or right_intersection > contained_threshold and left_intersection > adjacent_threshold):
                 # Thresholds are checked again for appropriate fusion
-                return self.fuse_templates(idx, left_intersection, right_intersection)
+                return self._fuse_templates(idx, left_intersection, right_intersection)
         return None
 
     def match_likely_candidates(self, set_to_approximate: FuzzySet) -> List[FuzzySet]:
-        # Check if there is a fusion that works well
-        fused_template: Optional[FuzzySet] = self.check_fusion(target_set=set_to_approximate,
-                                                               contained_threshold=self._params["fuse_threshold"],
-                                                               adjacent_threshold=self._params[
-                                                                   "fuse_adjacent_threshold"]) \
-            if self._params["fuse_templates"] else None  # If fusion enabled
+        """
+        Match likely candidates for a given fuzzy set based on predefined templates
+
+        :param set_to_approximate:
+        :return:
+        """
+        # If fusion enabled
+        # Note: OFF by default
+        if self._params["fuse_templates"]:
+            # Check if there is a fusion that works well (could be None)
+            fused_template: Optional[FuzzySet] = self._check_fusion(target_set=set_to_approximate,
+                                                                    contained_threshold=self._params["fuse_threshold"],
+                                                                    adjacent_threshold=self._params[
+                                                                        "fuse_adjacent_threshold"])
+        else:
+            fused_template: Optional[FuzzySet] = None
         # If there is, return that as a likely candidate
         if fused_template is not None:
             return [fused_template]
@@ -120,9 +133,12 @@ class GaussianFuzzyTemplates(FuzzySetTemplate):
             # Return the two templates
             return [self._template_list[idx_1], self._template_list[idx_2]]
 
-    def show(self, outputfile: str = ""):
+    def show(self, outputfile: str = "") -> None:
         """
-        Show the templates in a matplotlib plot
+        Display the templates in a matplotlib plot
+
+        :param outputfile: The filename to save the plot. If empty, the plot will not be saved
+        :return:
         """
         LinguisticVariable(self._template_list,
                            universe_of_discourse=self._universe_of_discourse).plot(

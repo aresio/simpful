@@ -1,5 +1,6 @@
 from configparser import ConfigParser
-from typing import Callable, List, Tuple, Dict, Any
+from pathlib import Path
+from typing import Callable, List, Tuple, Dict, Any, Union
 
 from simpful.cluster_labeling.components.CFGManager import CFGManager, HedgeChain
 
@@ -12,7 +13,7 @@ def as_dict(cfg_parser: ConfigParser) -> dict:
     return d
 
 
-def load_ini_to_dict(file_path: str) -> dict:
+def load_ini_to_dict(file_path: Union[str, Path]) -> dict:
     config = ConfigParser()
     config.read(file_path)
     return as_dict(config)
@@ -27,7 +28,7 @@ class HedgeApplier:
         self.__extent = abs(high - low)
         # Grammar, hedges
         self.cfg: CFGManager = cfg
-        self.hedges_dict: dict = load_ini_to_dict('simpful/cluster_labeling/_hedges.ini')
+        self.hedges_dict: dict = load_ini_to_dict(Path(__file__).parent / '_hedges.ini')
 
     def __unary_transform(self, mem_fun: Callable, q: float, r: float, p: float) -> Callable:
         """

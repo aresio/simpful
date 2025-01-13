@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 import seaborn as sns
 
@@ -10,7 +8,7 @@ from simpful.cluster_labeling.components import CFGManager, GaussianFuzzyTemplat
 
 
 class FuzzyClusterNamer:
-    def __init__(self, FS_list: List[FuzzySet] | LinguisticVariable,
+    def __init__(self, FS_list: Union[List[FuzzySet], LinguisticVariable],
                  universe_of_discourse: List[float]):
         # force_different: bool = False):
         """
@@ -21,9 +19,9 @@ class FuzzyClusterNamer:
         :param universe_of_discourse: Boundaries of the known universe of discourse
         """
         if isinstance(FS_list, LinguisticVariable):
-            self._FS_list: list[FuzzySet] = FS_list._FSlist
+            self._FS_list: List[FuzzySet] = FS_list._FSlist
         else:
-            self._FS_list: list[FuzzySet] = FS_list
+            self._FS_list: List[FuzzySet] = FS_list
         self._universe_of_discourse = universe_of_discourse
         # self.force_different = force_different  #
 
@@ -58,7 +56,7 @@ class FuzzyClusterNamer:
         # Fix underscores
         fuzzy_set._term = fuzzy_set._term.replace("_", " ")
 
-    def _simplify_terms(self, approximated_sets: list[FuzzySet]) -> list[FuzzySet]:
+    def _simplify_terms(self, approximated_sets: List[FuzzySet]) -> List[FuzzySet]:
         """
         Simplify the terms of an approximated fuzzy set.
         Only priority terms as defined in the ContextFreeGrammarManager are kept.
@@ -68,13 +66,13 @@ class FuzzyClusterNamer:
         """
         for approximated_set in approximated_sets:
             term: str = approximated_set.get_term()
-            priority_list: list[str] = self._cfg.get_priority_terms(term)
-            term_tokens: list[str] = term.split(" ")
-            simplified_term: list[str] = [x for x in term_tokens if x in priority_list]
+            priority_list: List[str] = self._cfg.get_priority_terms(term)
+            term_tokens: List[str] = term.split(" ")
+            simplified_term: List[str] = [x for x in term_tokens if x in priority_list]
             approximated_set._term = " ".join(simplified_term).strip()
         return approximated_sets
 
-    def run_approximator(self, **plot_args) -> list[FuzzySet]:
+    def run_approximator(self, **plot_args) -> List[FuzzySet]:
         """
         Run the cluster name approximators
 
@@ -93,10 +91,10 @@ class FuzzyClusterNamer:
                 outputfile=plot_args.get("name_before", f"old_{datetime.now().strftime('%H_%M_%S')}"))
         templates = GaussianFuzzyTemplates(universe_of_discourse=self._universe_of_discourse)
         # ------------------------------------------------------------------------------
-        approximated_sets: list[FuzzySet] = []
+        approximated_sets: List[FuzzySet] = []
         for f_set in self._FS_list:
             # Get two best templates
-            best_templates: list[FuzzySet] = templates.match_likely_candidates(f_set)
+            best_templates: List[FuzzySet] = templates.match_likely_candidates(f_set)
             # Run grammar guided hedge builder
             hedge_builder = GrammarGuidedHedgeBuilder(sets_to_modify=best_templates, set_to_approximate=f_set,
                                                       universe_of_discourse=self._universe_of_discourse,

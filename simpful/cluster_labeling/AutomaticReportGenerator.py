@@ -28,12 +28,12 @@ class AutoReport(FPDF):
         w = self.box_width(self.title)
         # self.set_x((210 - w) / 2)
         self.set_text_color(114, 184, 81)
-        self.cell(w, 6, self.title, 0, 0, 'L', 0)
+        self.cell(w, 6, self.title, 0, 0, 'L', False)
         # *** Author ***
         self.set_text_color(128)
         w = self.box_width(self.author)
         self.set_font(self.headings_font, 'I', 8)
-        self.cell(w, 7, self.author, 0, 0, 'L', 0)
+        self.cell(w, 7, self.author, 0, 0, 'L', False)
         # *** Line break ***
         self.ln(10)
 
@@ -53,7 +53,7 @@ class AutoReport(FPDF):
         # Background color
         self.set_fill_color(210, 237, 197)
         # Title
-        self.cell(0, 6, f'Section {num:d} : {label}', 0, 1, 'L', 1)
+        self.cell(0, 6, f'Section {num:d} : {label}', 0, 1, 'L', True)
         # Line break
         self.ln(4)
 
