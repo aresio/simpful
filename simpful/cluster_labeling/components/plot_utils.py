@@ -64,9 +64,11 @@ def plot_clusters_and_approx(ling_var: LinguisticVariable,
         t_line = ax.plot(x, [t.get_value(xx) for xx in x], "-.", lw=1, label=t.get_term(), color="lightgray")
         t_lines.extend(t_line)
 
-    # Create another legend for the second line.
-    fig.legend(handles=main_lines, loc='center left')
-    fig.legend(handles=t_lines, loc='center right')
+    # Create legends positioned at the bottom
+    fig.legend(handles=main_lines, loc='lower left', bbox_to_anchor=(0.1, 0),
+               fontsize='small', title='Membership Functions')
+    fig.legend(handles=t_lines, loc='lower right', bbox_to_anchor=(0.9, 0),
+               fontsize='small', title='Template references')
 
     plt.xlabel(ling_var._concept.replace("_", " "), fontsize=12)
     plt.ylabel("Membership degree", fontsize=12)

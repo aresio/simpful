@@ -47,7 +47,7 @@ class FuzzyClusterNamer:
         # Cluster (just brackets that indicate which cluster the approximation refers to)
         cluster = fuzzy_set._term[fuzzy_set._term.find("("):]
         # Find the possible "surely" string
-        # TODO: rename, or remove
+        # TODO [IMPROVEMENT]: the "surely" string is currently being removed anyway, but we could find another name
         if not (index := term.find(GaussianFuzzyTemplates.SURELY_STRING)) == -1:
             new_term = (f"{term[index + len(GaussianFuzzyTemplates.SURELY_STRING):]} "
                         f"and {term[:index]}{cluster}").strip()
@@ -66,6 +66,7 @@ class FuzzyClusterNamer:
         """
         for approximated_set in approximated_sets:
             term: str = approximated_set.get_term()
+            # FIXME: Check what this term does
             priority_list: List[str] = self._cfg.get_priority_terms(term)
             term_tokens: List[str] = term.split(" ")
             simplified_term: List[str] = [x for x in term_tokens if x in priority_list]

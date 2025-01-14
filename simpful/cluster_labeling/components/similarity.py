@@ -8,6 +8,14 @@ from simpful.fuzzy_sets import FuzzySet
 
 def intersection_area_sim(containing_set: FuzzySet, smaller_set: FuzzySet,
                           universe_of_discourse: List[float]) -> float:
+    """
+    Similarity measure based on the area of intersection between two fuzzy sets
+
+    :param containing_set: the larger fuzzy set that contains the smaller
+    :param smaller_set: the smaller fuzzy set being contained
+    :param universe_of_discourse: boundaries in which to check similarity
+    :return: ratio of the area of intersection
+    """
     if len(universe_of_discourse) != 2 or universe_of_discourse[0] > universe_of_discourse[1]:
         raise ValueError("Please specify the universe of discourse in the format [low, high]")
     a, b = universe_of_discourse

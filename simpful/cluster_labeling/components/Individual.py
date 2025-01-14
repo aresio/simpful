@@ -21,7 +21,7 @@ class Individual:
 
         self.hedge_applier: HedgeApplier = hedge_applier
 
-    def apply_hedges(self, hedge_chain: HedgeChain):
+    def apply_hedges(self, hedge_chain: HedgeChain) -> None:
         """
         Apply a hedge chain (list of strings) to the current individual
 
