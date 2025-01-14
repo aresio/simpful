@@ -80,18 +80,18 @@ class CFGManager:
         """
         return [x._rhs[0] for x in self.grammar._lhs_index[Nonterminal("SHIFT_ABOVE")]]
 
-    def get_priority_terms(self, term: str):
+    def get_priority_terms(self): # term: str):
         """
         Get the priority terms (i.e., terms to maintain when simplifying labels)
 
-        :param term: TODO
-        :return: TODO
+        :return: A list of priority terms, including positive and negative shifts,
+             and template names.
         """
+        # TODO [IMPROVEMENT]: Make more customizable
         above_shifts: List[str] = self.get_positive_shift()
         negative_shifts: List[str] = self.get_negative_shift()
-        # TODO: fix
-        cluster_names = re.findall(r"\(cluster\d+\)", term)
-        return above_shifts + negative_shifts + self.template_names + cluster_names  # + self.get_uncertainty_mods() + cluster_names
+        # cluster_names = re.findall(r"\(cluster\d+\)", term)
+        return above_shifts + negative_shifts + self.template_names  # + cluster_names  # + self.get_uncertainty_mods() + cluster_names
 
     # def get_uncertainty_mods(self):
     #     return [x._rhs[0] for x in self.grammar._lhs_index[Nonterminal("PEAK_MOD")]]

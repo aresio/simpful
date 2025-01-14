@@ -66,8 +66,7 @@ class FuzzyClusterNamer:
         """
         for approximated_set in approximated_sets:
             term: str = approximated_set.get_term()
-            # FIXME: Check what this term does
-            priority_list: List[str] = self._cfg.get_priority_terms(term)
+            priority_list: List[str] = self._cfg.get_priority_terms()
             term_tokens: List[str] = term.split(" ")
             simplified_term: List[str] = [x for x in term_tokens if x in priority_list]
             approximated_set._term = " ".join(simplified_term).strip()
