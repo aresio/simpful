@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import List, Union
 
-import seaborn as sns
+try:
+    import seaborn as sns
+except ImportError:
+    raise Exception("ERROR: please, install matplotlib and seaborn for cluster labeling facilities")
 
 from simpful import FuzzySet, SingletonsSet, LinguisticVariable
 from simpful.cluster_labeling.components import CFGManager, GaussianFuzzyTemplates, GrammarGuidedHedgeBuilder
