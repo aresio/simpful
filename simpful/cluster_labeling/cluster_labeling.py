@@ -207,23 +207,23 @@ def _auto_label(original_fs: FuzzySystem,
     return new_fs, fun_correspondences
 
 
-def _generate_plots_from_fs(fs: FuzzySystem, out_path: Path, fun_correspondences):
+def _generate_plots_from_fs(fs: FuzzySystem, out_path: Path, plot_color_by_rule_output: bool):
     """
      Generate plots for the linguistic variables in a fuzzy system and save them to a specified directory.
 
     :param fs: fuzzy system containing linguistic variables to plot
     :param out_path: path where the plots will be saved
-    :param fun_correspondences: dictionary mapping functions to their correspondences for plotting
+    :param plot_color_by_rule_output: color lines by rule output
     :return:
     """
     plots_foder: Path = out_path / "plots"
     plots_foder.mkdir(exist_ok=True, parents=True)
     for idx, linguistic_variable in enumerate(fs._lvs.values()):
         # linguistic_variable.plot()
-        plot_clusters_and_approx(linguistic_variable,
+        plot_clusters_and_approx(fs,
+                linguistic_variable,
                                  plots_foder / f"{idx}.png",
-                                 correspondences=fun_correspondences,
-                                 num_functions=len(fs.get_rules())
+                                 plot_color_by_rule_output=plot_color_by_rule_output
                                  )
 
 
@@ -250,6 +250,7 @@ def _auto_report_generate(out_path: Path,
 def approximate_fs_labels(system_to_label: FuzzySystem,
                           output_path: Union[str, Path] = "output",
                           generate_report: bool = False,
+                          plot_color_by_rule_output: bool = True,
                           **report_args) -> None:
     if not isinstance(output_path, Path):
         output_path: Path = Path(output_path)
@@ -258,6 +259,6 @@ def approximate_fs_labels(system_to_label: FuzzySystem,
     out_path: Path = output_path / "report"
     out_path.mkdir(exist_ok=True, parents=True)
     new_fs, fun_correspondences = _auto_label(system_to_label, out_path)
-    _generate_plots_from_fs(new_fs, out_path, fun_correspondences)
+    _generate_plots_from_fs(new_fs, out_path, plot_color_by_rule_output)
     if generate_report:
         _auto_report_generate(out_path, **report_args)
