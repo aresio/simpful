@@ -112,7 +112,7 @@ def __process_if_then_block(if_block: str, then_block: str,
         if concept_match:
             concept_start = concept_match.start()
             # Isolate rule (first closing bracket)
-            bracket_match = re.search("\)", if_block[concept_start:], flags=re.IGNORECASE).start()
+            bracket_match = re.search(r"\)", if_block[concept_start:], flags=re.IGNORECASE).start()
             individual_rule = if_block[concept_start:bracket_match + concept_start]
             # Rule will be "variable IS cluster"
             variable_name, sanity_is, cluster_name = individual_rule.split()
@@ -150,7 +150,7 @@ def __build_function_correspondences(corresponding_label: str,
     :return: None (works inplace)
     """
     # Find the end of the function name (first closing parenthesis)
-    end = re.search("\)", then_block, flags=re.IGNORECASE).start()
+    end = re.search(r"\)", then_block, flags=re.IGNORECASE).start()
     # Find the start of the function name (after "IS")
     start = re.search("IS", then_block, flags=re.IGNORECASE).end()
     fun_name = then_block[start:end].strip()
