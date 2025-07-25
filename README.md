@@ -82,6 +82,45 @@ FS.set_variable("service", 9.8)
 
 tip = FS.inference()
 ```
+## Usage example 3: fuzzy sets naming
+
+This example shows how to automatically assign names to fuzzy sets. Such a tool can be handy when dealing with
+automatically genereted Fuzzy Systems.
+
+```
+from simpful import *
+from simpful.cluster_labeling import approximate_fs_labels
+
+# ------ EXAMPLE FUZZY SYSTEM ------
+FS = FuzzySystem()
+
+# Input Variable 1: Temperature
+T_S1 = FuzzySet(function=Gaussian_MF(mu=0, sigma=8), term="cold")
+T_S2 = FuzzySet(function=Gaussian_MF(mu=40, sigma=8), term="hot")
+Temperature = LinguisticVariable([T_S1, T_S2], concept="Temperature", universe_of_discourse=[0, 40])
+FS.add_linguistic_variable("Temperature", Temperature)
+
+# Input Variable 2: Humidity
+H_S1 = FuzzySet(function=Gaussian_MF(mu=0, sigma=20), term="dry")
+H_S2 = FuzzySet(function=Gaussian_MF(mu=100, sigma=20), term="wet")
+Humidity = LinguisticVariable([H_S1, H_S2], concept="Humidity", universe_of_discourse=[0, 100])
+FS.add_linguistic_variable("Humidity", Humidity)
+
+# Output Variable
+F_S1 = FuzzySet(function=Gaussian_MF(mu=0, sigma=25), term="slow")
+F_S2 = FuzzySet(function=Gaussian_MF(mu=100, sigma=25), term="fast")
+FanSpeed = LinguisticVariable([F_S1, F_S2], concept="Fan Speed", universe_of_discourse=[0, 100])
+
+R1 = "IF (Temperature IS hot) AND (Humidity IS wet) THEN (FanSpeed IS fast)"
+R2 = "IF (Temperature IS cold) THEN (FanSpeed IS slow)"
+FS.add_rules([R1, R2])
+
+# ------ USAGE EXAMPLE ------
+# The generate_report parameter allows the creation of a PDF report with graphs and rules.
+# The plot_color_by_rule_output allows to color membership functions based on their rule effect
+approximate_fs_labels(FS, output_path="output", generate_report=False, plot_color_by_rule_output=True)
+```
+
 ## Additional examples
 
 Additional example scripts are available in the [examples folder](https://github.com/aresio/simpful/tree/master/examples) of this GitHub and in our [Code Ocean capsule](https://codeocean.com/capsule/2230971/tree).
