@@ -1023,7 +1023,7 @@ class FuzzySystem(object):
             C.append(temp)
         C = array(C)
 
-        A,B = meshgrid(A,B)
+        A,B = meshgrid(A,B, indexing="ij")
 
         fig = figure(figsize=(8,6))
         ax = axes(projection='3d')
