@@ -192,6 +192,33 @@ class DoubleGaussian_MF(MF_object):
             return 1.0
 
 
+class GBell_MF(MF_object):
+    """
+        Creates a Generalized Bell-shaped membership function.
+        Formula: mu(x) = 1 / (1 + |(x - c) / a|^(2b))
+
+        Args:
+            a: half-width of the bell curve (a > 0).
+            b: slope parameter controlling the steepness (b > 0).
+            c: center / peak coordinate of the bell curve.
+    """
+
+    def __init__(self, a=1.0, b=2.0, c=0.0):
+        self._a = float(a)
+        self._b = float(b)
+        self._c = float(c)
+        if self._a <= 0:
+            raise ValueError("Error in Generalized Bell fuzzy set: parameter 'a' (half-width) should be > 0, got %f" % self._a)
+        if self._b <= 0:
+            raise ValueError("Error in Generalized Bell fuzzy set: parameter 'b' (slope) should be > 0, got %f" % self._b)
+
+    def _execute(self, x):
+        return 1.0 / (1.0 + np.power(np.abs((x - self._c) / self._a), 2.0 * self._b))
+
+    def __repr__(self):
+        return "<Generalized Bell MF (a=%f, b=%f, c=%f)>" % (self._a, self._b, self._c)
+
+
 class Crisp_MF(MF_object):
     """
         Creates a crisp membership function.
@@ -547,6 +574,41 @@ class DoubleGaussianFuzzySet(FuzzySet):
         if sigma1 is not None: self._funpointer._sigma1 = sigma1
         if mu2 is not None: self._funpointer._mu2 = mu2
         if sigma2 is not None: self._funpointer._sigma2 = sigma2
+
+
+class GBellFuzzySet(FuzzySet):
+    """
+        Creates a new Generalized Bell-shaped fuzzy set.
+
+        Args:
+            a: half-width of the bell curve (a > 0).
+            b: slope parameter controlling the steepness (b > 0).
+            c: center / peak coordinate of the bell curve.
+            term: string representing the linguistic term to be associated to the fuzzy set.
+    """
+
+    def __init__(self, a=1.0, b=2.0, c=0.0, term=""):
+        gbell_MF = GBell_MF(a, b, c)
+        super().__init__(function=gbell_MF, term=term)
+
+    def set_params(self, a=None, b=None, c=None):
+        """
+        Changes parameters of the Generalized Bell fuzzy set.
+
+        Args:
+            a: half-width of the bell curve (a > 0).
+            b: slope parameter controlling the steepness (b > 0).
+            c: center / peak coordinate of the bell curve.
+        """
+        if a is not None:
+            if a <= 0: raise ValueError("Parameter 'a' must be > 0")
+            self._funpointer._a = float(a)
+        if b is not None:
+            if b <= 0: raise ValueError("Parameter 'b' must be > 0")
+            self._funpointer._b = float(b)
+        if c is not None:
+            self._funpointer._c = float(c)
+
 
 class CrispSet(FuzzySet):
     """
